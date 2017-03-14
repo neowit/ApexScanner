@@ -25,10 +25,7 @@ sourceDirectories in Compile <<= (sourceDirectories in Compile) { dirs =>
     dirs.filterNot(_.absolutePath.endsWith("-2.11")).filterNot(_.absolutePath.endsWith("-2.12"))
 }
 
-
-resolvers ++= Seq(
-    "Sonatype OSS Releases"  at "http://oss.sonatype.org/content/repositories/releases/",
-    "Sonatype OSS Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
-)
-
 libraryDependencies += "org.antlr" %  "antlr4-runtime" % "4.6"
+
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+
