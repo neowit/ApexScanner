@@ -48,6 +48,6 @@ class SyntaxErrorListener(file: Path) extends BaseErrorListener {
                              msg: String,
                              e: RecognitionException): Unit = {
         //super.syntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e)
-        assert(false, file.toFile.getName + "=> " + msg)
+        assert(false, file.toFile.getName + s"=> ($line, $charPositionInLine): " + msg)
     }
 }
