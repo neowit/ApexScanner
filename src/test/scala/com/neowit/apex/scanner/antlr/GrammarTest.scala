@@ -1,7 +1,8 @@
 package com.neowit.apex.scanner.antlr
 
 import java.io.FileInputStream
-import java.nio.file.{FileSystems, Files, Path}
+import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file._
 import java.util.Properties
 
 import org.antlr.v4.runtime._
@@ -18,8 +19,31 @@ class GrammarTest extends FunSuite {
     private val projectPath = paths.getProperty("grammar-tests.path")
 
     test("Test All Apex Class Examples") {
-        val p = FileSystems.getDefault.getPath(projectPath)
-        Files.list(p).filter(_.toString.endsWith(".cls")).forEach{file =>
+        val path = FileSystems.getDefault.getPath(projectPath)
+        val fileListBuilder = List.newBuilder[Path]
+        val ignoredNames = Set("A-Fake-Class.cls")
+        val classFileVisitor = new SimpleFileVisitor[Path]() {
+            override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
+                val fileName = file.getName(file.getNameCount-1).toString
+                if (!attrs.isDirectory && fileName.endsWith(".cls") && !ignoredNames.contains(fileName)) {
+                    fileListBuilder += file
+                }
+                FileVisitResult.CONTINUE
+            }
+
+            override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult = {
+                if (dir.toString.endsWith("resources_unpacked")) {
+                    FileVisitResult.SKIP_SUBTREE
+                } else {
+                    super.preVisitDirectory(dir, attrs)
+                }
+            }
+        }
+        Files.walkFileTree( path, classFileVisitor)
+        val files = fileListBuilder.result()
+
+        //Files.list(p).filter(_.toString.endsWith(".cls")).forEach{file =>
+        files.foreach{ file =>
             val lexer = getLexer(file)
             val tokens = new CommonTokenStream(lexer)
             val parser = new ApexcodeParser(tokens)
@@ -39,6 +63,7 @@ class GrammarTest extends FunSuite {
         val lexer = new ApexcodeLexer(input)
         lexer
     }
+
 }
 
 class SyntaxErrorListener(file: Path) extends BaseErrorListener {
@@ -48,6 +73,6 @@ class SyntaxErrorListener(file: Path) extends BaseErrorListener {
                              msg: String,
                              e: RecognitionException): Unit = {
         //super.syntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e)
-        assert(false, file.toFile.getName + s"=> ($line, $charPositionInLine): " + msg)
+        assert(false, "\n" + file.toString + s"\n=> ($line, $charPositionInLine): " + msg)
     }
 }
