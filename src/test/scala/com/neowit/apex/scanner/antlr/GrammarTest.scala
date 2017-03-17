@@ -22,6 +22,8 @@ class GrammarTest extends FunSuite {
         val path = FileSystems.getDefault.getPath(projectPath)
         val fileListBuilder = List.newBuilder[Path]
         val ignoredNames = Set("A-Fake-Class.cls")
+        val ignoredDirs = Set("resources_unpacked", "Referenced Packages", "_ProjectTemplate")
+
         val classFileVisitor = new SimpleFileVisitor[Path]() {
             override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
                 val fileName = file.getName(file.getNameCount-1).toString
@@ -32,7 +34,8 @@ class GrammarTest extends FunSuite {
             }
 
             override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult = {
-                if (dir.toString.endsWith("resources_unpacked")) {
+                val dirName = dir.getName(dir.getNameCount-1).toString
+                if (ignoredDirs.contains(dirName)) {
                     FileVisitResult.SKIP_SUBTREE
                 } else {
                     super.preVisitDirectory(dir, attrs)
