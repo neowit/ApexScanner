@@ -45,14 +45,21 @@ class GrammarTest extends FunSuite {
         Files.walkFileTree( path, classFileVisitor)
         val files = fileListBuilder.result()
 
+        val fileNameSetBuilder = Set.newBuilder[String]
         //Files.list(p).filter(_.toString.endsWith(".cls")).forEach{file =>
         files.foreach{ file =>
             val lexer = getLexer(file)
+            val fileName = file.getName(file.getNameCount-1).toString
+            println("Checking " + fileName)
+            fileNameSetBuilder += fileName
             val tokens = new CommonTokenStream(lexer)
             val parser = new ApexcodeParser(tokens)
             parser.addErrorListener(new SyntaxErrorListener(file))
             val tree = parser.compilationUnit()
         }
+        println("==================================================")
+        val fileNameSet = fileNameSetBuilder.result()
+        println(s"Total ${fileNameSet.size} unique file names tested (actual number of tested files is much higher)")
     }
 
     /**
