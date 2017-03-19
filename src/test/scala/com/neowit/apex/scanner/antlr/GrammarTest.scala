@@ -31,7 +31,7 @@ class GrammarTest extends FunSuite {
             override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
                 val fileName = file.getName(file.getNameCount-1).toString
                 if (!attrs.isDirectory
-                    && fileName.endsWith(".cls")
+                    && (fileName.endsWith(".cls") || fileName.endsWith(".trigger"))
                     && !fileName.contains("__") // exclude classes with namespace <Namespace>__classname.cls, they do not have apex code
                     && !ignoredNames.contains(fileName)) {
                     fileListBuilder += file
