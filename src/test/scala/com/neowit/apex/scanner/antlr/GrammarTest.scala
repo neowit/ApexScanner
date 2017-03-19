@@ -21,13 +21,19 @@ class GrammarTest extends FunSuite {
     test("Test All Apex Class Examples") {
         val path = FileSystems.getDefault.getPath(projectPath)
         val fileListBuilder = List.newBuilder[Path]
-        val ignoredNames = Set("A-Fake-Class.cls")
+        val ignoredNames = Set(
+            "A-Fake-Class.cls", // not real apex code
+            "IObjectWrapper.cls" // old class, contains no longer supported type parameter: interface Name<T>
+        )
         val ignoredDirs = Set("resources_unpacked", "Referenced Packages", "_ProjectTemplate")
 
         val classFileVisitor = new SimpleFileVisitor[Path]() {
             override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
                 val fileName = file.getName(file.getNameCount-1).toString
-                if (!attrs.isDirectory && fileName.endsWith(".cls") && !ignoredNames.contains(fileName)) {
+                if (!attrs.isDirectory
+                    && fileName.endsWith(".cls")
+                    && !fileName.contains("__") // exclude classes with namespace <Namespace>__classname.cls, they do not have apex code
+                    && !ignoredNames.contains(fileName)) {
                     fileListBuilder += file
                 }
                 FileVisitResult.CONTINUE
