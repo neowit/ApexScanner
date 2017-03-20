@@ -3,6 +3,7 @@ package com.neowit.apex.scanner
 import java.nio.file.{FileSystems, Files, Path}
 import java.util.Properties
 
+import com.neowit.apex.scanner.antlr.FileScanResult
 import org.scalatest.FunSuite
 
 class SyntaxCheckerTest extends FunSuite {
@@ -42,11 +43,13 @@ class SyntaxCheckerTest extends FunSuite {
         val path = FileSystems.getDefault.getPath(projectPath)
         val fileNameSetBuilder = Set.newBuilder[String]
 
-        def onFileCheckResult(file: Path, res: CheckSyntaxResult):Unit = {
+        def onFileCheckResult(scanResult: FileScanResult):Unit = {
+            val file: Path = scanResult.sourceFile
+            val errors = scanResult.errors
             val fileName = file.getName(file.getNameCount-1).toString
             fileNameSetBuilder += fileName
             println("Checking " + fileName)
-            res.errors.foreach(e =>  assert(false, "\n" + file.toString + s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+            errors.foreach(e =>  assert(false, "\n" + file.toString + s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
         }
 
         val start = System.currentTimeMillis
