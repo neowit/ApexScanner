@@ -1,6 +1,6 @@
-package com.neowit.apex.scanner.antlr
+package com.neowit.apex.scanner
 
-import com.neowit.apex.scanner.SyntaxError
+import com.neowit.apex.scanner.actions.SyntaxError
 import org.antlr.v4.runtime.ANTLRErrorListener
 
 /**

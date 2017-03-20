@@ -1,8 +1,8 @@
-package com.neowit.apex.scanner
+package com.neowit.apex.scanner.actions
 
 import java.nio.file.Path
 
-import com.neowit.apex.scanner.antlr.{ApexErrorListener, FileScanResult, Scanner}
+import com.neowit.apex.scanner._
 import org.antlr.v4.runtime.{BaseErrorListener, RecognitionException, Recognizer}
 
 object SyntaxChecker {

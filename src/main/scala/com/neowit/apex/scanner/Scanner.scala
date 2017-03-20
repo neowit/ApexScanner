@@ -17,13 +17,14 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package com.neowit.apex.scanner.antlr
+package com.neowit.apex.scanner
 
 import java.io.FileInputStream
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.{FileVisitResult, Files, Path, SimpleFileVisitor}
 
-import com.neowit.apex.scanner.SyntaxError
+import com.neowit.apex.scanner.actions.SyntaxError
+import com.neowit.apex.scanner.antlr.{ApexcodeLexer, ApexcodeParser, CaseInsensitiveInputStream}
 import org.antlr.v4.runtime._
 
 case class FileScanResult(sourceFile: Path, errors: Seq[SyntaxError], parseContext: ParserRuleContext)

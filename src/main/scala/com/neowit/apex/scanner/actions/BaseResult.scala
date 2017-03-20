@@ -1,4 +1,4 @@
-package com.neowit.apex.scanner
+package com.neowit.apex.scanner.actions
 
 import java.nio.file.Path
 

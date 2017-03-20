@@ -3,7 +3,7 @@ package com.neowit.apex.scanner
 import java.nio.file.{FileSystems, Files, Path}
 import java.util.Properties
 
-import com.neowit.apex.scanner.antlr.FileScanResult
+import com.neowit.apex.scanner.actions.SyntaxChecker
 import org.scalatest.FunSuite
 
 class SyntaxCheckerTest extends FunSuite {
