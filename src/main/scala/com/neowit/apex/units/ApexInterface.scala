@@ -1,7 +1,7 @@
 package com.neowit.apex.units
 
 case class ApexInterface(annotationOpt: Option[ApexAnnotation],
-                         modifiers: ModifierSet,
+                         modifiers: Modifiers,
                          name: String,
                          superTypeOpt: Option[ClassLike],
                          implements: List[ClassLike],
