@@ -1,12 +1,9 @@
-package com.neowit.apex.units
+package com.neowit.apex.nodes
 
+case class ApexClass(name: String, location: LocationInterval) extends ClassLike {
+    override def nodeType: AstNodeType = ApexClassNodeType
 
-case class ApexClass(annotationOpt: Option[ApexAnnotation],
-                     modifiers: Modifiers,
-                     name: String,
-                     superTypeOpt: Option[ClassLike],
-                     implements: List[ClassLike],
-                     parentContext: Option[ApexUnit]) extends ClassLike
+}
 
 
 /*

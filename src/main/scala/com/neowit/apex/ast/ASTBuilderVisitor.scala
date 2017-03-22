@@ -2,34 +2,32 @@ package com.neowit.apex.ast
 
 import com.neowit.apex.scanner.antlr.ApexcodeBaseVisitor
 import com.neowit.apex.scanner.antlr.ApexcodeParser._
-import com.neowit.apex.units.Modifiers.Modifier
-import com.neowit.apex.units._
+import com.neowit.apex.nodes._
 
 /**
   * Created by Andrey Gavrikov on 22/03/2017.
   */
-class ASTBuilderVisitor extends ApexcodeBaseVisitor[ApexUnit] {
+class ASTBuilderVisitor extends ApexcodeBaseVisitor[AstNode] {
     /**
       * {@inheritDoc }
       *
       * <p>The default implementation returns the result of calling
       * {@link #visitChildren} on {@code ctx}.</p>
       */
-    override def visitClassDef(ctx: ClassDefContext): ApexUnit = {
-        //val x = ctx.classOrInterfaceModifier(0)
-        var modifiers: Modifiers = Modifiers(Set.empty)
+    override def visitClassDef(ctx: ClassDefContext): AstNode = {
+        var modifiersBuilder = Set.newBuilder[Modifier]
         var annotationOpt: Option[ApexAnnotation] = None
         var classNameOpt: Option[String] = None
 
         ctx.children.iterator().forEachRemaining{
             case elem: ClassOrInterfaceModifierContext =>
                 if (null != elem.classOrInterfaceVisibilityModifier()) {
-                    val currentModifiers = visitClassOrInterfaceVisibilityModifier(elem.classOrInterfaceVisibilityModifier()).asInstanceOf[Modifiers]
+                    val modifier = visitClassOrInterfaceVisibilityModifier(elem.classOrInterfaceVisibilityModifier()).asInstanceOf[Modifier]
                     // add extra modifiers to existing set
-                    modifiers = modifiers.copy(modifiers = modifiers.modifiers ++ currentModifiers.modifiers)
+                    modifiersBuilder += modifier
                 }
                 if (null != elem.annotation()) {
-                    annotationOpt = Option(visitAnnotation(elem.annotation()).asInstanceOf[ApexAnnotation])
+                    annotationOpt = Option(visit(elem.annotation()).asInstanceOf[ApexAnnotation])
                 }
                 //visit(elem)
             case elem: ClassDeclarationContext =>
@@ -39,14 +37,28 @@ class ASTBuilderVisitor extends ApexcodeBaseVisitor[ApexUnit] {
             case elem => throw new NotImplementedError("Unsupported element: " + elem)
 
         }
+
+        val classNode =
         classNameOpt match {
           case Some(name) =>
               //TODO add supertype, implements & parentContext
-              ApexClass(annotationOpt, modifiers, name, superTypeOpt = None, implements = Nil, parentContext = None)
+              val cls = ApexClass(name, LocationInterval(ctx))
+
+              annotationOpt.map{a =>
+                  a.setParent(cls)
+                  cls.addChild(a)
+              }
+              val modifiers = modifiersBuilder.result()
+              modifiers.map{m =>
+                  m.setParent(cls)
+                  cls.addChild(m)
+              }
+              cls
           case None => throw new NotImplementedError("visitClassDef without Class name is not supported")
         }
-        //val cls = ApexClass(ctx)
-        super.visitClassDef(ctx)
+
+        classNode
+        //super.visitClassDef(ctx)
     }
 
     /**
@@ -55,29 +67,26 @@ class ASTBuilderVisitor extends ApexcodeBaseVisitor[ApexUnit] {
       * <p>The default implementation returns the result of calling
       * {@link #visitChildren} on {@code ctx}.</p>
       */
-    override def visitClassOrInterfaceVisibilityModifier(ctx: ClassOrInterfaceVisibilityModifierContext): ApexUnit = {
-        val modifierSetBuilder = Set.newBuilder[Modifier]
+    override def visitClassOrInterfaceVisibilityModifier(ctx: ClassOrInterfaceVisibilityModifierContext): AstNode = {
         if (null != ctx.ABSTRACT()) {
-            modifierSetBuilder += Modifiers.ABSTRACT
+            return Modifier(Modifier.ABSTRACT, LocationInterval(ctx.VIRTUAL()))
         }
         if (null != ctx.GLOBAL()) {
-            modifierSetBuilder += Modifiers.GLOBAL
+            return Modifier(Modifier.GLOBAL, LocationInterval(ctx.GLOBAL()))
         }
         if (null != ctx.PRIVATE()) {
-            modifierSetBuilder += Modifiers.PRIVATE
+            return Modifier(Modifier.PRIVATE, LocationInterval(ctx.PRIVATE()))
         }
         if (null != ctx.PUBLIC()) {
-            modifierSetBuilder += Modifiers.PUBLIC
+            return Modifier(Modifier.PUBLIC, LocationInterval(ctx.PUBLIC()))
         }
         if (null != ctx.VIRTUAL()) {
-            modifierSetBuilder += Modifiers.VIRTUAL
+            return Modifier(Modifier.VIRTUAL, LocationInterval(ctx.VIRTUAL()))
         }
         if (null != ctx.WEBSERVICE()) {
-            modifierSetBuilder += Modifiers.WEBSERVICE
+            return Modifier(Modifier.WEBSERVICE, LocationInterval(ctx.WEBSERVICE()))
         }
-
-        //super.visitClassOrInterfaceVisibilityModifier(ctx)
-        Modifiers(modifierSetBuilder.result())
+        EmptyNode
     }
 
     /**
@@ -86,9 +95,9 @@ class ASTBuilderVisitor extends ApexcodeBaseVisitor[ApexUnit] {
       * <p>The default implementation returns the result of calling
       * {@link #visitChildren} on {@code ctx}.</p>
       */
-    override def visitAnnotation(ctx: AnnotationContext): ApexUnit = {
+    override def visitAnnotation(ctx: AnnotationContext): AstNode = {
         //TODO define params
-        ApexAnnotation(name = ctx.annotationName().getText, params = Nil, parentContext = None)
+        ApexAnnotation(name = ctx.annotationName().getText, params = Nil, LocationInterval(ctx))
         //super.visitAnnotation(ctx)
     }
 }
