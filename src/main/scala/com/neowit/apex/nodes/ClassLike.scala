@@ -1,12 +1,13 @@
 package com.neowit.apex.nodes
 
 trait ClassLike extends AstNode with HasApexDoc {
-    def annotations: List[ApexAnnotation] = getChildren(ApexAnnotationNodeType).map(_.asInstanceOf[ApexAnnotation])
-    def name: String
-    def modifiers: Set[Modifier] = getChildren(ModifierNodeType).map(_.asInstanceOf[Modifier]).toSet
+
+    def name: Option[String] = getChild[IdentifierNode](IdentifierNodeType).map(_.name)
+    def annotations: Seq[ApexAnnotation] = getChildren[ApexAnnotation](ApexAnnotationNodeType)
+    def modifiers: Set[Modifier] = getChildren[Modifier](ModifierNodeType).toSet
 
 
-    override def getApexDoc: Option[ApexDoc] = getChildren(ApexDocNodeType).map(_.asInstanceOf[ApexDoc]).headOption
+    override def getApexDoc: Option[ApexDoc] = getChild[ApexDoc](ApexDocNodeType)
 
     //def superTypeOpt: Option[ClassLike]
     //def implements: List[ClassLike]

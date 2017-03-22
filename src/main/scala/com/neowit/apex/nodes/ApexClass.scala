@@ -1,6 +1,6 @@
 package com.neowit.apex.nodes
 
-case class ApexClass(name: String, location: LocationInterval) extends ClassLike {
+case class ApexClass(locationInterval: LocationInterval) extends ClassLike {
     override def nodeType: AstNodeType = ApexClassNodeType
 
 }

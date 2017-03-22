@@ -29,8 +29,8 @@ object LocationInterval {
     }
 }
 
-object EmptyNode extends AstNode {
-    override def location: LocationInterval = LocationInterval.INVALID_LOCATION
+object NullNode extends AstNode {
+    override def locationInterval: LocationInterval = LocationInterval.INVALID_LOCATION
 
     override def nodeType: AstNodeType = EmptyNodeType
 }
@@ -40,7 +40,7 @@ trait AstNode {
     private var _parent: Option[AstNode] = None
     private val children = new scala.collection.mutable.ListBuffer[AstNode]()
 
-    def location:LocationInterval
+    def locationInterval:LocationInterval
     def nodeType: AstNodeType
 
     def setParent(parent: AstNode): AstNode = {
@@ -57,13 +57,18 @@ trait AstNode {
         node
     }
 
-    def getChildren(nodeType: AstNodeType, recursively: Boolean = false): List[AstNode] = {
+    def getChildren[T <: AstNode](nodeType: AstNodeType, recursively: Boolean = false): Seq[T] = {
         val immediateChildren = children.filter(_.nodeType == nodeType)
-        if (recursively) {
-            immediateChildren.flatMap(_.getChildren(nodeType, recursively)).toList
-        } else {
-            immediateChildren.toList
-        }
+        val allFoundChildren =
+            if (recursively) {
+                immediateChildren.flatMap(_.getChildren(nodeType, recursively))
+            } else {
+                immediateChildren
+            }
+        allFoundChildren.map(_.asInstanceOf[T])
+    }
+    def getChild[T <: AstNode](nodeType: AstNodeType, recursively: Boolean = false): Option[T] = {
+        getChildren(nodeType, recursively).headOption.map(_.asInstanceOf[T])
     }
 
 }
@@ -75,10 +80,13 @@ case object ApexAnnotationNodeType extends AstNodeType
 case object ApexClassNodeType extends AstNodeType
 case object ApexDocNodeType extends AstNodeType
 case object ApexInterfaceNodeType extends AstNodeType
+case object ClassVariableNodeType extends AstNodeType
 case object DataTypeNodeType extends AstNodeType
+case object EmptyNodeType extends AstNodeType
+case object ExpressionNodeType extends AstNodeType
 case object MethodNodeType extends AstNodeType
 case object MethodParameterNodeType extends AstNodeType
 case object ModifierNodeType extends AstNodeType
 case object VariableNodeType extends AstNodeType
-case object EmptyNodeType extends AstNodeType
+case object IdentifierNodeType extends AstNodeType
 
