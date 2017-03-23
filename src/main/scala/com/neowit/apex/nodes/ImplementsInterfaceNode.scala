@@ -3,8 +3,10 @@ package com.neowit.apex.nodes
 /**
   * Created by Andrey Gavrikov on 23/03/2017.
   */
-case class ImplementsInterfaceNode(interfaceWithType: DataType) extends AstNode {
+case class ImplementsInterfaceNode(locationInterval: LocationInterval) extends AstNode {
     override def nodeType: AstNodeType = ImplementsInterfaceNodeType
 
-    override def locationInterval: LocationInterval = interfaceWithType.locationInterval
+    def dataType: Seq[DataTypeBase] = getChildren[DataTypeBase](DataTypeNodeType)
+    def text: String = dataType.map(_.text).mkString(",")
+    override def getDebugInfo: String = super.getDebugInfo + " " + text
 }

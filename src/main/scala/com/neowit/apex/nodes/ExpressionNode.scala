@@ -5,4 +5,6 @@ package com.neowit.apex.nodes
   */
 case class ExpressionNode(locationInterval: LocationInterval) extends AstNode {
     override def nodeType: AstNodeType = ExpressionNodeType
+
+    override def getDebugInfo: String = super.getDebugInfo + " TODO"
 }

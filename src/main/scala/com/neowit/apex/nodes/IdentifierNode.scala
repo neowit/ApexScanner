@@ -7,6 +7,7 @@ import com.neowit.apex.scanner.antlr.ApexcodeParser.ClassDeclarationContext
   */
 case class IdentifierNode(name: String, locationInterval: LocationInterval) extends AstNode {
     override def nodeType: AstNodeType = IdentifierNodeType
+    override def getDebugInfo: String = super.getDebugInfo + " " + name
 }
 
 object IdentifierNode {

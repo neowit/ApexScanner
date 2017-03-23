@@ -4,6 +4,8 @@ case class Method(name: String, locationInterval: LocationInterval ) extends Ast
     override def nodeType: AstNodeType = MethodNodeType
 
     def getApexDoc: Option[ApexDoc] = getChildren(ApexDocNodeType).map(_.asInstanceOf[ApexDoc]).headOption
+
+    override def getDebugInfo: String = super.getDebugInfo + " TODO"
 }
 
 

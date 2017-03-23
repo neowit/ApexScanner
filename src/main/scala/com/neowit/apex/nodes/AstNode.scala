@@ -6,7 +6,17 @@ case class Location(line: Int, col: Int)
 object Location {
     val INVALID_LOCATION = Location(-1, -1)
 }
-case class LocationInterval(start: Location, end: Location)
+case class LocationInterval(start: Location, end: Location) {
+    def detDebugInfo: String = {
+        val text =
+        if (start != end) {
+            s"${start.line}, ${start.col} - ${end.line}, ${end.col}"
+        } else {
+            s"${start.line}, ${start.col}"
+        }
+        "(" + text + ")"
+    }
+}
 
 object LocationInterval {
     val INVALID_LOCATION = LocationInterval(Location.INVALID_LOCATION, Location.INVALID_LOCATION)
@@ -79,6 +89,11 @@ trait AstNode {
         getChildren[T](nodeType, recursively).headOption
     }
 
+    /**
+      * used for debug purposes
+      * @return textual representation of this node and its children
+      */
+    def getDebugInfo: String = "\n" + locationInterval.detDebugInfo + " " + nodeType + " => "
 }
 
 sealed trait AstNodeType

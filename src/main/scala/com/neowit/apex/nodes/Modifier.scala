@@ -9,6 +9,7 @@ import com.neowit.apex.scanner.antlr.ApexcodeParser.ClassOrInterfaceVisibilityMo
 case class Modifier(`type`: Modifier.ModifierType, locationInterval: LocationInterval) extends AstNode {
 
     override def nodeType: AstNodeType = ModifierNodeType
+    override def getDebugInfo: String = super.getDebugInfo + " " + `type`
 }
 
 object Modifier {
