@@ -1,7 +1,6 @@
 package com.neowit.apex.nodes
 
 import org.antlr.v4.runtime.ParserRuleContext
-import org.antlr.v4.runtime.tree.TerminalNode
 
 case class Location(line: Int, col: Int)
 object Location {
@@ -21,18 +20,12 @@ object LocationInterval {
             end = Location(endToken.getLine, endToken.getCharPositionInLine)
         )
     }
-    def apply(node: TerminalNode): LocationInterval = {
+    def apply(node: org.antlr.v4.runtime.tree.TerminalNode): LocationInterval = {
         LocationInterval(
             start = Location(node.getSymbol.getLine, node.getSymbol.getStartIndex),
             end = Location(node.getSymbol.getLine, node.getSymbol.getStopIndex)
         )
     }
-}
-
-object NullNode extends AstNode {
-    override def locationInterval: LocationInterval = LocationInterval.INVALID_LOCATION
-
-    override def nodeType: AstNodeType = EmptyNodeType
 }
 
 trait AstNode {
@@ -59,16 +52,28 @@ trait AstNode {
 
     def getChildren[T <: AstNode](nodeType: AstNodeType, recursively: Boolean = false): Seq[T] = {
         val immediateChildren = children.filter(_.nodeType == nodeType)
+
+        // in case any of the children represent a FallThroughNode, query their children one step further
+        val fallThroughChildren =
+            if (FallThroughNodeType != nodeType && !recursively) {
+                children.filter(_.nodeType == FallThroughNodeType).flatMap(_.getChildren[FallThroughNode](nodeType))
+            } else {
+                Nil
+            }
+
         val allFoundChildren =
             if (recursively) {
                 immediateChildren.flatMap(_.getChildren(nodeType, recursively))
             } else {
                 immediateChildren
             }
-        allFoundChildren.map(_.asInstanceOf[T])
+
+        val allChildren = fallThroughChildren ++ allFoundChildren
+
+        allChildren.map(_.asInstanceOf[T])
     }
     def getChild[T <: AstNode](nodeType: AstNodeType, recursively: Boolean = false): Option[T] = {
-        getChildren(nodeType, recursively).headOption.map(_.asInstanceOf[T])
+        getChildren[T](nodeType, recursively).headOption
     }
 
 }
@@ -83,10 +88,17 @@ case object ApexInterfaceNodeType extends AstNodeType
 case object ClassVariableNodeType extends AstNodeType
 case object DataTypeNodeType extends AstNodeType
 case object EmptyNodeType extends AstNodeType
+case object ExtendsNodeType extends AstNodeType
+case object FallThroughNodeType extends AstNodeType
 case object ExpressionNodeType extends AstNodeType
 case object MethodNodeType extends AstNodeType
 case object MethodParameterNodeType extends AstNodeType
 case object ModifierNodeType extends AstNodeType
 case object VariableNodeType extends AstNodeType
 case object IdentifierNodeType extends AstNodeType
+case object FinalNodeType extends AstNodeType
+case object ImplementsInterfaceNodeType extends AstNodeType
+case object TypeArgumentNodeType extends AstNodeType
+case object TypeArgumentsNodeType extends AstNodeType
+case object QualifiedNameNodeType extends AstNodeType
 
