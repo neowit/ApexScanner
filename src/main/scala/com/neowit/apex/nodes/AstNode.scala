@@ -31,7 +31,7 @@ object LocationInterval {
 trait AstNode {
 
     private var _parent: Option[AstNode] = None
-    private val children = new scala.collection.mutable.ListBuffer[AstNode]()
+    private val _children = new scala.collection.mutable.ListBuffer[AstNode]()
 
     def locationInterval:LocationInterval
     def nodeType: AstNodeType
@@ -44,26 +44,29 @@ trait AstNode {
     def getParent: Option[AstNode] = _parent
 
     def addChild(node: AstNode): AstNode = {
-        if (EmptyNodeType != node.nodeType) {
-            children += node
+        if (NullNodeType != node.nodeType) {
+            _children += node
+            node.setParent(this)
         }
         node
     }
 
+    def children: Seq[AstNode] = _children
+
     def getChildren[T <: AstNode](nodeType: AstNodeType, recursively: Boolean = false): Seq[T] = {
-        val immediateChildren = children.filter(_.nodeType == nodeType)
+        val immediateChildren = _children.filter(_.nodeType == nodeType)
 
         // in case any of the children represent a FallThroughNode, query their children one step further
         val fallThroughChildren =
             if (FallThroughNodeType != nodeType && !recursively) {
-                children.filter(_.nodeType == FallThroughNodeType).flatMap(_.getChildren[FallThroughNode](nodeType))
+                _children.filter(_.nodeType == FallThroughNodeType).flatMap(_.getChildren[FallThroughNode](nodeType))
             } else {
                 Nil
             }
 
         val allFoundChildren =
             if (recursively) {
-                immediateChildren.flatMap(_.getChildren(nodeType, recursively))
+                immediateChildren ++ immediateChildren.flatMap(_.getChildren(nodeType, recursively))
             } else {
                 immediateChildren
             }
