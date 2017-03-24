@@ -15,7 +15,7 @@ class ASTBuilderVisitor extends ApexcodeBaseVisitor[AstNode] {
             val elem = ruleNode.getChild(i)
             val node = visit(elem)
             if (NullNode != node) {
-                node.setParent(parent)
+                //node.setParent(parent)
                 parent.addChild(node)
             }
         }
