@@ -93,7 +93,20 @@ trait AstNode {
       * used for debug purposes
       * @return textual representation of this node and its children
       */
-    def getDebugInfo: String = "\n" + locationInterval.detDebugInfo + " " + nodeType + " => "
+    def getDebugInfo: String = {
+        val shift = List.fill(levelsDeep)("\t").mkString("")
+        "\n" + shift + locationInterval.detDebugInfo + " " + nodeType + " => "
+    }
+    // used in getDebugInfo for visual shift of child level compared to parent
+    private lazy val levelsDeep = {
+        def countLevels(node: AstNode, level: Int): Int = {
+            node.getParent match {
+              case Some(p) => countLevels(p, level + 1)
+              case None => level
+            }
+        }
+        countLevels(this, 0)
+    }
 }
 
 sealed trait AstNodeType
