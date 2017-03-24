@@ -37,6 +37,7 @@ class ASTBuilderVisitor extends ApexcodeBaseVisitor[AstNode] {
 
         //todo figure out how to extract Implements (with complex type inside) from ClassDeclarationContext
 
+        new AstWalker().walk(classNode, new DebugVisitor)
         classNode
     }
 
@@ -63,44 +64,52 @@ class ASTBuilderVisitor extends ApexcodeBaseVisitor[AstNode] {
     }
 
     override def visitExtendsDeclaration(ctx: ExtendsDeclarationContext): AstNode = {
-        val qualifiedName = QualifiedNameNode(LocationInterval(ctx.qualifiedName()))
-        visitChildren(qualifiedName, ctx.qualifiedName())
-        ExtendsNode(DataType(qualifiedName, typeArgumentsOpt = None, LocationInterval(ctx)))
+        visitChildren(ExtendsNode(LocationInterval(ctx)), ctx)
     }
 
 
     override def visitImplementsDeclaration(ctx: ImplementsDeclarationContext): AstNode = {
-        visitChildren(FallThroughNode(LocationInterval(ctx)), ctx)
+        visitChildren(ImplementsInterfaceNode(LocationInterval(ctx)), ctx)
     }
 
-
-    /**
-      * {@inheritDoc }
-      *
-      * <p>The default implementation returns the result of calling
-      * {@link #visitChildren} on {@code ctx}.</p>
-      */
-    override def visitImplementsInterface(ctx: ImplementsInterfaceContext): AstNode = {
-        val qualifiedName = QualifiedNameNode(LocationInterval(ctx.qualifiedName()))
-        visitChildren(qualifiedName, ctx.qualifiedName())
-        val typeArguments  =
-            if (null != ctx.typeArguments()) {
-                val typeArgumentsNode = TypeArgumentsNode(LocationInterval(ctx.typeArguments()))
-                visitChildren(typeArgumentsNode, ctx.typeArguments())
-                Option(typeArgumentsNode)
-            } else {
-                None
-            }
-
-        ImplementsInterfaceNode(DataType(qualifiedName, typeArgumentsOpt = typeArguments, LocationInterval(ctx)))
+    override def visitTypeArguments(ctx: TypeArgumentsContext): AstNode = {
+        val typeArgumentsNode = TypeArgumentsNode(LocationInterval(ctx))
+        ctx.dataType().iterator().forEachRemaining{elem =>
+            val dataType = visitDataType(elem)
+            typeArgumentsNode.addChild(dataType)
+        }
+        typeArgumentsNode
     }
 
+    override def visitDataType(ctx: DataTypeContext): AstNode = {
+        if (null != ctx.VOID()) {
+            DataTypeVoid(LocationInterval(ctx))
+        } else if(null != ctx.typeArguments()) {
+            val qualifiedNameNode = visit(ctx.qualifiedName()).asInstanceOf[QualifiedNameNode]
+            val typeArgumentsNode =
+                if (null != ctx.typeArguments())
+                    Option(visit(ctx.typeArguments()).asInstanceOf[TypeArgumentsNode])
+                else
+                    None
+            DataType(qualifiedNameNode, typeArgumentsNode, LocationInterval(ctx))
+        } else {
+            // last option
+            val qualifiedNameNode = visit(ctx.qualifiedName()).asInstanceOf[QualifiedNameNode]
+            DataType(qualifiedNameNode, typeArgumentsOpt = None, LocationInterval(ctx))
+        }
+    }
+
+    override def visitQualifiedName(ctx: QualifiedNameContext): AstNode = {
+        visitChildren(QualifiedNameNode(LocationInterval(ctx)), ctx)
+    }
+
+    //TODO
     override def visitClassVariable(ctx: ClassVariableContext): AstNode = {
         val classVariableNode = ClassVariable(LocationInterval(ctx))
         ctx.children.iterator().forEachRemaining{ elem =>
             val node = visit(elem)
             if (NullNode != node) {
-                node.setParent(classVariableNode)
+                //node.setParent(classVariableNode)
                 classVariableNode.addChild(node)
             }
     }
