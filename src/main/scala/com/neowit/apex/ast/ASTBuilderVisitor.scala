@@ -1,6 +1,6 @@
 package com.neowit.apex.ast
 
-import com.neowit.apex.scanner.antlr.ApexcodeBaseVisitor
+import com.neowit.apex.scanner.antlr.{ApexcodeBaseVisitor, ApexcodeParser}
 import com.neowit.apex.scanner.antlr.ApexcodeParser._
 import com.neowit.apex.nodes._
 import org.antlr.v4.runtime.tree.{RuleNode, TerminalNode}
@@ -24,7 +24,11 @@ class ASTBuilderVisitor extends ApexcodeBaseVisitor[AstNode] {
     }
 
     override def visitTerminal(node: TerminalNode): AstNode = {
-        FinalNode(node.getText, LocationInterval(node))
+        if (ApexcodeParser.Identifier == node.getSymbol.getType) {
+            IdentifierNode(node.getText, LocationInterval(node))
+        } else {
+            NullNode
+        }
     }
 
     override def visitClassDef(ctx: ClassDefContext): AstNode = {

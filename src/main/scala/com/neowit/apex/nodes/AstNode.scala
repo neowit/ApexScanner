@@ -105,7 +105,7 @@ case object ApexDocNodeType extends AstNodeType
 case object ApexInterfaceNodeType extends AstNodeType
 case object ClassVariableNodeType extends AstNodeType
 case object DataTypeNodeType extends AstNodeType
-case object EmptyNodeType extends AstNodeType
+case object NullNodeType extends AstNodeType
 case object ExtendsNodeType extends AstNodeType
 case object FallThroughNodeType extends AstNodeType
 case object ExpressionNodeType extends AstNodeType
@@ -114,9 +114,8 @@ case object MethodParameterNodeType extends AstNodeType
 case object ModifierNodeType extends AstNodeType
 case object VariableNodeType extends AstNodeType
 case object IdentifierNodeType extends AstNodeType
-case object FinalNodeType extends AstNodeType
 case object ImplementsInterfaceNodeType extends AstNodeType
-case object TypeArgumentNodeType extends AstNodeType
+
 case object TypeArgumentsNodeType extends AstNodeType
 case object QualifiedNameNodeType extends AstNodeType
 
