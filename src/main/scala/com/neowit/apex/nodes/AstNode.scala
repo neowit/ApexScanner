@@ -29,21 +29,21 @@ trait AstNode {
         val immediateChildren = _children.filter(_.nodeType == nodeType)
 
         // in case any of the children represent a FallThroughNode, query their children one step further
-        val fallThroughChildren =
+        val childrenViaFallThroughNodes =
             if (FallThroughNodeType != nodeType && !recursively) {
                 _children.filter(_.nodeType == FallThroughNodeType).flatMap(_.getChildren[FallThroughNode](nodeType))
             } else {
                 Nil
             }
 
-        val allFoundChildren =
+        val immediateAndRecursiveChildren =
             if (recursively) {
                 immediateChildren ++ immediateChildren.flatMap(_.getChildren(nodeType, recursively))
             } else {
                 immediateChildren
             }
 
-        val allChildren = fallThroughChildren ++ allFoundChildren
+        val allChildren = childrenViaFallThroughNodes ++ immediateAndRecursiveChildren
 
         allChildren.map(_.asInstanceOf[T])
     }
