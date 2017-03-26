@@ -1,43 +1,5 @@
 package com.neowit.apex.nodes
 
-import org.antlr.v4.runtime.ParserRuleContext
-
-case class Location(line: Int, col: Int)
-object Location {
-    val INVALID_LOCATION = Location(-1, -1)
-}
-case class LocationInterval(start: Location, end: Location) {
-    def detDebugInfo: String = {
-        val text =
-        if (start != end) {
-            s"${start.line}, ${start.col} - ${end.line}, ${end.col}"
-        } else {
-            s"${start.line}, ${start.col}"
-        }
-        "(" + text + ")"
-    }
-}
-
-object LocationInterval {
-    val INVALID_LOCATION = LocationInterval(Location.INVALID_LOCATION, Location.INVALID_LOCATION)
-
-    def apply(ctx: ParserRuleContext): LocationInterval = {
-        val startToken = ctx.getStart
-        val endToken = ctx.getStop
-
-        LocationInterval(
-            start = Location(startToken.getLine, startToken.getCharPositionInLine),
-            end = Location(endToken.getLine, endToken.getCharPositionInLine)
-        )
-    }
-    def apply(node: org.antlr.v4.runtime.tree.TerminalNode): LocationInterval = {
-        LocationInterval(
-            start = Location(node.getSymbol.getLine, node.getSymbol.getStartIndex),
-            end = Location(node.getSymbol.getLine, node.getSymbol.getStopIndex)
-        )
-    }
-}
-
 trait AstNode {
 
     private var _parent: Option[AstNode] = None
@@ -109,26 +71,4 @@ trait AstNode {
     }
 }
 
-sealed trait AstNodeType
-
-case object AnnotationParameterNodeType extends AstNodeType
-case object ApexAnnotationNodeType extends AstNodeType
-case object ApexClassNodeType extends AstNodeType
-case object ApexDocNodeType extends AstNodeType
-case object ApexInterfaceNodeType extends AstNodeType
-case object ClassVariableNodeType extends AstNodeType
-case object DataTypeNodeType extends AstNodeType
-case object NullNodeType extends AstNodeType
-case object ExtendsNodeType extends AstNodeType
-case object FallThroughNodeType extends AstNodeType
-case object ExpressionNodeType extends AstNodeType
-case object MethodNodeType extends AstNodeType
-case object MethodParameterNodeType extends AstNodeType
-case object ModifierNodeType extends AstNodeType
-case object VariableNodeType extends AstNodeType
-case object IdentifierNodeType extends AstNodeType
-case object ImplementsInterfaceNodeType extends AstNodeType
-
-case object TypeArgumentsNodeType extends AstNodeType
-case object QualifiedNameNodeType extends AstNodeType
 

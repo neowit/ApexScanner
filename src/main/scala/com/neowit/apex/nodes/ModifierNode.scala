@@ -3,16 +3,13 @@ package com.neowit.apex.nodes
 import com.neowit.apex.scanner.antlr.ApexcodeParser.ClassOrInterfaceVisibilityModifierContext
 
 
-/**
-  * Created by Andrey Gavrikov on 22/03/2017.
-  */
-case class Modifier(`type`: Modifier.ModifierType, locationInterval: LocationInterval) extends AstNode {
+case class ModifierNode(`type`: ModifierNode.ModifierType, locationInterval: LocationInterval) extends AstNode {
 
     override def nodeType: AstNodeType = ModifierNodeType
     override def getDebugInfo: String = super.getDebugInfo + " " + `type`
 }
 
-object Modifier {
+object ModifierNode {
 
     sealed trait ModifierType
 
@@ -32,22 +29,22 @@ object Modifier {
 
     def visitClassOrInterfaceVisibilityModifier(ctx: ClassOrInterfaceVisibilityModifierContext): AstNode = {
         if (null != ctx.ABSTRACT()) {
-            return Modifier(Modifier.ABSTRACT, LocationInterval(ctx.VIRTUAL()))
+            return ModifierNode(ModifierNode.ABSTRACT, LocationInterval(ctx.VIRTUAL()))
         }
         if (null != ctx.GLOBAL()) {
-            return Modifier(Modifier.GLOBAL, LocationInterval(ctx.GLOBAL()))
+            return ModifierNode(ModifierNode.GLOBAL, LocationInterval(ctx.GLOBAL()))
         }
         if (null != ctx.PRIVATE()) {
-            return Modifier(Modifier.PRIVATE, LocationInterval(ctx.PRIVATE()))
+            return ModifierNode(ModifierNode.PRIVATE, LocationInterval(ctx.PRIVATE()))
         }
         if (null != ctx.PUBLIC()) {
-            return Modifier(Modifier.PUBLIC, LocationInterval(ctx.PUBLIC()))
+            return ModifierNode(ModifierNode.PUBLIC, LocationInterval(ctx.PUBLIC()))
         }
         if (null != ctx.VIRTUAL()) {
-            return Modifier(Modifier.VIRTUAL, LocationInterval(ctx.VIRTUAL()))
+            return ModifierNode(ModifierNode.VIRTUAL, LocationInterval(ctx.VIRTUAL()))
         }
         if (null != ctx.WEBSERVICE()) {
-            return Modifier(Modifier.WEBSERVICE, LocationInterval(ctx.WEBSERVICE()))
+            return ModifierNode(ModifierNode.WEBSERVICE, LocationInterval(ctx.WEBSERVICE()))
         }
         NullNode
     }

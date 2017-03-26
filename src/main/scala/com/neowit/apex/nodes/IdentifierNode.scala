@@ -2,9 +2,6 @@ package com.neowit.apex.nodes
 
 import com.neowit.apex.scanner.antlr.ApexcodeParser.ClassDeclarationContext
 
-/**
-  * Created by Andrey Gavrikov on 23/03/2017.
-  */
 case class IdentifierNode(name: String, locationInterval: LocationInterval) extends AstNode {
     override def nodeType: AstNodeType = IdentifierNodeType
     override def getDebugInfo: String = super.getDebugInfo + " " + name

@@ -3,8 +3,8 @@ package com.neowit.apex.nodes
 trait ClassLike extends AstNode with HasApexDoc {
 
     def name: Option[String] = getChild[IdentifierNode](IdentifierNodeType).map(_.name)
-    def annotations: Seq[ApexAnnotation] = getChildren[ApexAnnotation](ApexAnnotationNodeType)
-    def modifiers: Set[Modifier] = getChildren[Modifier](ModifierNodeType).toSet
+    def annotations: Seq[AnnotationNode] = getChildren[AnnotationNode](AnnotationNodeType)
+    def modifiers: Set[ModifierNode] = getChildren[ModifierNode](ModifierNodeType).toSet
 
     def extendsNode: Option[ExtendsNode] = getChild[ExtendsNode](ExtendsNodeType)
     def extendsText: Option[String] = extendsNode.flatMap(_.dataType.map(_.text))
@@ -12,7 +12,7 @@ trait ClassLike extends AstNode with HasApexDoc {
     def implements: Seq[ImplementsInterfaceNode] = getChildren[ImplementsInterfaceNode](ImplementsInterfaceNodeType)
     def implementsText: Seq[String] = implements.map(_.text)
 
-    override def getApexDoc: Option[ApexDoc] = getChild[ApexDoc](ApexDocNodeType)
+    override def getApexDoc: Option[DocNode] = getChild[DocNode](DocNodeType)
 
     /**
       * used for debug purposes

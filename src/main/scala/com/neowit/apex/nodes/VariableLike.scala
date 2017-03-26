@@ -8,12 +8,12 @@ trait VariableLike extends AstNode with HasApexDoc {
         nameOpt = Option(name)
     }
 
-    def annotations: Seq[ApexAnnotation] = getChildren(ApexAnnotationNodeType).map(_.asInstanceOf[ApexAnnotation])
-    def modifiers: Set[Modifier] = getChildren(ModifierNodeType).map(_.asInstanceOf[Modifier]).toSet
+    def annotations: Seq[AnnotationNode] = getChildren(AnnotationNodeType).map(_.asInstanceOf[AnnotationNode])
+    def modifiers: Set[ModifierNode] = getChildren(ModifierNodeType).map(_.asInstanceOf[ModifierNode]).toSet
     def name: Option[String] = nameOpt
     def dataType: Option[DataType] = getChildren(DataTypeNodeType).headOption.map(_.asInstanceOf[DataType])
     def initExpression: Option[ExpressionNode] = getChildren(ExpressionNodeType).headOption.map(_.asInstanceOf[ExpressionNode])
 
-    override def getApexDoc: Option[ApexDoc] = getChildren(ApexDocNodeType).map(_.asInstanceOf[ApexDoc]).headOption
+    override def getApexDoc: Option[DocNode] = getChildren(DocNodeType).map(_.asInstanceOf[DocNode]).headOption
 }
 

@@ -32,7 +32,7 @@ class ASTBuilderVisitor extends ApexcodeBaseVisitor[AstNode] {
     }
 
     override def visitClassDef(ctx: ClassDefContext): AstNode = {
-        val classNode = ApexClass(LocationInterval(ctx))
+        val classNode = ClassNode(LocationInterval(ctx))
         visitChildren(classNode, ctx)
 
         //todo figure out how to extract Implements (with complex type inside) from ClassDeclarationContext
@@ -55,11 +55,11 @@ class ASTBuilderVisitor extends ApexcodeBaseVisitor[AstNode] {
     }
 
     override def visitClassOrInterfaceVisibilityModifier(ctx: ClassOrInterfaceVisibilityModifierContext): AstNode = {
-        Modifier.visitClassOrInterfaceVisibilityModifier(ctx)
+        ModifierNode.visitClassOrInterfaceVisibilityModifier(ctx)
     }
 
     override def visitAnnotation(ctx: AnnotationContext): AstNode = {
-        ApexAnnotation.visitAnnotation(ctx)
+        AnnotationNode.visitAnnotation(ctx)
         //super.visitAnnotation(ctx)
     }
 
@@ -105,7 +105,7 @@ class ASTBuilderVisitor extends ApexcodeBaseVisitor[AstNode] {
 
     //TODO
     override def visitClassVariable(ctx: ClassVariableContext): AstNode = {
-        val classVariableNode = ClassVariable(LocationInterval(ctx))
+        val classVariableNode = ClassVariableNode(LocationInterval(ctx))
         ctx.children.iterator().forEachRemaining{ elem =>
             val node = visit(elem)
             if (NullNode != node) {

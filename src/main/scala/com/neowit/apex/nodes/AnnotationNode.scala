@@ -2,8 +2,8 @@ package com.neowit.apex.nodes
 
 import com.neowit.apex.scanner.antlr.ApexcodeParser.AnnotationContext
 
-case class ApexAnnotation(name: String, params: List[AnnotationParameter], locationInterval: LocationInterval) extends AstNode {
-    override def nodeType: AstNodeType = ApexAnnotationNodeType
+case class AnnotationNode(name: String, params: List[AnnotationParameter], locationInterval: LocationInterval) extends AstNode {
+    override def nodeType: AstNodeType = AnnotationNodeType
 
     /**
       * used for debug purposes
@@ -21,9 +21,9 @@ case class ApexAnnotation(name: String, params: List[AnnotationParameter], locat
     }
 }
 
-object ApexAnnotation {
+object AnnotationNode {
     def visitAnnotation(ctx: AnnotationContext): AstNode = {
-        val annotation = ApexAnnotation(name = ctx.annotationName().getText, params = Nil, LocationInterval(ctx))
+        val annotation = AnnotationNode(name = ctx.annotationName().getText, params = Nil, LocationInterval(ctx))
         //TODO define annotation params
         annotation
     }
