@@ -21,6 +21,11 @@
 
 package com.neowit.apex.nodes
 
+/**
+  * this is a special kind of node which is just a container for other concrete nodes
+  * by itself this node does not represent anything useful
+  * AstNode getChild[ren] has special logic for FallThroughNode
+  */
 case class FallThroughNode(locationInterval: LocationInterval) extends AstNode {
     override def nodeType: AstNodeType = FallThroughNodeType
 }

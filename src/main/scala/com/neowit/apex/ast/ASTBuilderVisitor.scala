@@ -140,7 +140,7 @@ class ASTBuilderVisitor(file: Path) extends ApexcodeBaseVisitor[AstNode] {
                 //node.setParent(classVariableNode)
                 classVariableNode.addChild(node)
             }
-    }
+        }
         super.visitClassVariable(ctx)
     }
 
