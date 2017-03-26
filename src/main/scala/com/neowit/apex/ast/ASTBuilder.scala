@@ -17,7 +17,8 @@ object ASTBuilder {
         scanner.scan(path, Scanner.defaultIsIgnoredPath, onEachResult, SyntaxChecker.errorListenerCreator)
     }
     def onEachResult(result: FileScanResult): Unit = {
-        val visitor = new ASTBuilderVisitor
-        visitor.visit(result.parseContext)
+        val visitor = new ASTBuilderVisitor(result.sourceFile)
+        val compileUnit = visitor.visit(result.parseContext)
+        new AstWalker().walk(compileUnit, new DebugVisitor)
     }
 }

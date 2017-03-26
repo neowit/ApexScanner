@@ -1,11 +1,13 @@
 package com.neowit.apex.ast
 
+import java.nio.file.Path
+
 import com.neowit.apex.scanner.antlr.{ApexcodeBaseVisitor, ApexcodeParser}
 import com.neowit.apex.scanner.antlr.ApexcodeParser._
 import com.neowit.apex.nodes._
 import org.antlr.v4.runtime.tree.{RuleNode, TerminalNode}
 
-class ASTBuilderVisitor extends ApexcodeBaseVisitor[AstNode] {
+class ASTBuilderVisitor(file: Path) extends ApexcodeBaseVisitor[AstNode] {
 
     override def defaultResult(): AstNode = NullNode
 
@@ -23,6 +25,14 @@ class ASTBuilderVisitor extends ApexcodeBaseVisitor[AstNode] {
         parent
     }
 
+    /**
+      * this Node is the top of the tree for given file
+      * @param ctx the parse tree
+      */
+    override def visitCompilationUnit(ctx: CompilationUnitContext): AstNode = {
+        visitChildren(FileNode(file, LocationInterval(ctx)), ctx)
+    }
+
     override def visitTerminal(node: TerminalNode): AstNode = {
         if (ApexcodeParser.Identifier == node.getSymbol.getType) {
             IdentifierNode(node.getText, LocationInterval(node))
@@ -35,9 +45,6 @@ class ASTBuilderVisitor extends ApexcodeBaseVisitor[AstNode] {
         val classNode = ClassNode(LocationInterval(ctx))
         visitChildren(classNode, ctx)
 
-        //todo figure out how to extract Implements (with complex type inside) from ClassDeclarationContext
-
-        new AstWalker().walk(classNode, new DebugVisitor)
         classNode
     }
 
