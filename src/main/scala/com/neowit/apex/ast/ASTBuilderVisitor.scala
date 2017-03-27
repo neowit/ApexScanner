@@ -76,33 +76,24 @@ class ASTBuilderVisitor(file: Path) extends ApexcodeBaseVisitor[AstNode] {
         classNode
     }
 
-
-    /*
-    override def visitClassDeclaration(ctx: ClassDeclarationContext): AstNode = {
-        val fallThroughNode = FallThroughNode(LocationInterval(ctx))
-        visitChildren(fallThroughNode, ctx)
-        //super.visitClassDeclaration(ctx)
-    }
-
-
-    override def visitClassBody(ctx: ClassBodyContext): AstNode = {
-        val fallThroughNode = FallThroughNode(LocationInterval(ctx))
-        visitChildren(fallThroughNode, ctx)
-    }
-    */
-
     override def visitClassName(ctx: ClassNameContext): AstNode = {
         IdentifierNode(ctx.getText, LocationInterval(ctx))
-        //super.visitClassName(ctx)
     }
 
-    override def visitClassOrInterfaceVisibilityModifier(ctx: ClassOrInterfaceVisibilityModifierContext): AstNode = {
-        ModifierNode.visitClassOrInterfaceVisibilityModifier(ctx)
+    override def visitClassOrInterfaceModifier(ctx: ClassOrInterfaceModifierContext): AstNode = {
+        if (null != ctx.classOrInterfaceVisibilityModifier()) {
+            ModifierNode.visitClassOrInterfaceVisibilityModifier(ctx.classOrInterfaceVisibilityModifier)
+        } else if (null != ctx.annotation()) {
+            visitAnnotation(ctx.annotation())
+        } else if (null != ctx.classSharingModifier()) {
+            ModifierNode.visitClassSharingModifier(ctx.classSharingModifier())
+        } else {
+            throw new NotImplementedError("Unsupported ClassOrInterfaceModifier: " + ctx.getText)
+        }
     }
 
     override def visitAnnotation(ctx: AnnotationContext): AstNode = {
         AnnotationNode.visitAnnotation(ctx)
-        //super.visitAnnotation(ctx)
     }
 
     override def visitExtendsDeclaration(ctx: ExtendsDeclarationContext): AstNode = {

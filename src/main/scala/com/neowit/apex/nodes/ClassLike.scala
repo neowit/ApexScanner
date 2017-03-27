@@ -27,6 +27,10 @@ trait ClassLike extends AstNode with HasApexDoc {
     def annotations: Seq[AnnotationNode] = getChildren[AnnotationNode](AnnotationNodeType)
     def modifiers: Set[ModifierNode] = getChildren[ModifierNode](ModifierNodeType).toSet
 
+    def hasModifier(modifierType: ModifierNode.ModifierType): Boolean = {
+        modifiers.exists(m => m.modifierType == modifierType)
+    }
+
     def extendsNode: Option[ExtendsNode] = getChild[ExtendsNode](ExtendsNodeType)
     def extendsText: Option[String] = extendsNode.flatMap(_.dataType.map(_.text))
 

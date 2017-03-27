@@ -21,13 +21,13 @@
 
 package com.neowit.apex.nodes
 
-import com.neowit.apex.scanner.antlr.ApexcodeParser.ClassOrInterfaceVisibilityModifierContext
+import com.neowit.apex.scanner.antlr.ApexcodeParser.{ClassOrInterfaceVisibilityModifierContext, ClassSharingModifierContext}
 
 
-case class ModifierNode(`type`: ModifierNode.ModifierType, locationInterval: LocationInterval) extends AstNode {
+case class ModifierNode(modifierType: ModifierNode.ModifierType, locationInterval: LocationInterval) extends AstNode {
 
     override def nodeType: AstNodeType = ModifierNodeType
-    override def getDebugInfo: String = super.getDebugInfo + " " + `type`
+    override def getDebugInfo: String = super.getDebugInfo + " " + modifierType
 }
 
 object ModifierNode {
@@ -47,6 +47,9 @@ object ModifierNode {
 
     case object ABSTRACT extends ModifierType
     case object VIRTUAL extends ModifierType
+
+    case object WITH_SHARING extends ModifierType
+    case object WITHOUT_SHARING extends ModifierType
 
     def visitClassOrInterfaceVisibilityModifier(ctx: ClassOrInterfaceVisibilityModifierContext): AstNode = {
         if (null != ctx.ABSTRACT()) {
@@ -68,5 +71,16 @@ object ModifierNode {
             return ModifierNode(ModifierNode.WEBSERVICE, LocationInterval(ctx.WEBSERVICE()))
         }
         NullNode
+    }
+
+    def visitClassSharingModifier(ctx: ClassSharingModifierContext): AstNode = {
+        if (null != ctx.WITH_SHARING()) {
+            return ModifierNode(ModifierNode.WITH_SHARING, LocationInterval(ctx.WITH_SHARING()))
+        }
+        if (null != ctx.WITHOUT_SHARING()) {
+            return ModifierNode(ModifierNode.WITHOUT_SHARING, LocationInterval(ctx.WITHOUT_SHARING()))
+        }
+        //if no sharing modifier provided - by default assume WITHOUT_SHARING
+        ModifierNode(ModifierNode.ABSTRACT, LocationInterval(ctx.WITHOUT_SHARING()))
     }
 }

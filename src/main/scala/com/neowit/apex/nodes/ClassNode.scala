@@ -23,7 +23,6 @@ package com.neowit.apex.nodes
 
 case class ClassNode(locationInterval: LocationInterval) extends ClassLike {
     override def nodeType: AstNodeType = ClassNodeType
-
 }
 
 
