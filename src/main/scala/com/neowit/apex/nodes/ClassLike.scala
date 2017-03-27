@@ -41,9 +41,15 @@ trait ClassLike extends AstNode with HasApexDoc {
       * @return textual representation of this node and its children
       */
     override def getDebugInfo: String = {
+        val annotationsText = annotations.map(_.getDebugInfo).mkString(" ")
+        val modifiersText = modifiers.map(_.modifierType).mkString(" ")
+        val implementsStr = if (implementsText.isEmpty) "" else "implements " +  implementsText.mkString(",")
         super.getDebugInfo +
-            annotations.map(_.getDebugInfo).mkString(" ") + modifiers.map(_.getDebugInfo).mkString(" ") + " "
-            name.getOrElse("") + " " + extendsText.map(t => "extends " + t) + " " + implementsText.map(t => "implements " + t)
+            annotationsText + " " +
+            modifiersText + " " +
+            name.getOrElse("") + " " +
+            extendsText.map(t => "extends " + t).getOrElse("") + " " +
+            implementsStr
 
     }
 }
