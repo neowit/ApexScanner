@@ -22,11 +22,13 @@
 package com.neowit.apex.nodes
 
 import org.antlr.v4.runtime.ParserRuleContext
+import org.antlr.v4.runtime.tree.RuleNode
 
 case class Location(line: Int, col: Int)
-object Location {
-    val INVALID_LOCATION = Location(-1, -1)
-}
+case object INVALID_LOCATION extends Location(-1, -1)
+case object FALLTHROUGH_LOCATION extends Location(-1, -1)
+
+
 case class LocationInterval(start: Location, end: Location) {
     def detDebugInfo: String = {
         val text =
@@ -40,8 +42,11 @@ case class LocationInterval(start: Location, end: Location) {
 }
 
 object LocationInterval {
-    val INVALID_LOCATION = LocationInterval(Location.INVALID_LOCATION, Location.INVALID_LOCATION)
+    val INVALID_LOCATION = LocationInterval(INVALID_LOCATION, INVALID_LOCATION)
 
+    def apply(node: RuleNode): LocationInterval = {
+        LocationInterval(FALLTHROUGH_LOCATION, FALLTHROUGH_LOCATION)
+    }
     def apply(ctx: ParserRuleContext): LocationInterval = {
         val startToken = ctx.getStart
         val endToken = ctx.getStop
