@@ -25,9 +25,10 @@ import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.RuleNode
 
 case class Location(line: Int, col: Int)
-case object INVALID_LOCATION extends Location(-1, -1)
-case object FALLTHROUGH_LOCATION extends Location(-1, -1)
-
+object Location {
+    val INVALID_LOCATION = Location(-1, -1)
+    val FALLTHROUGH_LOCATION = Location(-2, -2)
+}
 
 case class LocationInterval(start: Location, end: Location) {
     def detDebugInfo: String = {
@@ -42,10 +43,11 @@ case class LocationInterval(start: Location, end: Location) {
 }
 
 object LocationInterval {
-    val INVALID_LOCATION = LocationInterval(INVALID_LOCATION, INVALID_LOCATION)
+    val INVALID_LOCATION = LocationInterval(Location.INVALID_LOCATION, Location.INVALID_LOCATION)
+    val FALLTHROUGH_LOCATION = LocationInterval(Location.FALLTHROUGH_LOCATION, Location.FALLTHROUGH_LOCATION)
 
     def apply(node: RuleNode): LocationInterval = {
-        LocationInterval(FALLTHROUGH_LOCATION, FALLTHROUGH_LOCATION)
+        FALLTHROUGH_LOCATION
     }
     def apply(ctx: ParserRuleContext): LocationInterval = {
         val startToken = ctx.getStart

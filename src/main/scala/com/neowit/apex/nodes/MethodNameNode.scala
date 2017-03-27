@@ -21,16 +21,9 @@
 
 package com.neowit.apex.nodes
 
-case class MethodNode(locationInterval: LocationInterval ) extends AstNode with HasApexDoc {
-    def name: Option[String] =
-        getChild[MethodHeaderNode](MethodHeaderNodeType).flatMap(_.methodName)
-
-    override def nodeType: AstNodeType = MethodNodeType
-
-    def getApexDoc: Option[DocNode] = getChildren(DocNodeType).map(_.asInstanceOf[DocNode]).headOption
-    override def getDebugInfo: String = super.getDebugInfo + " Method: " + name
-
-    lazy val isAbstract: Boolean = getChild[MethodBodyNode](MethodBodyNodeType).nonEmpty
+/**
+  * Created by Andrey Gavrikov 
+  */
+case class MethodNameNode(name: String, locationInterval: LocationInterval) extends AstNode {
+    override def nodeType: AstNodeType = MethodNameNodeType
 }
-
-

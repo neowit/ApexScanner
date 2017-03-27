@@ -158,4 +158,45 @@ class ASTBuilderVisitor(file: Path) extends ApexcodeBaseVisitor[AstNode] {
         super.visitClassVariable(ctx)
     }
 
+    /////////////////// method ////////////////////////////////
+    override def visitClassMethod(ctx: ClassMethodContext): AstNode = {
+        visitChildren(MethodNode(LocationInterval(ctx)), ctx)
+    }
+
+    override def visitMethodHeader(ctx: MethodHeaderContext): AstNode = {
+        visitChildren(MethodHeaderNode(LocationInterval(ctx)), ctx)
+    }
+
+    override def visitMethodName(ctx: MethodNameContext): AstNode = {
+        MethodNameNode(ctx.Identifier().getText, LocationInterval(ctx))
+    }
+
+    override def visitMethodBody(ctx: MethodBodyContext): AstNode = {
+        if (null != ctx.codeBlock()) {
+            // concrete method
+            visitChildren(MethodBodyNode(LocationInterval(ctx.codeBlock())), ctx.codeBlock())
+        } else {
+            throw new NotImplementedError("visitMethodBody with null ctx.codeBlock() is not implemented")
+        }
+    }
+
+    override def visitBlockStatement(ctx: BlockStatementContext): AstNode = {
+       if (null != ctx.localVariableDeclaration()) {
+           visitChildren(LocalVariableNode(LocationInterval(ctx.localVariableDeclaration())), ctx.localVariableDeclaration())
+       } else {
+           visit(ctx.statement())
+       }
+    }
+
+    override def visitExpressionStmt(ctx: ExpressionStmtContext): AstNode = {
+        visitChildren(ExpressionNode(LocationInterval(ctx)), ctx)
+    }
+
+    override def visitMethodCallExpr(ctx: MethodCallExprContext): AstNode = {
+        if (null != ctx.expressionList()) {
+            visitChildren(MethodCallNode(ctx.func.getText, LocationInterval(ctx)), ctx.expressionList())
+        } else {
+            visitChildren(MethodCallNode(ctx.func.getText, LocationInterval(ctx)), ctx.expression())
+        }
+    }
 }
