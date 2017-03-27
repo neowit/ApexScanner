@@ -65,7 +65,7 @@ trait AstNode {
         // in case any of the children represent a FallThroughNode, query their children one step further
         val childrenViaFallThroughNodes =
             if (FallThroughNodeType != nodeType && !recursively) {
-                _children.filter(_.nodeType == FallThroughNodeType).flatMap(_.getChildren[FallThroughNode](nodeType))
+                _children.filter(_.nodeType == FallThroughNodeType).flatMap(_.getChildren(nodeType))
             } else {
                 Nil
             }
