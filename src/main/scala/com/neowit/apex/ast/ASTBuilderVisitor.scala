@@ -162,6 +162,13 @@ class ASTBuilderVisitor(file: Path) extends ApexcodeBaseVisitor[AstNode] {
         MethodNameNode(ctx.Identifier().getText, LocationInterval(ctx))
     }
 
+    override def visitMethodParameter(ctx: MethodParameterContext): AstNode = {
+        val methodParameterNode = MethodParameterNode(ctx.methodParameterName().getText, LocationInterval(ctx))
+        visitChildren(methodParameterNode, ctx)
+        methodParameterNode
+    }
+
+
     override def visitMethodBody(ctx: MethodBodyContext): AstNode = {
         if (null != ctx.codeBlock()) {
             // concrete method

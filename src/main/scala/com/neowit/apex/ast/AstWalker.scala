@@ -33,13 +33,4 @@ class AstWalker {
     }
 }
 
-trait AstVisitor {
-    def visit(node: AstNode): Boolean
-}
 
-class DebugVisitor extends AstVisitor {
-    override def visit(node: AstNode): Boolean = {
-        println(node.getDebugInfo)
-        true
-    }
-}

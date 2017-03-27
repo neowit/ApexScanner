@@ -21,22 +21,50 @@
 
 package com.neowit.apex.ast
 
-import java.nio.file.FileSystems
+import java.nio.file.{FileSystems, Path}
 
+import com.neowit.apex.nodes.AstNode
 import com.neowit.apex.scanner.actions.SyntaxChecker
 import com.neowit.apex.scanner.{FileScanResult, Scanner}
 
-object ASTBuilder {
+case class AstBuilderResult(fileScanResult: FileScanResult, rootNode: AstNode)
+
+object AstBuilder {
 
     def main(args: Array[String]): Unit = {
-        val scanner = new Scanner()
+        val builder = new AstBuilder
 
         val path = FileSystems.getDefault.getPath(args(0))
-        scanner.scan(path, Scanner.defaultIsIgnoredPath, onEachFileScanResult, SyntaxChecker.errorListenerCreator)
+        builder.build(path)
+    }
+}
+
+class AstBuilder {
+    val DEFAULT_SCANNER = new Scanner(Scanner.defaultIsIgnoredPath, onEachFileScanResult, SyntaxChecker.errorListenerCreator)
+
+    private val astCache = Map.newBuilder[Path, AstBuilderResult]
+    private val fileNameCache = Map.newBuilder[String, Path]
+
+    def build(path: Path, scanner: Scanner = DEFAULT_SCANNER): Unit = {
+        scanner.scan(path)
     }
     def onEachFileScanResult(result: FileScanResult): Unit = {
         val visitor = new ASTBuilderVisitor(result.sourceFile)
         val compileUnit = visitor.visit(result.parseContext)
-        new AstWalker().walk(compileUnit, new DebugVisitor)
+        //new AstWalker().walk(compileUnit, new DebugVisitor)
+        val sourceFile = result.sourceFile
+        astCache += sourceFile -> AstBuilderResult(result, compileUnit)
+        fileNameCache += sourceFile.getFileName.toString -> result.sourceFile
+    }
+    private def getPath(fileName: String): Option[Path] = {
+        fileNameCache.result().get(fileName)
+    }
+
+    def getAst(path: Path): Option[AstBuilderResult] = {
+        astCache.result().get(path)
+    }
+    def getAstByFilename(fileName: String): Option[AstBuilderResult] = {
+        getPath(fileName).flatMap(path => getAst(path))
     }
 }
+

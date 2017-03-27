@@ -53,8 +53,8 @@ class SyntaxChecker {
             resultBuilder += res
             onEachResult(result)
         }
-        val scanner = new Scanner
-        scanner.scan(path, isIgnoredPath, onFileCheckResult, errorListenerCreator)
+        val scanner = new Scanner(isIgnoredPath, onFileCheckResult, errorListenerCreator)
+        scanner.scan(path)
         resultBuilder.result()
     }
 }

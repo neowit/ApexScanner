@@ -37,6 +37,16 @@ trait AstNode {
     def getParent: Option[AstNode] = _parent
 
     /**
+      * find very top AstNode of current hierarchy
+      */
+    def getFileNode: Option[FileNode] = {
+        if (this.nodeType == FileNodeType) {
+            Option(this.asInstanceOf[FileNode])
+        } else {
+            findParent(_.nodeType == FileNodeType).map(_.asInstanceOf[FileNode])
+        }
+    }
+    /**
       * find parent matching specified condition
       * @param filter - condition
       * @return
@@ -72,7 +82,7 @@ trait AstNode {
 
         val immediateAndRecursiveChildren =
             if (recursively) {
-                immediateChildren ++ immediateChildren.flatMap(_.getChildren(nodeType, recursively))
+                immediateChildren ++ _children.flatMap(_.getChildren(nodeType, recursively))
             } else {
                 immediateChildren
             }

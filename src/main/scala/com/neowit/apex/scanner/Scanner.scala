@@ -52,21 +52,23 @@ object Scanner{
     }
 }
 
-class Scanner {
-    import Scanner._
+/**
+  * Parse & Check syntax in files residing in specified path/location
+  * @param isIgnoredPath - provide this function if path points to a folder and certain paths inside need to be ignored
+  * @param onEachResult - provide this function if additional action is required when result for each individual file is available
+  * @param errorListenerFactory - factory method creating syntax error listener
+  * @return
+  */
+class Scanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath,
+              onEachResult: FileScanResult => Unit = Scanner.emptyOnEachResult,
+              errorListenerFactory: Path => ApexErrorListener) {
 
     /**
       * Parse & Check syntax in files residing in specified path/location
       * @param path file or folder with eligible apex files to check syntax
-      * @param isIgnoredPath - provide this function if path points to a folder and certain paths inside need to be ignored
-      * @param onEachResult - provide this function if additional action is required when result for each individual file is available
-      * @param errorListenerFactory - factory method creating syntax error listener
       * @return
       */
-    def scan(path: Path,
-             isIgnoredPath: Path => Boolean = defaultIsIgnoredPath,
-             onEachResult: FileScanResult => Unit = emptyOnEachResult,
-             errorListenerFactory: Path => ApexErrorListener): Unit = {
+    def scan(path: Path): Unit = {
 
         val fileListBuilder = List.newBuilder[Path]
 

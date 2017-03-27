@@ -25,4 +25,6 @@ case class MethodParameterNode(name: String, locationInterval: LocationInterval)
     override def nodeType: AstNodeType = MethodParameterNodeType
 
     override def getDebugInfo: String = super.getDebugInfo + " TODO"
+
+    def getType: Option[DataType] = getChild[DataType](DataTypeNodeType)
 }
