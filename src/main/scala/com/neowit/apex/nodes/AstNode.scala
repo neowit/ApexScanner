@@ -36,6 +36,19 @@ trait AstNode {
 
     def getParent: Option[AstNode] = _parent
 
+    /**
+      * find parent matching specified condition
+      * @param filter - condition
+      * @return
+      */
+    def findParent(filter: (AstNode) => Boolean): Option[AstNode] = {
+        getParent match {
+            case Some(parentMember) =>
+                if (filter(parentMember)) Some(parentMember) else parentMember.findParent(filter)
+            case None => None
+        }
+    }
+
     def addChild(node: AstNode): AstNode = {
         if (NullNodeType != node.nodeType) {
             _children += node
