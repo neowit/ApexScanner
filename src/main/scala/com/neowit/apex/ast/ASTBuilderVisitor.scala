@@ -32,6 +32,13 @@ class ASTBuilderVisitor(file: Path) extends ApexcodeBaseVisitor[AstNode] {
 
     override def defaultResult(): AstNode = NullNode
 
+    override def visitChildren(node: RuleNode): AstNode = {
+
+        val fallThroughNode = FallThroughNode(LocationInterval(node))
+        visitChildren(fallThroughNode, node)
+        //super.visitChildren(node)
+    }
+
     private def visitChildren(parent: AstNode, ruleNode: RuleNode): AstNode = {
 
         for (i <- Range(0, ruleNode.getChildCount)) {
@@ -70,12 +77,19 @@ class ASTBuilderVisitor(file: Path) extends ApexcodeBaseVisitor[AstNode] {
     }
 
 
+    /*
     override def visitClassDeclaration(ctx: ClassDeclarationContext): AstNode = {
         val fallThroughNode = FallThroughNode(LocationInterval(ctx))
         visitChildren(fallThroughNode, ctx)
         //super.visitClassDeclaration(ctx)
     }
 
+
+    override def visitClassBody(ctx: ClassBodyContext): AstNode = {
+        val fallThroughNode = FallThroughNode(LocationInterval(ctx))
+        visitChildren(fallThroughNode, ctx)
+    }
+    */
 
     override def visitClassName(ctx: ClassNameContext): AstNode = {
         IdentifierNode(ctx.getText, LocationInterval(ctx))
