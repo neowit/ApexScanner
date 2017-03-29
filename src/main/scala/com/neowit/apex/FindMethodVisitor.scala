@@ -25,7 +25,12 @@ import com.neowit.apex.ast.AstVisitor
 import com.neowit.apex.nodes.{AstNode, MethodNode, MethodNodeType}
 
 /**
-  * Created by Andrey Gavrikov 
+  * Created by Andrey Gavrikov
+  *
+  * @param paramTypes list of type names (case insensitive) <br/>
+  *                   List("integer", "list❮String❯") <br/>
+  *                   List("integer", "*") - "*" means any type of second argument is a match
+  *
   */
 class FindMethodVisitor(methodName: String, paramTypes: List[String]) extends AstVisitor {
     private var foundMethodNode: Option[MethodNode] = None
@@ -43,10 +48,16 @@ class FindMethodVisitor(methodName: String, paramTypes: List[String]) extends As
                     if (0 == paramTypesLength && currentParamTypes.isEmpty) {
                         // target method does not have parameters
                         foundMethodNode = Option(methodNode)
-                    } else if (paramTypesLength > 0 && currentParamTypes.nonEmpty) {
-                        val res = currentParamTypes.map(_.toLowerCase()).intersect(paramTypesLower)
+                    } else if (paramTypesLength > 0 && paramTypesLength == currentParamTypes.length) {
+                        val typePairs = paramTypesLower.zip(currentParamTypes.map(_.toLowerCase))
+                        val notExactMatch =
+                            // check if there is a combination of parameters which do not match
+                            typePairs.exists{
+                                case (left, right) =>
+                                    left != right && "*" != left
+                            }
                         // found target method if number of parameter match
-                        if (res.length == paramTypesLength) {
+                        if (!notExactMatch) {
                             foundMethodNode = Option(methodNode)
                         }
                     }
