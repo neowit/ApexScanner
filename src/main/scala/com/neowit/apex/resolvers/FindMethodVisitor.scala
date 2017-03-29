@@ -19,7 +19,7 @@
  *
  */
 
-package com.neowit.apex
+package com.neowit.apex.resolvers
 
 import com.neowit.apex.ast.AstVisitor
 import com.neowit.apex.nodes.{AstNode, MethodNode, MethodNodeType}

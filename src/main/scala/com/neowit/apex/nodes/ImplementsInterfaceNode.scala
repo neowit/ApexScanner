@@ -22,7 +22,7 @@
 package com.neowit.apex.nodes
 
 /**
-  * Created by Andrey Gavrikov on 23/03/2017.
+  * Created by Andrey Gavrikov
   */
 case class ImplementsInterfaceNode(locationInterval: LocationInterval) extends AstNode {
     override def nodeType: AstNodeType = ImplementsInterfaceNodeType

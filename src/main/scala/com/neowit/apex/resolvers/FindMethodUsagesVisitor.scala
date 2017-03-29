@@ -19,7 +19,7 @@
  *
  */
 
-package com.neowit.apex
+package com.neowit.apex.resolvers
 
 import java.nio.file.FileSystems
 

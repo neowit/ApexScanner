@@ -25,7 +25,7 @@ import com.neowit.apex.scanner.actions.SyntaxError
 import org.antlr.v4.runtime.ANTLRErrorListener
 
 /**
-  * Created by Andrey Gavrikov on 20/03/2017.
+  * Created by Andrey Gavrikov
   */
 trait ApexErrorListener extends ANTLRErrorListener{
     /**

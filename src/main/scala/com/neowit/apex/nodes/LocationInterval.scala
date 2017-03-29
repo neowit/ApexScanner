@@ -40,6 +40,21 @@ case class LocationInterval(start: Location, end: Location) {
             }
         "(" + text + ")"
     }
+
+    /**
+      * check if given location is inside current LocationInterval
+      * @param location - line/col to check for inclusion
+      * @return true if given location is inside current LocationInterval
+      */
+    def includesLocation(location: Location): Boolean = {
+        if (start.line > location.line || start.line == location.line && start.col > location.col) {
+            return false
+        }
+        if (end.line < location.line || end.line == location.line && end.col < location.col) {
+            return false
+        }
+        true
+    }
 }
 
 object LocationInterval {

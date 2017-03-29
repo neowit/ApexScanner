@@ -19,13 +19,15 @@
  *
  */
 
-package com.neowit.apex.nodes
+package com.neowit.apex.resolvers
+
+import com.neowit.apex.nodes.{AstNode, Location}
 
 /**
   * Created by Andrey Gavrikov
+  *
+  * attempts to find node defining expression at specified location
   */
-case class ExpressionNode(locationInterval: LocationInterval) extends AstNode {
-    override def nodeType: AstNodeType = ExpressionNodeType
+class DefinitionFinder(rootNode: AstNode, location: Location) {
 
-    override def getDebugInfo: String = super.getDebugInfo + " TODO"
 }
