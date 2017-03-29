@@ -32,34 +32,18 @@ import com.neowit.apex.nodes.{AstNode, MethodNode, MethodNodeType}
   *                   List("integer", "*") - "*" means any type of second argument is a match
   *
   */
-class FindMethodVisitor(methodName: String, paramTypes: List[String]) extends AstVisitor {
+class FindMethodVisitor(methodName: String, paramTypes: Seq[String]) extends AstVisitor {
+    private val matcher = new MethodMatcher(methodName, paramTypes)
     private var foundMethodNode: Option[MethodNode] = None
-    private val methodNameLower = methodName.toLowerCase()
-    private val paramTypesLower = paramTypes.map(_.toLowerCase())
-    private val paramTypesLength = paramTypes.length
 
     override def visit(node: AstNode): Boolean = {
         if (MethodNodeType == node.nodeType) {
             val methodNode = node.asInstanceOf[MethodNode]
             methodNode.nameOpt match {
-                case Some(name) if methodNameLower == name.toLowerCase =>
-                    // check if parameter type(s) match
-                    val currentParamTypes = methodNode.getParameterTypes
-                    if (0 == paramTypesLength && currentParamTypes.isEmpty) {
-                        // target method does not have parameters
+                case Some(otherMethodName) =>
+                    if (matcher.isSameMethod(otherMethodName, methodNode.getParameterTypes)) {
                         foundMethodNode = Option(methodNode)
-                    } else if (paramTypesLength > 0 && paramTypesLength == currentParamTypes.length) {
-                        val typePairs = paramTypesLower.zip(currentParamTypes.map(_.toLowerCase))
-                        val notExactMatch =
-                            // check if there is a combination of parameters which do not match
-                            typePairs.exists{
-                                case (left, right) =>
-                                    left != right && "*" != left
-                            }
-                        // found target method if number of parameter match
-                        if (!notExactMatch) {
-                            foundMethodNode = Option(methodNode)
-                        }
+                        false
                     }
                 case _ =>
             }
@@ -70,5 +54,40 @@ class FindMethodVisitor(methodName: String, paramTypes: List[String]) extends As
     }
     def getFoundMethod: Option[MethodNode] = {
         foundMethodNode
+    }
+}
+
+class MethodMatcher(methodName: String, paramTypes: Seq[String]) {
+    private val methodNameLower = methodName.toLowerCase()
+    private val paramTypesLower = paramTypes.map(_.toLowerCase())
+    private val paramTypesLength = paramTypes.length
+
+    /*
+      * @param paramTypes list of type names (case insensitive) <br/>
+      *                   List("integer", "list❮String❯") <br/>
+      *                   List("integer", "*") - "*" means any type of second argument is a match
+      *
+     */
+    def isSameMethod(otherMethodName: String, otherParamTypes: Seq[String]): Boolean = {
+        if (methodNameLower == otherMethodName.toLowerCase && paramTypesLength == otherParamTypes.length) {
+            if (0 == paramTypesLength && otherParamTypes.isEmpty) {
+                // target method does not have parameters
+                true
+            } else if (paramTypesLength > 0 && paramTypesLength == otherParamTypes.length) {
+                val typePairs = paramTypesLower.zip(otherParamTypes.map(_.toLowerCase))
+                val notExactMatch =
+                // check if there is a combination of parameters which do not match
+                    typePairs.exists {
+                        case (left, right) =>
+                            left != right && "*" != left
+                    }
+                // found target method if number of parameter match
+                !notExactMatch
+            } else {
+                false
+            }
+        } else {
+            false
+        }
     }
 }
