@@ -24,12 +24,12 @@ package com.neowit.apex
 import java.nio.file.FileSystems
 
 import com.neowit.apex.ast._
-import com.neowit.apex.nodes.AstNode
+import com.neowit.apex.nodes._
 
 /**
   * Created by Andrey Gavrikov 
   */
-object FindUsages {
+object FindMethodUsagesVisitor {
     def main(args: Array[String]): Unit = {
 
         val astBuilder = new AstBuilder
@@ -45,7 +45,8 @@ object FindUsages {
 
             case Some(result) =>
                 val rootNode = result.rootNode
-                testFindMethod(rootNode)
+                //testFindMethod(rootNode)
+                testMethodUsages(rootNode)
         }
     }
 
@@ -57,18 +58,40 @@ object FindUsages {
         println(findMethodVisitor.getFoundMethod.map(_.getDebugInfo).getOrElse("NOT FOUND"))
     }
 
-    /*
     def testMethodUsages(rootNode: AstNode): Unit = {
-        val findUsagesVisitor = new FindUsagesVisitor()
-        new AstWalker().walk(rootNode, findUsagesVisitor)
+        //val findMethodVisitor = new FindMethodVisitor("methodToCall", List.empty)
+        val findMethodVisitor = new FindMethodVisitor("nonCaller", List("Integer", "List<String>"))
+        new AstWalker().walk(rootNode, findMethodVisitor)
+        findMethodVisitor.getFoundMethod match {
+          case Some(methodNode) =>
+              val findUsagesVisitor = new FindMethodUsagesVisitor(methodNode)
+              new AstWalker().walk(rootNode, findUsagesVisitor)
+              findUsagesVisitor.getResult.foreach(methodCallNode => println("FOUND: " + methodCallNode))
+          case None =>
+        }
+        //val findUsagesVisitor = new FindUsagesVisitor()
+        //new AstWalker().walk(rootNode, findUsagesVisitor)
     }
-    */
 
 }
-
-class FindUsagesVisitor(target: AstNode) extends AstVisitor {
-    override def visit(node: AstNode): Boolean = {
-        ???
+class FindMethodUsagesVisitor(targetToFind: MethodNode) extends AstVisitor {
+    private val methodMatcher: Option[MethodMatcher] = targetToFind.nameOpt match {
+        case Some(methodName) => Option(new MethodMatcher(methodName, targetToFind.getParameterTypes))
+        case None => None
     }
+    private val foundNodesBuilder = Seq.newBuilder[MethodCallNode]
+    override def visit(node: AstNode): Boolean = {
+        if (MethodCallNodeType == node.nodeType) {
+            val methodCallNode = node.asInstanceOf[MethodCallNode]
+            methodMatcher match {
+              case Some(matcher) if matcher.isSameMethod(methodCallNode.methodName, methodCallNode.getParameterTypes)=>
+                  foundNodesBuilder += methodCallNode
+              case _ =>
+            }
+
+        }
+        true
+    }
+    def getResult: Seq[MethodCallNode] = foundNodesBuilder.result()
 }
 

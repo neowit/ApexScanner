@@ -191,10 +191,11 @@ class ASTBuilderVisitor(file: Path) extends ApexcodeBaseVisitor[AstNode] {
     }
 
     override def visitMethodCallExpr(ctx: MethodCallExprContext): AstNode = {
-        if (null != ctx.expressionList()) {
-            visitChildren(MethodCallNode(ctx.func.getText, LocationInterval(ctx)), ctx.expressionList())
-        } else {
-            visitChildren(MethodCallNode(ctx.func.getText, LocationInterval(ctx)), ctx.expression())
-        }
+        visitChildren(MethodCallNode(ctx.func.getText, LocationInterval(ctx)), ctx)
     }
+
+    override def visitExpressionList(ctx: ExpressionListContext): AstNode = {
+        visitChildren(ExpressionListNode(LocationInterval(ctx)), ctx)
+    }
+
 }

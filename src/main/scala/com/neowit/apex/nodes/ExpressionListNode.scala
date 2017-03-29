@@ -24,23 +24,10 @@ package com.neowit.apex.nodes
 /**
   * Created by Andrey Gavrikov 
   */
-case class MethodCallNode(methodName: String, locationInterval: LocationInterval) extends AstNode {
-    override def nodeType: AstNodeType = MethodCallNodeType
+case class ExpressionListNode(locationInterval: LocationInterval) extends AstNode {
+    override def nodeType: AstNodeType = ExpressionListNodeType
 
-    /**
-      * used for debug purposes
-      *
-      * @return textual representation of this node and its children
-      */
-    override def getDebugInfo: String = super.getDebugInfo + " calling: " + methodName
+    def getExpressions: Seq[AstNode] = children
 
-    //TODO implement taking real parameter types into account
-    // current version returns "*" for each parameter
-    def getParameterTypes: Seq[String] = {
-        getChild[ExpressionListNode](ExpressionListNodeType) match {
-          case Some( expressionList ) => expressionList.getExpressions.map(e => "*").toSeq
-          case None => Seq.empty
-        }
-
-    }
+    override def getDebugInfo: String = super.getDebugInfo + getExpressions.map(_.getDebugInfo).mkString(", ")
 }

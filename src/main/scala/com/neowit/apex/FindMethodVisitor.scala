@@ -43,7 +43,6 @@ class FindMethodVisitor(methodName: String, paramTypes: Seq[String]) extends Ast
                 case Some(otherMethodName) =>
                     if (matcher.isSameMethod(otherMethodName, methodNode.getParameterTypes)) {
                         foundMethodNode = Option(methodNode)
-                        false
                     }
                 case _ =>
             }
@@ -75,11 +74,11 @@ class MethodMatcher(methodName: String, paramTypes: Seq[String]) {
                 true
             } else if (paramTypesLength > 0 && paramTypesLength == otherParamTypes.length) {
                 val typePairs = paramTypesLower.zip(otherParamTypes.map(_.toLowerCase))
-                val notExactMatch =
                 // check if there is a combination of parameters which do not match
+                val notExactMatch =
                     typePairs.exists {
                         case (left, right) =>
-                            left != right && "*" != left
+                            left != right && "*" != right && left != "*"
                     }
                 // found target method if number of parameter match
                 !notExactMatch
