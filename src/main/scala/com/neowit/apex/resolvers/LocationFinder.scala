@@ -23,18 +23,19 @@ package com.neowit.apex.resolvers
 
 import java.nio.file.FileSystems
 
+import com.neowit.apex.Project
 import com.neowit.apex.ast.{AstBuilder, AstVisitor, AstWalker}
-import com.neowit.apex.nodes.{AstNode, Location}
+import com.neowit.apex.nodes.{AstNode, Position}
 
 /**
   * Created by Andrey Gavrikov
   * find AstNode at specified location
   */
-class LocationFinder(location: Location) extends AstVisitor {
+class LocationFinder(location: Position) extends AstVisitor {
     private var foundNode: Option[AstNode] = None
 
     override def visit(node: AstNode): Boolean = {
-        if (node.locationInterval.includesLocation(location)) {
+        if (node.range.includesLocation(location)) {
             foundNode = Option(node)
             true
         } else {
@@ -51,9 +52,9 @@ class LocationFinder(location: Location) extends AstVisitor {
 object LocationFinder {
     def main(args: Array[String]): Unit = {
 
-        val astBuilder = new AstBuilder
         //val path = FileSystems.getDefault.getPath(args(0))
         val path = FileSystems.getDefault.getPath ("/Users/andrey/development/scala/projects/ApexScanner/GrammarTests/TypeFinder.cls")
+        val astBuilder = new AstBuilder(Project(path))
         astBuilder.build(path)
 
         astBuilder.getAst(path) match {
@@ -66,12 +67,15 @@ object LocationFinder {
             case Some(result) =>
                 val rootNode = result.rootNode
                 //testFindMethod(rootNode)
-                testLocationFinder(rootNode, Location(17, 21))
+                testLocationFinder(rootNode, Position(17, 21))
         }
     }
 
-    def testLocationFinder(rootNode: AstNode, location: Location): Unit = {
+    def testLocationFinder(rootNode: AstNode, location: Position): Unit = {
         val finder = new LocationFinder(location)
-        finder.findInside(rootNode)
+        finder.findInside(rootNode)  match {
+          case Some(node) => println("FOUND: " + node)
+          case None => println("NOT FOUND")
+        }
     }
 }

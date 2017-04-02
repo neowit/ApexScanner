@@ -23,6 +23,7 @@ package com.neowit.apex.ast
 
 import java.nio.file.FileSystems
 
+import com.neowit.apex.Project
 import com.neowit.apex.nodes.AstNode
 import com.neowit.apex.scanner.{FileScanResult, Scanner}
 import com.neowit.apex.scanner.actions.SyntaxChecker
@@ -41,14 +42,16 @@ class DebugVisitor extends AstVisitor {
     }
 }
 object DebugVisitor {
+    var project: Project = _
     def main(args: Array[String]): Unit = {
         val scanner = new Scanner(Scanner.defaultIsIgnoredPath, onEachFileScanResult, SyntaxChecker.errorListenerCreator)
 
         val path = FileSystems.getDefault.getPath(args(0))
+        project = Project(path)
         scanner.scan(path)
     }
     def onEachFileScanResult(result: FileScanResult): Unit = {
-        val visitor = new ASTBuilderVisitor(result.sourceFile)
+        val visitor = new ASTBuilderVisitor(project, result.sourceFile)
         val compileUnit = visitor.visit(result.parseContext)
         new AstWalker().walk(compileUnit, new DebugVisitor)
     }

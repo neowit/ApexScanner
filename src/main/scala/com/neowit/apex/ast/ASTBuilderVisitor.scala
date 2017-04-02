@@ -23,25 +23,26 @@ package com.neowit.apex.ast
 
 import java.nio.file.Path
 
+import com.neowit.apex.Project
 import com.neowit.apex.scanner.antlr.{ApexcodeBaseVisitor, ApexcodeParser}
 import com.neowit.apex.scanner.antlr.ApexcodeParser._
 import com.neowit.apex.nodes._
 import org.antlr.v4.runtime.tree.{RuleNode, TerminalNode}
 
-class ASTBuilderVisitor(file: Path) extends ApexcodeBaseVisitor[AstNode] {
+class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisitor[AstNode] {
 
     override def defaultResult(): AstNode = NullNode
 
     override def visitChildren(node: RuleNode): AstNode = {
 
-        val fallThroughNode = FallThroughNode(LocationInterval(node))
+        val fallThroughNode = FallThroughNode(Range(node))
         visitChildren(fallThroughNode, node)
         //super.visitChildren(node)
     }
 
     private def visitChildren(parent: AstNode, ruleNode: RuleNode): AstNode = {
 
-        for (i <- Range(0, ruleNode.getChildCount)) {
+        for (i <- scala.collection.immutable.Range(0, ruleNode.getChildCount)) {
             val elem = ruleNode.getChild(i)
             val node = visit(elem)
             if (NullNode != node) {
@@ -58,26 +59,26 @@ class ASTBuilderVisitor(file: Path) extends ApexcodeBaseVisitor[AstNode] {
       * @param ctx the parse tree
       */
     override def visitCompilationUnit(ctx: CompilationUnitContext): AstNode = {
-        visitChildren(FileNode(file, LocationInterval(ctx)), ctx)
+        visitChildren(FileNode(project, file, Range(ctx)), ctx)
     }
 
     override def visitTerminal(node: TerminalNode): AstNode = {
         if (ApexcodeParser.Identifier == node.getSymbol.getType) {
-            IdentifierNode(node.getText, LocationInterval(node))
+            IdentifierNode(node.getText, Range(node))
         } else {
             NullNode
         }
     }
 
     override def visitClassDef(ctx: ClassDefContext): AstNode = {
-        val classNode = ClassNode(LocationInterval(ctx))
+        val classNode = ClassNode(Range(ctx))
         visitChildren(classNode, ctx)
 
         classNode
     }
 
     override def visitClassName(ctx: ClassNameContext): AstNode = {
-        IdentifierNode(ctx.getText, LocationInterval(ctx))
+        IdentifierNode(ctx.getText, Range(ctx))
     }
 
     override def visitClassOrInterfaceModifier(ctx: ClassOrInterfaceModifierContext): AstNode = {
@@ -97,16 +98,16 @@ class ASTBuilderVisitor(file: Path) extends ApexcodeBaseVisitor[AstNode] {
     }
 
     override def visitExtendsDeclaration(ctx: ExtendsDeclarationContext): AstNode = {
-        visitChildren(ExtendsNode(LocationInterval(ctx)), ctx)
+        visitChildren(ExtendsNode(Range(ctx)), ctx)
     }
 
 
     override def visitImplementsDeclaration(ctx: ImplementsDeclarationContext): AstNode = {
-        visitChildren(ImplementsInterfaceNode(LocationInterval(ctx)), ctx)
+        visitChildren(ImplementsInterfaceNode(Range(ctx)), ctx)
     }
 
     override def visitTypeArguments(ctx: TypeArgumentsContext): AstNode = {
-        val typeArgumentsNode = TypeArgumentsNode(LocationInterval(ctx))
+        val typeArgumentsNode = TypeArgumentsNode(Range(ctx))
         ctx.dataType().iterator().forEachRemaining{elem =>
             val dataType = visitDataType(elem)
             typeArgumentsNode.addChild(dataType)
@@ -116,7 +117,7 @@ class ASTBuilderVisitor(file: Path) extends ApexcodeBaseVisitor[AstNode] {
 
     override def visitDataType(ctx: DataTypeContext): AstNode = {
         if (null != ctx.VOID()) {
-            DataTypeVoid(LocationInterval(ctx))
+            DataTypeVoid(Range(ctx))
         } else if(null != ctx.typeArguments()) {
             val qualifiedNameNode = visit(ctx.qualifiedName()).asInstanceOf[QualifiedNameNode]
             val typeArgumentsNode =
@@ -124,21 +125,21 @@ class ASTBuilderVisitor(file: Path) extends ApexcodeBaseVisitor[AstNode] {
                     Option(visit(ctx.typeArguments()).asInstanceOf[TypeArgumentsNode])
                 else
                     None
-            DataType(qualifiedNameNode, typeArgumentsNode, LocationInterval(ctx))
+            DataType(qualifiedNameNode, typeArgumentsNode, Range(ctx))
         } else {
             // last option
             val qualifiedNameNode = visit(ctx.qualifiedName()).asInstanceOf[QualifiedNameNode]
-            DataType(qualifiedNameNode, typeArgumentsOpt = None, LocationInterval(ctx))
+            DataType(qualifiedNameNode, typeArgumentsOpt = None, Range(ctx))
         }
     }
 
     override def visitQualifiedName(ctx: QualifiedNameContext): AstNode = {
-        visitChildren(QualifiedNameNode(LocationInterval(ctx)), ctx)
+        visitChildren(QualifiedNameNode(Range(ctx)), ctx)
     }
 
     //TODO
     override def visitClassVariable(ctx: ClassVariableContext): AstNode = {
-        val classVariableNode = ClassVariableNode(LocationInterval(ctx))
+        val classVariableNode = ClassVariableNode(Range(ctx))
         ctx.children.iterator().forEachRemaining{ elem =>
             val node = visit(elem)
             if (NullNode != node) {
@@ -151,19 +152,19 @@ class ASTBuilderVisitor(file: Path) extends ApexcodeBaseVisitor[AstNode] {
 
     /////////////////// method ////////////////////////////////
     override def visitClassMethod(ctx: ClassMethodContext): AstNode = {
-        visitChildren(MethodNode(LocationInterval(ctx)), ctx)
+        visitChildren(MethodNode(Range(ctx)), ctx)
     }
 
     override def visitMethodHeader(ctx: MethodHeaderContext): AstNode = {
-        visitChildren(MethodHeaderNode(LocationInterval(ctx)), ctx)
+        visitChildren(MethodHeaderNode(Range(ctx)), ctx)
     }
 
     override def visitMethodName(ctx: MethodNameContext): AstNode = {
-        MethodNameNode(ctx.Identifier().getText, LocationInterval(ctx))
+        MethodNameNode(ctx.Identifier().getText, Range(ctx))
     }
 
     override def visitMethodParameter(ctx: MethodParameterContext): AstNode = {
-        val methodParameterNode = MethodParameterNode(ctx.methodParameterName().getText, LocationInterval(ctx))
+        val methodParameterNode = MethodParameterNode(ctx.methodParameterName().getText, Range(ctx))
         visitChildren(methodParameterNode, ctx)
         methodParameterNode
     }
@@ -172,7 +173,7 @@ class ASTBuilderVisitor(file: Path) extends ApexcodeBaseVisitor[AstNode] {
     override def visitMethodBody(ctx: MethodBodyContext): AstNode = {
         if (null != ctx.codeBlock()) {
             // concrete method
-            visitChildren(MethodBodyNode(LocationInterval(ctx.codeBlock())), ctx.codeBlock())
+            visitChildren(MethodBodyNode(Range(ctx.codeBlock())), ctx.codeBlock())
         } else {
             throw new NotImplementedError("visitMethodBody with null ctx.codeBlock() is not implemented")
         }
@@ -180,22 +181,22 @@ class ASTBuilderVisitor(file: Path) extends ApexcodeBaseVisitor[AstNode] {
 
     override def visitBlockStatement(ctx: BlockStatementContext): AstNode = {
        if (null != ctx.localVariableDeclaration()) {
-           visitChildren(LocalVariableNode(LocationInterval(ctx.localVariableDeclaration())), ctx.localVariableDeclaration())
+           visitChildren(LocalVariableNode(Range(ctx.localVariableDeclaration())), ctx.localVariableDeclaration())
        } else {
            visit(ctx.statement())
        }
     }
 
     override def visitExpressionStmt(ctx: ExpressionStmtContext): AstNode = {
-        visitChildren(ExpressionNode(LocationInterval(ctx)), ctx)
+        visitChildren(ExpressionNode(Range(ctx)), ctx)
     }
 
     override def visitMethodCallExpr(ctx: MethodCallExprContext): AstNode = {
-        visitChildren(MethodCallNode(ctx.func.getText, LocationInterval(ctx)), ctx)
+        visitChildren(MethodCallNode(ctx.func.getText, Range(ctx)), ctx)
     }
 
     override def visitExpressionList(ctx: ExpressionListContext): AstNode = {
-        visitChildren(ExpressionListNode(LocationInterval(ctx)), ctx)
+        visitChildren(ExpressionListNode(Range(ctx)), ctx)
     }
 
 }

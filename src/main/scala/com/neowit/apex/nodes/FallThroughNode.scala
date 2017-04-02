@@ -26,6 +26,6 @@ package com.neowit.apex.nodes
   * by itself this node does not represent anything useful
   * AstNode getChild[ren] has special logic for FallThroughNode
   */
-case class FallThroughNode(locationInterval: LocationInterval) extends AstNode {
+case class FallThroughNode(range: Range) extends AstNode {
     override def nodeType: AstNodeType = FallThroughNodeType
 }

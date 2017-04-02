@@ -21,7 +21,10 @@
 
 package com.neowit.apex.nodes
 
-case class InterfaceNode(locationInterval: LocationInterval ) extends ClassLike {
+import com.neowit.apex.symbols.SymbolKind
+
+case class InterfaceNode(range: Range ) extends ClassLike {
     override def nodeType: AstNodeType = InterfaceNodeType
 
+    override def symbolKind: SymbolKind = SymbolKind.Interface
 }

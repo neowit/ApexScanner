@@ -24,7 +24,7 @@ package com.neowit.apex.nodes
 /**
   * Created by Andrey Gavrikov
   */
-case class ImplementsInterfaceNode(locationInterval: LocationInterval) extends AstNode {
+case class ImplementsInterfaceNode(range: Range) extends AstNode {
     override def nodeType: AstNodeType = ImplementsInterfaceNodeType
 
     def dataType: Seq[DataTypeBase] = getChildren[DataTypeBase](DataTypeNodeType)

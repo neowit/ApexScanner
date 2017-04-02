@@ -21,7 +21,7 @@
 
 package com.neowit.apex.nodes
 
-case class TypeArgumentsNode(locationInterval: LocationInterval) extends AstNode {
+case class TypeArgumentsNode(range: Range) extends AstNode {
     override def nodeType: AstNodeType = TypeArgumentsNodeType
     def components: Seq[DataTypeBase] =
         getChildren[DataTypeBase](DataTypeNodeType, recursively = true)

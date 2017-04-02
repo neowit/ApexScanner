@@ -23,7 +23,7 @@ package com.neowit.apex.nodes
 
 import com.neowit.apex.scanner.antlr.ApexcodeParser.AnnotationContext
 
-case class AnnotationNode(name: String, params: List[AnnotationParameter], locationInterval: LocationInterval) extends AstNode {
+case class AnnotationNode(name: String, params: List[AnnotationParameter], range: Range) extends AstNode {
     override def nodeType: AstNodeType = AnnotationNodeType
 
     /**
@@ -44,13 +44,13 @@ case class AnnotationNode(name: String, params: List[AnnotationParameter], locat
 
 object AnnotationNode {
     def visitAnnotation(ctx: AnnotationContext): AstNode = {
-        val annotation = AnnotationNode(name = ctx.annotationName().getText, params = Nil, LocationInterval(ctx))
+        val annotation = AnnotationNode(name = ctx.annotationName().getText, params = Nil, Range(ctx))
         //TODO define annotation params
         annotation
     }
 }
 
-case class AnnotationParameter(name: String, value: String, locationInterval: LocationInterval) extends AstNode {
+case class AnnotationParameter(name: String, value: String, range: Range) extends AstNode {
     override def nodeType: AstNodeType = AnnotationParameterNodeType
     override def getDebugInfo: String = {
         super.getDebugInfo + " " + name + "=" + value

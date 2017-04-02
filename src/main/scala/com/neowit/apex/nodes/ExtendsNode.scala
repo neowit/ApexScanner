@@ -21,7 +21,7 @@
 
 package com.neowit.apex.nodes
 
-case class ExtendsNode(locationInterval: LocationInterval) extends AstNode {
+case class ExtendsNode(range: Range) extends AstNode {
     override def nodeType: AstNodeType = ExtendsNodeType
     def dataType: Option[DataTypeBase] = getChild[DataTypeBase](DataTypeNodeType)
     def text: String = dataType.map(_.text).getOrElse("")

@@ -24,13 +24,13 @@ package com.neowit.apex.nodes
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.RuleNode
 
-case class Location(line: Int, col: Int)
-object Location {
-    val INVALID_LOCATION = Location(-1, -1)
-    val FALLTHROUGH_LOCATION = Location(-2, -2)
+case class Position(line: Int, col: Int)
+object Position {
+    val INVALID_LOCATION = Position(-1, -1)
+    val FALLTHROUGH_LOCATION = Position(-2, -2)
 }
 
-case class LocationInterval(start: Location, end: Location) {
+case class Range(start: Position, end: Position) {
     def detDebugInfo: String = {
         val text =
             if (start != end) {
@@ -46,7 +46,7 @@ case class LocationInterval(start: Location, end: Location) {
       * @param location - line/col to check for inclusion
       * @return true if given location is inside current LocationInterval
       */
-    def includesLocation(location: Location): Boolean = {
+    def includesLocation(location: Position): Boolean = {
         if (start.line > location.line || start.line == location.line && start.col > location.col) {
             return false
         }
@@ -57,26 +57,26 @@ case class LocationInterval(start: Location, end: Location) {
     }
 }
 
-object LocationInterval {
-    val INVALID_LOCATION = LocationInterval(Location.INVALID_LOCATION, Location.INVALID_LOCATION)
-    val FALLTHROUGH_LOCATION = LocationInterval(Location.FALLTHROUGH_LOCATION, Location.FALLTHROUGH_LOCATION)
+object Range {
+    val INVALID_LOCATION = Range(Position.INVALID_LOCATION, Position.INVALID_LOCATION)
+    val FALLTHROUGH_LOCATION = Range(Position.FALLTHROUGH_LOCATION, Position.FALLTHROUGH_LOCATION)
 
-    def apply(node: RuleNode): LocationInterval = {
+    def apply(node: RuleNode): Range = {
         FALLTHROUGH_LOCATION
     }
-    def apply(ctx: ParserRuleContext): LocationInterval = {
+    def apply(ctx: ParserRuleContext): Range = {
         val startToken = ctx.getStart
         val endToken = ctx.getStop
 
-        LocationInterval(
-            start = Location(startToken.getLine, startToken.getCharPositionInLine),
-            end = Location(endToken.getLine, endToken.getCharPositionInLine)
+        Range(
+            start = Position(startToken.getLine, startToken.getCharPositionInLine),
+            end = Position(endToken.getLine, endToken.getCharPositionInLine)
         )
     }
-    def apply(node: org.antlr.v4.runtime.tree.TerminalNode): LocationInterval = {
-        LocationInterval(
-            start = Location(node.getSymbol.getLine, node.getSymbol.getStartIndex),
-            end = Location(node.getSymbol.getLine, node.getSymbol.getStopIndex)
+    def apply(node: org.antlr.v4.runtime.tree.TerminalNode): Range = {
+        Range(
+            start = Position(node.getSymbol.getLine, node.getSymbol.getStartIndex),
+            end = Position(node.getSymbol.getLine, node.getSymbol.getStopIndex)
         )
     }
 }

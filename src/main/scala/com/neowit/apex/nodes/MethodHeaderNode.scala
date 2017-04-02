@@ -24,7 +24,7 @@ package com.neowit.apex.nodes
 /**
   * Created by Andrey Gavrikov 
   */
-case class MethodHeaderNode(locationInterval: LocationInterval) extends AstNode{
+case class MethodHeaderNode(range: Range) extends AstNode{
     override def nodeType: AstNodeType = MethodHeaderNodeType
     def methodName: Option[String] = getChild[MethodNameNode](MethodNameNodeType).map(_.name)
 }

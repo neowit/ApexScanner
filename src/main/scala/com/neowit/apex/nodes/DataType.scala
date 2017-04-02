@@ -28,7 +28,7 @@ trait DataTypeBase extends AstNode {
     override def getDebugInfo: String = super.getDebugInfo + " " + text
 }
 case class DataType(qualifiedName: QualifiedNameNode, typeArgumentsOpt: Option[TypeArgumentsNode],
-                    locationInterval: LocationInterval) extends DataTypeBase {
+                    range: Range) extends DataTypeBase {
     def text: String =
         qualifiedName.text +
             typeArgumentsOpt.map(_.text).getOrElse("")
@@ -36,12 +36,12 @@ case class DataType(qualifiedName: QualifiedNameNode, typeArgumentsOpt: Option[T
 }
 
 //VOID
-case class DataTypeVoid(locationInterval: LocationInterval) extends DataTypeBase {
+case class DataTypeVoid(range: Range) extends DataTypeBase {
     override def text: String = "void"
 }
 
 //Some[] - array type
-case class DataTypeArray(qualifiedName: QualifiedNameNode, locationInterval: LocationInterval) extends DataTypeBase {
+case class DataTypeArray(qualifiedName: QualifiedNameNode, range: Range) extends DataTypeBase {
     def text: String = qualifiedName.text + "[]"
 }
 

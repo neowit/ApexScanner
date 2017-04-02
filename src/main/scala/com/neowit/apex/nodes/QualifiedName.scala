@@ -19,15 +19,14 @@
  *
  */
 
-package com.neowit.apex.resolvers
-
-import com.neowit.apex.nodes.{AstNode, Position}
+package com.neowit.apex.nodes
 
 /**
   * Created by Andrey Gavrikov
   *
-  * attempts to find node defining expression at specified location
+  * this is different from QualifiedNameNode as not being part of AST
   */
-class DefinitionFinder(rootNode: AstNode, location: Position) {
-
+case class QualifiedName(components: Array[String]) {
+    def getFirstComponent: String = components.head
+    def getLastComponent: String = components.last
 }

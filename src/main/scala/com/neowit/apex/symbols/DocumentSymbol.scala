@@ -19,15 +19,21 @@
  *
  */
 
-package com.neowit.apex.resolvers
+package com.neowit.apex.symbols
 
-import com.neowit.apex.nodes.{AstNode, Position}
+import com.neowit.apex.nodes.Location
 
 /**
   * Created by Andrey Gavrikov
   *
-  * attempts to find node defining expression at specified location
+  * Primary purpose of DocumentSymbol is to be displayed as a useful part of file structure
+  * for example
+  * - method is useful to display ina file structure
+  * - anonymous code block or method variable are not useful parts of displayable file structure
   */
-class DefinitionFinder(rootNode: AstNode, location: Position) {
-
+trait DocumentSymbol {
+    def symbolName: String
+    def symbolKind: SymbolKind
+    def symbolLocation: Location
+    def parentSymbol: Option[DocumentSymbol]
 }

@@ -24,6 +24,6 @@ package com.neowit.apex.nodes
 /**
   * Created by Andrey Gavrikov 
   */
-case class MethodBodyNode(locationInterval: LocationInterval) extends AstNode {
+case class MethodBodyNode(range: Range) extends AstNode {
     override def nodeType: AstNodeType = MethodBodyNodeType
 }

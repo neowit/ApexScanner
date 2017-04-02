@@ -19,15 +19,16 @@
  *
  */
 
-package com.neowit.apex.resolvers
-
-import com.neowit.apex.nodes.{AstNode, Position}
+package com.neowit.apex.nodes
 
 /**
   * Created by Andrey Gavrikov
-  *
-  * attempts to find node defining expression at specified location
+  * Apex code may consist of main language (Apex) and embedded SOQL or SOSL
   */
-class DefinitionFinder(rootNode: AstNode, location: Position) {
+trait Language
 
+object Language {
+    object ApexCode extends Language
+    object SOQL extends Language
+    object SOSL extends Language
 }

@@ -23,7 +23,7 @@ package com.neowit.apex.nodes
 
 import com.neowit.apex.scanner.antlr.ApexcodeParser.ClassDeclarationContext
 
-case class IdentifierNode(name: String, locationInterval: LocationInterval) extends AstNode {
+case class IdentifierNode(name: String, range: Range) extends AstNode {
     override def nodeType: AstNodeType = IdentifierNodeType
     override def getDebugInfo: String = super.getDebugInfo + " " + name
 }
@@ -31,7 +31,7 @@ case class IdentifierNode(name: String, locationInterval: LocationInterval) exte
 object IdentifierNode {
     def apply(ctx: ClassDeclarationContext): IdentifierNode = {
         if (null != ctx.className()) {
-            IdentifierNode(ctx.className().getText, LocationInterval(ctx.className()))
+            IdentifierNode(ctx.className().getText, Range(ctx.className()))
         } else {
             throw new UnsupportedOperationException("ClassDeclarationContext without className was Encountered")
         }

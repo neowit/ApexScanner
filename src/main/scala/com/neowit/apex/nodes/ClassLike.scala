@@ -21,11 +21,51 @@
 
 package com.neowit.apex.nodes
 
-trait ClassLike extends AstNode with HasApexDoc {
+import java.nio.file.Path
+
+import com.neowit.apex.Project
+import com.neowit.apex.symbols.DocumentSymbol
+
+trait ClassLike extends AstNode with HasApexDoc with DocumentSymbol { self =>
 
     def name: Option[String] = getChild[IdentifierNode](IdentifierNodeType).map(_.name)
     def annotations: Seq[AnnotationNode] = getChildren[AnnotationNode](AnnotationNodeType)
     def modifiers: Set[ModifierNode] = getChildren[ModifierNode](ModifierNodeType).toSet
+    def parentClass: Option[ClassNode] = findParent(_.nodeType == ClassNodeType).map(_.asInstanceOf[ClassNode])
+
+    /**
+      * ParentClass.CurrentClass
+      * @return
+      */
+    def qualifiedName: Option[QualifiedName] = {
+        val parentNameComponents = parentClass.flatMap(c => c.qualifiedName.map(_.components)).getOrElse(Array.empty[String])
+        val thisNameComponents = name.map(Array(_)).getOrElse(Array.empty[String])
+        //full QualifiedName is a concatenation of two arrays
+        //parent components + Array(this.name)
+        if (parentNameComponents.nonEmpty || thisNameComponents.nonEmpty) {
+            Option(QualifiedName(parentNameComponents ++ thisNameComponents))
+        } else {
+            None
+        }
+    }
+
+    override def symbolName: String = name.getOrElse("")
+
+    override def symbolLocation: Location = {
+        findParent(_.nodeType == FileNodeType)
+            .map(_.asInstanceOf[FileNode])
+            .map(f => new Location {
+                override def range: Range = self.range
+
+                override def project: Project = f.project
+
+                override def path: Path = f.file
+            })
+            .getOrElse(LocationUndefined)
+    }
+
+
+    override def parentSymbol: Option[DocumentSymbol] = parentClass
 
     def hasModifier(modifierType: ModifierNode.ModifierType): Boolean = {
         modifiers.exists(m => m.modifierType == modifierType)

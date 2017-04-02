@@ -21,7 +21,7 @@
 
 package com.neowit.apex.nodes
 
-case class MethodNode(locationInterval: LocationInterval ) extends AstNode with HasApexDoc {
+case class MethodNode(range: Range ) extends AstNode with HasApexDoc {
     def nameOpt: Option[String] =
         getChild[MethodHeaderNode](MethodHeaderNodeType).flatMap(_.methodName)
 

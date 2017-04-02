@@ -24,7 +24,7 @@ package com.neowit.apex.nodes
 /**
   * Created by Andrey Gavrikov 
   */
-case class ExpressionListNode(locationInterval: LocationInterval) extends AstNode {
+case class ExpressionListNode(range: Range) extends AstNode {
     override def nodeType: AstNodeType = ExpressionListNodeType
 
     def getExpressions: Seq[AstNode] = children

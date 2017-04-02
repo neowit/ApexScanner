@@ -24,6 +24,6 @@ package com.neowit.apex.nodes
 /**
   * Created by Andrey Gavrikov 
   */
-case class LocalVariableNode(locationInterval: LocationInterval) extends VariableLike {
+case class LocalVariableNode(range: Range) extends VariableLike {
     override def nodeType: AstNodeType = LocalVariableNodeType
 }

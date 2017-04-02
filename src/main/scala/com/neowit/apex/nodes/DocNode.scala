@@ -21,7 +21,7 @@
 
 package com.neowit.apex.nodes
 
-case class DocNode(text: String, locationInterval: LocationInterval) extends AstNode {
+case class DocNode(text: String, range: Range) extends AstNode {
     override def nodeType: AstNodeType = DocNodeType
     override def getDebugInfo: String = super.getDebugInfo + " " + text
 }

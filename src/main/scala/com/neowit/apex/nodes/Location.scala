@@ -19,15 +19,28 @@
  *
  */
 
-package com.neowit.apex.resolvers
+package com.neowit.apex.nodes
 
-import com.neowit.apex.nodes.{AstNode, Position}
+import java.nio.file.Path
+
+import com.neowit.apex.Project
 
 /**
-  * Created by Andrey Gavrikov
-  *
-  * attempts to find node defining expression at specified location
+  * Created by Andrey Gavrikov 
   */
-class DefinitionFinder(rootNode: AstNode, location: Position) {
+trait Location {
+    def project: Project
 
+    def path: Path
+
+    def range: Range
 }
+
+case object LocationUndefined extends Location {
+    override def project: Project = null
+
+    override def path: Path = null
+
+    override def range: Range = null
+}
+

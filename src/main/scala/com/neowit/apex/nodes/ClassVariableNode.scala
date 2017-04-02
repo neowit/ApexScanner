@@ -21,7 +21,7 @@
 
 package com.neowit.apex.nodes
 
-case class ClassVariableNode(locationInterval: LocationInterval) extends VariableLike {
+case class ClassVariableNode(range: Range) extends VariableLike {
     override def nodeType: AstNodeType = ClassVariableNodeType
 
     /**

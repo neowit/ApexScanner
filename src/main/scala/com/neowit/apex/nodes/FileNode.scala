@@ -23,7 +23,9 @@ package com.neowit.apex.nodes
 
 import java.nio.file.Path
 
-case class FileNode(file: Path, locationInterval: LocationInterval) extends AstNode {
+import com.neowit.apex.Project
+
+case class FileNode(project: Project, file: Path, range: Range) extends AstNode {
     override def nodeType: AstNodeType = FileNodeType
 
     /**

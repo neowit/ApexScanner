@@ -24,7 +24,7 @@ package com.neowit.apex.nodes
 import com.neowit.apex.scanner.antlr.ApexcodeParser.{ClassOrInterfaceVisibilityModifierContext, ClassSharingModifierContext}
 
 
-case class ModifierNode(modifierType: ModifierNode.ModifierType, locationInterval: LocationInterval) extends AstNode {
+case class ModifierNode(modifierType: ModifierNode.ModifierType, range: Range) extends AstNode {
 
     override def nodeType: AstNodeType = ModifierNodeType
     override def getDebugInfo: String = super.getDebugInfo + " " + modifierType
@@ -53,34 +53,34 @@ object ModifierNode {
 
     def visitClassOrInterfaceVisibilityModifier(ctx: ClassOrInterfaceVisibilityModifierContext): AstNode = {
         if (null != ctx.ABSTRACT()) {
-            return ModifierNode(ModifierNode.ABSTRACT, LocationInterval(ctx.VIRTUAL()))
+            return ModifierNode(ModifierNode.ABSTRACT, Range(ctx.VIRTUAL()))
         }
         if (null != ctx.GLOBAL()) {
-            return ModifierNode(ModifierNode.GLOBAL, LocationInterval(ctx.GLOBAL()))
+            return ModifierNode(ModifierNode.GLOBAL, Range(ctx.GLOBAL()))
         }
         if (null != ctx.PRIVATE()) {
-            return ModifierNode(ModifierNode.PRIVATE, LocationInterval(ctx.PRIVATE()))
+            return ModifierNode(ModifierNode.PRIVATE, Range(ctx.PRIVATE()))
         }
         if (null != ctx.PUBLIC()) {
-            return ModifierNode(ModifierNode.PUBLIC, LocationInterval(ctx.PUBLIC()))
+            return ModifierNode(ModifierNode.PUBLIC, Range(ctx.PUBLIC()))
         }
         if (null != ctx.VIRTUAL()) {
-            return ModifierNode(ModifierNode.VIRTUAL, LocationInterval(ctx.VIRTUAL()))
+            return ModifierNode(ModifierNode.VIRTUAL, Range(ctx.VIRTUAL()))
         }
         if (null != ctx.WEBSERVICE()) {
-            return ModifierNode(ModifierNode.WEBSERVICE, LocationInterval(ctx.WEBSERVICE()))
+            return ModifierNode(ModifierNode.WEBSERVICE, Range(ctx.WEBSERVICE()))
         }
         NullNode
     }
 
     def visitClassSharingModifier(ctx: ClassSharingModifierContext): AstNode = {
         if (null != ctx.WITH_SHARING()) {
-            return ModifierNode(ModifierNode.WITH_SHARING, LocationInterval(ctx.WITH_SHARING()))
+            return ModifierNode(ModifierNode.WITH_SHARING, Range(ctx.WITH_SHARING()))
         }
         if (null != ctx.WITHOUT_SHARING()) {
-            return ModifierNode(ModifierNode.WITHOUT_SHARING, LocationInterval(ctx.WITHOUT_SHARING()))
+            return ModifierNode(ModifierNode.WITHOUT_SHARING, Range(ctx.WITHOUT_SHARING()))
         }
         //if no sharing modifier provided - by default assume WITHOUT_SHARING
-        ModifierNode(ModifierNode.ABSTRACT, LocationInterval(ctx.WITHOUT_SHARING()))
+        ModifierNode(ModifierNode.ABSTRACT, Range(ctx.WITHOUT_SHARING()))
     }
 }

@@ -21,8 +21,12 @@
 
 package com.neowit.apex.nodes
 
-case class ClassNode(locationInterval: LocationInterval) extends ClassLike {
+import com.neowit.apex.symbols.SymbolKind
+
+case class ClassNode(range: Range) extends ClassLike {
     override def nodeType: AstNodeType = ClassNodeType
+
+    override def symbolKind: SymbolKind = SymbolKind.Class
 }
 
 

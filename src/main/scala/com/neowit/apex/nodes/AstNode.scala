@@ -26,8 +26,14 @@ trait AstNode {
     private var _parent: Option[AstNode] = None
     private val _children = new scala.collection.mutable.ListBuffer[AstNode]()
 
-    def locationInterval:LocationInterval
+    def range:Range
     def nodeType: AstNodeType
+
+    /**
+      * override this method in SOQL and SOSL nodes
+      * @return
+      */
+    def language: Language = Language.ApexCode
 
     def setParent(parent: AstNode): AstNode = {
         _parent = Option(parent)
@@ -101,7 +107,7 @@ trait AstNode {
       */
     def getDebugInfo: String = {
         val shift = List.fill(getLevelsDeep)("\t").mkString("")
-        "\n" + shift + locationInterval.detDebugInfo + " " + nodeType + " => "
+        "\n" + shift + range.detDebugInfo + " " + nodeType + " => "
     }
     // used in getDebugInfo for visual shift of child level compared to parent
     private var levelsDeep: Int = -1

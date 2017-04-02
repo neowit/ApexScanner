@@ -23,6 +23,7 @@ package com.neowit.apex.resolvers
 
 import java.nio.file.FileSystems
 
+import com.neowit.apex.Project
 import com.neowit.apex.ast._
 import com.neowit.apex.nodes._
 
@@ -32,8 +33,8 @@ import com.neowit.apex.nodes._
 object FindMethodUsagesVisitor {
     def main(args: Array[String]): Unit = {
 
-        val astBuilder = new AstBuilder
         val path = FileSystems.getDefault.getPath(args(0))
+        val astBuilder = new AstBuilder(Project(path))
         astBuilder.build(path)
 
         astBuilder.getAst(path) match {

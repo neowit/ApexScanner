@@ -19,15 +19,13 @@
  *
  */
 
-package com.neowit.apex.resolvers
+package com.neowit.apex
 
-import com.neowit.apex.nodes.{AstNode, Position}
+import java.nio.file.Path
 
 /**
-  * Created by Andrey Gavrikov
-  *
-  * attempts to find node defining expression at specified location
+  * Created by Andrey Gavrikov 
   */
-class DefinitionFinder(rootNode: AstNode, location: Position) {
+case class Project(path: Path) {
 
 }
