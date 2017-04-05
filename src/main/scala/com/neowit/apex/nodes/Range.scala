@@ -67,16 +67,27 @@ object Range {
     def apply(ctx: ParserRuleContext): Range = {
         val startToken = ctx.getStart
         val endToken = ctx.getStop
+        val startPosition = Position(startToken.getLine, startToken.getCharPositionInLine)
+        val endPosition = Position(endToken.getLine, endToken.getCharPositionInLine)
+        if (startPosition == endPosition) {
+            // looks like a terminal token without children, or token with single character
+            Range(
+                start = startPosition,
+                end = Position(startPosition.line, startPosition.col + ctx.getText.length -1)
+            )
+        } else {
+            // token with children
+            Range(
+                start = startPosition,
+                end = endPosition
+            )
 
-        Range(
-            start = Position(startToken.getLine, startToken.getCharPositionInLine),
-            end = Position(endToken.getLine, endToken.getCharPositionInLine)
-        )
+        }
     }
     def apply(node: org.antlr.v4.runtime.tree.TerminalNode): Range = {
         Range(
-            start = Position(node.getSymbol.getLine, node.getSymbol.getStartIndex),
-            end = Position(node.getSymbol.getLine, node.getSymbol.getStopIndex)
+            start = Position(node.getSymbol.getLine, node.getSymbol.getCharPositionInLine),
+            end = Position(node.getSymbol.getLine, node.getSymbol.getCharPositionInLine + node.getSymbol.getText.length -1)
         )
     }
 }
