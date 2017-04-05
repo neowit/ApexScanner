@@ -68,21 +68,12 @@ object Range {
         val startToken = ctx.getStart
         val endToken = ctx.getStop
         val startPosition = Position(startToken.getLine, startToken.getCharPositionInLine)
-        val endPosition = Position(endToken.getLine, endToken.getCharPositionInLine)
-        if (startPosition == endPosition) {
-            // looks like a terminal token without children, or token with single character
-            Range(
-                start = startPosition,
-                end = Position(startPosition.line, startPosition.col + ctx.getText.length -1)
-            )
-        } else {
-            // token with children
-            Range(
-                start = startPosition,
-                end = endPosition
-            )
-
-        }
+        // when calculating endPosition take into account length of stop token
+        val endPosition = Position(endToken.getLine, endToken.getCharPositionInLine + endToken.getStopIndex - endToken.getStartIndex + 1)
+        Range(
+            start = startPosition,
+            end = endPosition
+        )
     }
     def apply(node: org.antlr.v4.runtime.tree.TerminalNode): Range = {
         Range(
