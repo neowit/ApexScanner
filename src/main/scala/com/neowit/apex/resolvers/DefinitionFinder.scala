@@ -21,13 +21,103 @@
 
 package com.neowit.apex.resolvers
 
-import com.neowit.apex.nodes.{AstNode, Position}
+import java.nio.file.FileSystems
+
+import com.neowit.apex.Project
+import com.neowit.apex.ast.AstBuilder
+import com.neowit.apex.nodes._
+
+import scala.annotation.tailrec
 
 /**
   * Created by Andrey Gavrikov
   *
   * attempts to find node defining expression at specified location
   */
-class DefinitionFinder(rootNode: AstNode, location: Position) {
+class DefinitionFinder() {
 
+    def findDefinitionAscending(rootNode: AstNode, location: Position): Option[AstNode] = {
+        // first find actual node which we need to find the definition for
+        val nodeFinder = new NodeByLocationFinder(location)
+        nodeFinder.findInside(rootNode) match {
+          case Some(targetNode) =>
+              findDefinitionAscendingInternal(targetNode, targetNode)
+          case None =>
+                None
+        }
+    }
+
+    def findDefinitionAscending(target: AstNode, startNode: AstNode): Option[AstNode] = {
+        findDefinitionAscendingInternal(target, startNode)
+    }
+
+    /**
+      * starting from startNode go UP node hierarchy and look for potential definition of given target node
+      * @param target node which definition we are trying to find
+      * @param startNode lowest node to start from and go UP
+      * @return
+      */
+    @tailrec
+    private def findDefinitionAscendingInternal(target: AstNode, startNode: AstNode): Option[AstNode] = {
+        // first find actual node which we need to find the definition for
+        val targetName = target match {
+            case t:IdentifierNode =>
+                Option(QualifiedName(Array(t.name)))
+            case _ =>
+                None
+        }
+        target match {
+            case n: LocalVariableNode => Option(n)
+            case n: ClassVariableNode  => Option(n)
+            case _ => startNode.getParent match {
+              case Some(parent) =>
+                  val definitionNode =
+                      parent.findChild{
+                          case child: HasTypeDefinition =>
+                              targetName.exists(qName => child.qualifiedName.exists(_.endsWith(qName)))
+                          case _ => false
+                      }
+                  definitionNode match {
+                    case Some(_) => definitionNode
+                    case None =>
+                        // go higher in parents hierarchy
+                        findDefinitionAscendingInternal(target, parent)
+                  }
+              case None => None
+            }
+        }
+    }
+}
+object DefinitionFinder {
+    def main(args: Array[String]): Unit = {
+        val path = FileSystems.getDefault.getPath ("/Users/andrey/development/scala/projects/ApexScanner/GrammarTests/TypeFinder.cls")
+        //val position = Position(18, 20) //int
+        val position = Position(18, 25) //str
+        val astBuilder = new AstBuilder(Project(path))
+        astBuilder.build(path)
+
+        astBuilder.getAst(path) match {
+            case None =>
+            // do nothing
+            case Some(result) if result.fileScanResult.errors.nonEmpty =>
+                println("ERRORS ENCOUNTERED")
+                result.fileScanResult.errors.foreach(println(_))
+
+            case Some(result) =>
+                val rootNode = result.rootNode
+                testDefinitionFinder(rootNode, position)
+        }
+    }
+    def testDefinitionFinder(rootNode: AstNode, location: Position): Unit = {
+        val finder = new DefinitionFinder()
+        finder.findDefinitionAscending(rootNode, location)  match {
+            case Some(node: HasTypeDefinition) =>
+                println("FOUND: " + node)
+                println("   type: " + node.getType.text)
+            case Some(node) =>
+                println("FOUND: " + node)
+                println("WARNING - NOT IMPLEMENTED - this is not HasTypeDefinition node ")
+            case _ => println("NOT FOUND")
+        }
+    }
 }

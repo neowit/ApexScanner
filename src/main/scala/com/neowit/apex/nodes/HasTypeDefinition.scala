@@ -24,14 +24,11 @@ package com.neowit.apex.nodes
 /**
   * Created by Andrey Gavrikov 
   */
-case class LocalVariableNode(range: Range) extends VariableLike {
-    override def nodeType: AstNodeType = LocalVariableNodeType
+trait HasTypeDefinition {
+    def getType: DataTypeBase
+    def qualifiedName: Option[QualifiedName]
+    //def name: Option[String]
 
-    override def getType: DataTypeBase = {
-        getChild[DataType](DataTypeNodeType)
-            .map(_.asInstanceOf[DataTypeBase])
-            .getOrElse(throw new NotImplementedError("Data Type support of this element is not implemented: " + this))
-    }
-
-    override def qualifiedName: Option[QualifiedName] = name.map(n => QualifiedName(Array(n)))
+    //def isSameName(str: String): Boolean = name.contains(str)
+    def isSameName(otherName: QualifiedName): Boolean = qualifiedName.exists(_.endsWith(otherName))
 }

@@ -56,6 +56,21 @@ trait AstNode {
             case None => None
         }
     }
+    /**
+      * find child matching specified condition
+      * @param filter - condition
+      * @return
+      */
+    def findChild(filter: (AstNode) => Boolean): Option[AstNode] = {
+        val immediateChildren = _children.filter(filter(_))
+
+        if (immediateChildren.nonEmpty) {
+            immediateChildren.headOption
+        } else {
+            // in case any of the children represent a FallThroughNode, query their children one step further
+            _children.filter(_.nodeType == FallThroughNodeType).flatMap(_.findChild(filter)).headOption
+        }
+    }
 
     def addChild(node: AstNode): AstNode = {
         if (NullNodeType != node.nodeType) {

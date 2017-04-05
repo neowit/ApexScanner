@@ -143,17 +143,8 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
         visitChildren(QualifiedNameNode(Range(ctx)), ctx)
     }
 
-    //TODO
     override def visitClassVariable(ctx: ClassVariableContext): AstNode = {
-        val classVariableNode = ClassVariableNode(Range(ctx))
-        ctx.children.iterator().forEachRemaining{ elem =>
-            val node = visit(elem)
-            if (NullNode != node) {
-                //node.setParent(classVariableNode)
-                classVariableNode.addChild(node)
-            }
-        }
-        super.visitClassVariable(ctx)
+        visitChildren(ClassVariableNode(Range(ctx)), ctx)
     }
 
     /////////////////// method ////////////////////////////////

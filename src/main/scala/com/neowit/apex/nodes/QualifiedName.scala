@@ -29,4 +29,7 @@ package com.neowit.apex.nodes
 case class QualifiedName(components: Array[String]) {
     def getFirstComponent: String = components.head
     def getLastComponent: String = components.last
+
+    def endsWith(name: QualifiedName): Boolean = components.endsWith(name.components)
+
 }

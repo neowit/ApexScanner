@@ -24,14 +24,8 @@ package com.neowit.apex.nodes
 /**
   * Created by Andrey Gavrikov 
   */
-case class LocalVariableNode(range: Range) extends VariableLike {
-    override def nodeType: AstNodeType = LocalVariableNodeType
+trait ClassOrInterfaceBodyMember {
+    def getClassOrInterfaceNode: ClassLike
+    def getClassOrInterfaceName: Option[QualifiedName] = getClassOrInterfaceNode.qualifiedName
 
-    override def getType: DataTypeBase = {
-        getChild[DataType](DataTypeNodeType)
-            .map(_.asInstanceOf[DataTypeBase])
-            .getOrElse(throw new NotImplementedError("Data Type support of this element is not implemented: " + this))
-    }
-
-    override def qualifiedName: Option[QualifiedName] = name.map(n => QualifiedName(Array(n)))
 }
