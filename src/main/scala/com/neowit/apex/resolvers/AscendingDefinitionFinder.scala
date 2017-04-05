@@ -33,22 +33,24 @@ import scala.annotation.tailrec
   * Created by Andrey Gavrikov
   *
   * attempts to find node defining expression at specified location
+  * this is ASCENDING lookup, starts from the bottom and goes up
+  * Use this to find definition in the same file as target node
   */
-class DefinitionFinder() {
+class AscendingDefinitionFinder() {
 
-    def findDefinitionAscending(rootNode: AstNode, location: Position): Option[AstNode] = {
+    def findDefinition(rootNode: AstNode, location: Position): Option[AstNode] = {
         // first find actual node which we need to find the definition for
         val nodeFinder = new NodeByLocationFinder(location)
         nodeFinder.findInside(rootNode) match {
           case Some(targetNode) =>
-              findDefinitionAscendingInternal(targetNode, targetNode)
+              findDefinitionInternal(targetNode, targetNode)
           case None =>
                 None
         }
     }
 
-    def findDefinitionAscending(target: AstNode, startNode: AstNode): Option[AstNode] = {
-        findDefinitionAscendingInternal(target, startNode)
+    def findDefinition(target: AstNode, startNode: AstNode): Option[AstNode] = {
+        findDefinitionInternal(target, startNode)
     }
 
     /**
@@ -58,7 +60,7 @@ class DefinitionFinder() {
       * @return
       */
     @tailrec
-    private def findDefinitionAscendingInternal(target: AstNode, startNode: AstNode): Option[AstNode] = {
+    private def findDefinitionInternal(target: AstNode, startNode: AstNode): Option[AstNode] = {
         // first find actual node which we need to find the definition for
         val targetName = target match {
             case t:IdentifierNode =>
@@ -81,14 +83,14 @@ class DefinitionFinder() {
                     case Some(_) => definitionNode
                     case None =>
                         // go higher in parents hierarchy
-                        findDefinitionAscendingInternal(target, parent)
+                        findDefinitionInternal(target, parent)
                   }
               case None => None
             }
         }
     }
 }
-object DefinitionFinder {
+object AscendingDefinitionFinder {
     def main(args: Array[String]): Unit = {
         val path = FileSystems.getDefault.getPath ("/Users/andrey/development/scala/projects/ApexScanner/GrammarTests/TypeFinder.cls")
         //val position = Position(18, 20) //int
@@ -109,8 +111,8 @@ object DefinitionFinder {
         }
     }
     def testDefinitionFinder(rootNode: AstNode, location: Position): Unit = {
-        val finder = new DefinitionFinder()
-        finder.findDefinitionAscending(rootNode, location)  match {
+        val finder = new AscendingDefinitionFinder()
+        finder.findDefinition(rootNode, location)  match {
             case Some(node: HasTypeDefinition) =>
                 println("FOUND: " + node)
                 println("   type: " + node.getType.text)
