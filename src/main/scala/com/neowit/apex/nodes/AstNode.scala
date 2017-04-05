@@ -21,6 +21,8 @@
 
 package com.neowit.apex.nodes
 
+import com.neowit.apex.Project
+
 trait AstNode {
 
     private var _parent: Option[AstNode] = None
@@ -42,16 +44,6 @@ trait AstNode {
 
     def getParent: Option[AstNode] = _parent
 
-    /**
-      * find very top AstNode of current hierarchy
-      */
-    def getFileNode: Option[FileNode] = {
-        if (this.nodeType == FileNodeType) {
-            Option(this.asInstanceOf[FileNode])
-        } else {
-            findParent(_.nodeType == FileNodeType).map(_.asInstanceOf[FileNode])
-        }
-    }
     /**
       * find parent matching specified condition
       * @param filter - condition
@@ -99,6 +91,23 @@ trait AstNode {
     }
     def getChild[T <: AstNode](nodeType: AstNodeType, recursively: Boolean = false): Option[T] = {
         getChildren[T](nodeType, recursively).headOption
+    }
+
+    /**
+      * find very top AstNode of current hierarchy
+      */
+    def getFileNode: Option[FileNode] = {
+        if (this.nodeType == FileNodeType) {
+            Option(this.asInstanceOf[FileNode])
+        } else {
+            findParent(_.nodeType == FileNodeType).map(_.asInstanceOf[FileNode])
+        }
+    }
+    /**
+      * get Project assigned to very top Node in the hierarchy
+      */
+    def getProject: Option[Project] = {
+        getFileNode.map(_.project)
     }
 
     /**
