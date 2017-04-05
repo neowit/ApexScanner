@@ -27,6 +27,7 @@ import com.neowit.apex.Project
 import com.neowit.apex.scanner.antlr.{ApexcodeBaseVisitor, ApexcodeParser}
 import com.neowit.apex.scanner.antlr.ApexcodeParser._
 import com.neowit.apex.nodes._
+import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.{RuleNode, TerminalNode}
 
 class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisitor[AstNode] {
@@ -35,7 +36,12 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
 
     override def visitChildren(node: RuleNode): AstNode = {
 
-        val fallThroughNode = FallThroughNode(Range(node))
+        val range = node match {
+            case n: ParserRuleContext => Range(n)
+            case _ =>
+                throw new NotImplementedError("Unhandled case is this really a node without location ?" + node)
+        }
+        val fallThroughNode = FallThroughNode(range)
         visitChildren(fallThroughNode, node)
         //super.visitChildren(node)
     }

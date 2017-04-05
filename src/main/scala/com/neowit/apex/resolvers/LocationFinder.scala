@@ -54,6 +54,7 @@ object LocationFinder {
 
         //val path = FileSystems.getDefault.getPath(args(0))
         val path = FileSystems.getDefault.getPath ("/Users/andrey/development/scala/projects/ApexScanner/GrammarTests/TypeFinder.cls")
+        val position = Position(17, 20)
         val astBuilder = new AstBuilder(Project(path))
         astBuilder.build(path)
 
@@ -66,8 +67,7 @@ object LocationFinder {
 
             case Some(result) =>
                 val rootNode = result.rootNode
-                //testFindMethod(rootNode)
-                testLocationFinder(rootNode, Position(17, 21))
+                testLocationFinder(rootNode, position)
         }
     }
 
