@@ -21,7 +21,7 @@
 
 package com.neowit.apex.nodes
 
-case class MethodNode(range: Range ) extends AstNode with HasApexDoc {
+case class MethodNode(range: Range ) extends AstNode with HasApexDoc with HasTypeDefinition with ClassOrInterfaceBodyMember{
     def nameOpt: Option[String] =
         getChild[MethodHeaderNode](MethodHeaderNodeType).flatMap(_.methodName)
 
@@ -34,6 +34,26 @@ case class MethodNode(range: Range ) extends AstNode with HasApexDoc {
     }
 
     lazy val isAbstract: Boolean = getChild[MethodBodyNode](MethodBodyNodeType).nonEmpty
+
+    override def getType: Option[DataTypeBase] = {
+        getChild[MethodHeaderNode](MethodHeaderNodeType).flatMap(_.dataType)
+    }
+
+    override def getClassOrInterfaceNode: ClassLike = {
+        findParent(p => p.nodeType == ClassNodeType || p.nodeType == InterfaceNodeType ) match {
+            case Some(n: ClassLike) => n
+            case n => throw new NotImplementedError("getClassOrInterfaceNode support for this element is not implemented: " + n)
+        }
+    }
+
+    override def qualifiedName: Option[QualifiedName] = {
+        nameOpt match {
+          case Some(name) =>
+              getClassOrInterfaceName.map(clsName => QualifiedName(clsName, name))
+          case None =>
+                None
+        }
+    }
 }
 
 

@@ -21,10 +21,6 @@
 
 package com.neowit.apex.resolvers
 
-import java.nio.file.FileSystems
-
-import com.neowit.apex.Project
-import com.neowit.apex.ast.AstBuilder
 import com.neowit.apex.nodes._
 
 import scala.annotation.tailrec
@@ -71,6 +67,7 @@ class AscendingDefinitionFinder() {
         target match {
             case n: LocalVariableNode => Option(n)
             case n: ClassVariableNode  => Option(n)
+            case n: MethodNode  => Option(n)
             case _ => startNode.getParent match {
               case Some(parent) =>
                   val definitionNode =
@@ -87,39 +84,6 @@ class AscendingDefinitionFinder() {
                   }
               case None => None
             }
-        }
-    }
-}
-object AscendingDefinitionFinder {
-    def main(args: Array[String]): Unit = {
-        val path = FileSystems.getDefault.getPath ("/Users/andrey/development/scala/projects/ApexScanner/GrammarTests/TypeFinder.cls")
-        //val position = Position(18, 20) //int
-        val position = Position(18, 25) //str
-        val astBuilder = new AstBuilder(Project(path))
-        astBuilder.build(path)
-
-        astBuilder.getAst(path) match {
-            case None =>
-            // do nothing
-            case Some(result) if result.fileScanResult.errors.nonEmpty =>
-                println("ERRORS ENCOUNTERED")
-                result.fileScanResult.errors.foreach(println(_))
-
-            case Some(result) =>
-                val rootNode = result.rootNode
-                testDefinitionFinder(rootNode, position)
-        }
-    }
-    def testDefinitionFinder(rootNode: AstNode, location: Position): Unit = {
-        val finder = new AscendingDefinitionFinder()
-        finder.findDefinition(rootNode, location)  match {
-            case Some(node: HasTypeDefinition) =>
-                println("FOUND: " + node)
-                println("   type: " + node.getType.text)
-            case Some(node) =>
-                println("FOUND: " + node)
-                println("WARNING - NOT IMPLEMENTED - this is not HasTypeDefinition node ")
-            case _ => println("NOT FOUND")
         }
     }
 }

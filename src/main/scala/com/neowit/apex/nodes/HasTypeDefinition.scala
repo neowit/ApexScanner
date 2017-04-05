@@ -25,7 +25,7 @@ package com.neowit.apex.nodes
   * Created by Andrey Gavrikov 
   */
 trait HasTypeDefinition {
-    def getType: DataTypeBase
+    def getType: Option[DataTypeBase]
     def qualifiedName: Option[QualifiedName]
     //def name: Option[String]
 

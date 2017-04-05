@@ -1,18 +1,15 @@
 package com.neowit.apex.scanner
 
 import java.nio.file.{FileSystems, Files, Path}
-import java.util.Properties
 
+import com.neowit.apex.TestConfigProvider
 import com.neowit.apex.scanner.actions.SyntaxChecker
 import org.scalatest.FunSuite
 
-class SyntaxCheckerTest extends FunSuite {
-    private val is = getClass.getClassLoader.getResource("paths.properties").openStream()
-    val paths = new Properties()
-    paths.load(is)
+class SyntaxCheckerTest extends FunSuite with TestConfigProvider {
 
     //private val matcher = FileSystems.getDefault.getPathMatcher("glob:*.cls")
-    private val projectPath = paths.getProperty("grammar-tests.path")
+    private val projectPath = getProperty("SyntaxCheckerTest.path")
 
 
     private val ignoredNames = Set(

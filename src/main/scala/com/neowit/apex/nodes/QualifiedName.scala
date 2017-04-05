@@ -33,3 +33,9 @@ case class QualifiedName(components: Array[String]) {
     def endsWith(name: QualifiedName): Boolean = components.endsWith(name.components)
 
 }
+
+object QualifiedName {
+    def apply(n1: QualifiedName, n2: String): QualifiedName = {
+        QualifiedName(n1.components ++ Array(n2))
+    }
+}

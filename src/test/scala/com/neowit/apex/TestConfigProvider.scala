@@ -19,18 +19,34 @@
  *
  */
 
-package com.neowit.apex.nodes
+package com.neowit.apex
+
+import java.nio.file.{Files, Path}
+import java.util.Properties
+import java.util.stream.Collectors
 
 /**
   * Created by Andrey Gavrikov 
   */
-case class LocalVariableNode(range: Range) extends VariableLike {
-    override def nodeType: AstNodeType = LocalVariableNodeType
+trait TestConfigProvider {
+    private val is = getClass.getClassLoader.getResource("paths.properties").openStream()
+    val paths = new Properties()
+    paths.load(is)
 
-    override def getType: Option[DataTypeBase] = {
-        getChild[DataType](DataTypeNodeType)
-            .map(_.asInstanceOf[DataTypeBase])
+    def getProperty(propName: String): String = paths.getProperty(propName)
+
+    def getLineNoByTag(path: Path, lineTag: String): Option[Int] = {
+        val lines = Files.lines(path)
+        val lst = lines.collect(Collectors.toList())
+        val iter = lst.iterator()
+        var lineNumber = 1
+        while (iter.hasNext) {
+            val str = iter.next()
+            if (str.indexOf(lineTag) >=0) {
+                return Option(lineNumber)
+            }
+            lineNumber += 1
+        }
+        None
     }
-
-    override def qualifiedName: Option[QualifiedName] = name.map(n => QualifiedName(Array(n)))
 }

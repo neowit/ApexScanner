@@ -24,10 +24,9 @@ package com.neowit.apex.nodes
 case class ClassVariableNode(range: Range) extends VariableLike with ClassOrInterfaceBodyMember {
     override def nodeType: AstNodeType = ClassVariableNodeType
 
-    override def getType: DataTypeBase = {
+    override def getType: Option[DataTypeBase] = {
         getChild[DataType](DataTypeNodeType)
             .map(_.asInstanceOf[DataTypeBase])
-            .getOrElse(throw new NotImplementedError("Data Type support for this element is not implemented: " + this))
     }
 
     override def qualifiedName: Option[QualifiedName] = {
@@ -41,7 +40,6 @@ case class ClassVariableNode(range: Range) extends VariableLike with ClassOrInte
         }
     }
 
-    //def getClassName: QualifiedName = findParent{}
     override def getClassOrInterfaceNode: ClassLike = {
         findParent(p => p.nodeType == ClassNodeType || p.nodeType == InterfaceNodeType ) match {
           case Some(n: ClassLike) => n
