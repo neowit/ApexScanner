@@ -31,7 +31,7 @@ import com.neowit.apex.nodes.{AstNode, Position}
   * Created by Andrey Gavrikov
   * find AstNode at specified location
   */
-class LocationFinder(location: Position) extends AstVisitor {
+class NodeByLocationFinder(location: Position) extends AstVisitor {
     private var foundNode: Option[AstNode] = None
 
     override def visit(node: AstNode): Boolean = {
@@ -49,12 +49,12 @@ class LocationFinder(location: Position) extends AstVisitor {
     }
 }
 
-object LocationFinder {
+object NodeByLocationFinder {
     def main(args: Array[String]): Unit = {
 
         //val path = FileSystems.getDefault.getPath(args(0))
         val path = FileSystems.getDefault.getPath ("/Users/andrey/development/scala/projects/ApexScanner/GrammarTests/TypeFinder.cls")
-        val position = Position(17, 20)
+        val position = Position(18, 25)
         val astBuilder = new AstBuilder(Project(path))
         astBuilder.build(path)
 
@@ -72,7 +72,7 @@ object LocationFinder {
     }
 
     def testLocationFinder(rootNode: AstNode, location: Position): Unit = {
-        val finder = new LocationFinder(location)
+        val finder = new NodeByLocationFinder(location)
         finder.findInside(rootNode)  match {
           case Some(node) => println("FOUND: " + node)
           case None => println("NOT FOUND")
