@@ -21,13 +21,12 @@
 
 package com.neowit.apex.resolvers
 
-import com.neowit.apex.nodes.{MethodNode, QualifiedName}
+import com.neowit.apex.nodes.{DataType, MethodNode, QualifiedName}
 
 /**
   * Created by Andrey Gavrikov 
   */
-class MethodMatcher(methodName: QualifiedName, paramTypes: Seq[String]) {
-    private val paramTypesLower = paramTypes.map(_.toLowerCase())
+class MethodMatcher(methodName: QualifiedName, paramTypes: Seq[DataType]) {
     private val paramTypesLength = paramTypes.length
 
 //    def isSameMethod(otherMethodName: String, otherParamTypes: Seq[String]): Boolean = {
@@ -59,26 +58,20 @@ class MethodMatcher(methodName: QualifiedName, paramTypes: Seq[String]) {
       *                   List("integer", "*") - "*" means any type of second argument is a match
       *
      */
-    def isSameMethod(otherMethodName: QualifiedName, otherParamTypes: Seq[String]): Boolean = {
-        // find longer name
-        val (leftName, rightName) =
-            if (methodName.components.length > otherMethodName.components.length)
-                (methodName, otherMethodName)
-            else
-                (otherMethodName, methodName)
-        val nameMatch = leftName.endsWith(rightName)
+    def isSameMethod(otherMethodName: QualifiedName, otherParamTypes: Seq[DataType]): Boolean = {
+        val nameMatch = methodName.couldBeMatch(otherMethodName)
 
         if (nameMatch && paramTypesLength == otherParamTypes.length) {
             if (0 == paramTypesLength && otherParamTypes.isEmpty) {
                 // target method does not have parameters
                 true
             } else if (paramTypesLength > 0 && paramTypesLength == otherParamTypes.length) {
-                val typePairs = paramTypesLower.zip(otherParamTypes.map(_.toLowerCase))
+                val typePairs = paramTypes.zip(otherParamTypes)
                 // check if there is a combination of parameters which do not match
                 val notExactMatch =
                     typePairs.exists {
                         case (left, right) =>
-                            left != right && "*" != right && left != "*"
+                            !left.isSameType(right)
                     }
                 // found target method if number of parameter match
                 !notExactMatch

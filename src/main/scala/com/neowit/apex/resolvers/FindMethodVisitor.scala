@@ -22,7 +22,7 @@
 package com.neowit.apex.resolvers
 
 import com.neowit.apex.ast.AstVisitor
-import com.neowit.apex.nodes.{AstNode, MethodNode, MethodNodeType, QualifiedName}
+import com.neowit.apex.nodes._
 
 /**
   * Created by Andrey Gavrikov
@@ -32,7 +32,7 @@ import com.neowit.apex.nodes.{AstNode, MethodNode, MethodNodeType, QualifiedName
   *                   List("integer", "*") - "*" means any type of second argument is a match
   *
   */
-class FindMethodVisitor(methodName: QualifiedName, paramTypes: Seq[String]) extends AstVisitor {
+class FindMethodVisitor(methodName: QualifiedName, paramTypes: Seq[DataType]) extends AstVisitor {
     private val matcher = new MethodMatcher(methodName, paramTypes)
     private var foundMethodNode: Option[MethodNode] = None
 

@@ -54,6 +54,9 @@ class FindMethodUsagesVisitor(targetToFind: MethodNode) extends AstVisitor {
 
 //TODO - convert to proper unit test
 object FindMethodUsagesVisitor {
+    case class DataTypeForTest(typeName: String, typeArguments: Seq[DataType] = Seq.empty) extends DataType {
+        override def qualifiedName: QualifiedName = QualifiedName(Array(typeName))
+    }
     def main(args: Array[String]): Unit = {
 
         val path = FileSystems.getDefault.getPath(args(0))
@@ -77,14 +80,16 @@ object FindMethodUsagesVisitor {
 
     def testFindMethod(rootNode: AstNode): Unit = {
         //val findMethodVisitor = new FindMethodVisitor("nonCaller", List.empty)
-        val findMethodVisitor = new FindMethodVisitor(QualifiedName(Array("nonCaller")), List("integer", "list<String>"))
+        //val findMethodVisitor = new FindMethodVisitor(QualifiedName(Array("nonCaller")), List("integer", "list<String>"))
+        val findMethodVisitor = new FindMethodVisitor(QualifiedName(Array("nonCaller")), List(DataTypeForTest("integer"), DataTypeForTest("list", Seq(DataTypeForTest("String")))))
         new AstWalker().walk(rootNode, findMethodVisitor)
         println(findMethodVisitor.getFoundMethod.map(_.getDebugInfo).getOrElse("NOT FOUND"))
     }
 
     def testMethodUsages(rootNode: AstNode): Unit = {
         //val findMethodVisitor = new FindMethodVisitor("methodToCall", List.empty)
-        val findMethodVisitor = new FindMethodVisitor(QualifiedName(Array("nonCaller")), List("Integer", "List<String>"))
+        //val findMethodVisitor = new FindMethodVisitor(QualifiedName(Array("nonCaller")), List("Integer", "List<String>"))
+        val findMethodVisitor = new FindMethodVisitor(QualifiedName(Array("nonCaller")), List(DataTypeForTest("integer"), DataTypeForTest("list", Seq(DataTypeForTest("String")))))
         new AstWalker().walk(rootNode, findMethodVisitor)
         findMethodVisitor.getFoundMethod match {
             case Some(methodNode) =>
@@ -92,6 +97,7 @@ object FindMethodUsagesVisitor {
                 new AstWalker().walk(rootNode, findUsagesVisitor)
                 findUsagesVisitor.getResult.foreach(methodCallNode => println("FOUND: " + methodCallNode))
             case None =>
+                println("NO USAGES FOUND")
         }
         //val findUsagesVisitor = new FindUsagesVisitor()
         //new AstWalker().walk(rootNode, findUsagesVisitor)

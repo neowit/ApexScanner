@@ -32,8 +32,8 @@ case class MethodNode(range: Range ) extends AstNode with HasApexDoc with HasTyp
 
     override def getDebugInfo: String = super.getDebugInfo + " Method: " + nameOpt
 
-    def getParameterTypes: Seq[String] = {
-        getChildren[MethodParameterNode](MethodParameterNodeType, recursively = true).flatMap(_.getType.map(_.toString))
+    def getParameterTypes: Seq[DataType] = {
+        getChildren[MethodParameterNode](MethodParameterNodeType, recursively = true).flatMap(_.getType)
     }
 
     lazy val isAbstract: Boolean = getChild[MethodBodyNode](MethodBodyNodeType).nonEmpty

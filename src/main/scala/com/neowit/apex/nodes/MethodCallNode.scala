@@ -36,9 +36,9 @@ case class MethodCallNode(methodName: QualifiedName, range: Range) extends AstNo
 
     //TODO implement taking real parameter types into account
     // current version returns "*" for each parameter
-    def getParameterTypes: Seq[String] = {
+    def getParameterTypes: Seq[DataType] = {
         getChild[ExpressionListNode](ExpressionListNodeType) match {
-          case Some( expressionList ) => expressionList.getExpressions.map(e => "*").toSeq
+          case Some( expressionList ) => expressionList.getExpressions.map(e => DataTypeAny)
           case None => Seq.empty
         }
 
