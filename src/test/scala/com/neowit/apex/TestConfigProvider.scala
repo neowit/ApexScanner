@@ -35,18 +35,19 @@ trait TestConfigProvider {
 
     def getProperty(propName: String): String = paths.getProperty(propName)
 
-    def getLineNoByTag(path: Path, lineTag: String): Option[Int] = {
+    def getLineNoByTag(path: Path, lineTag: String): Seq[Int] = {
         val lines = Files.lines(path)
         val lst = lines.collect(Collectors.toList())
         val iter = lst.iterator()
+        val lineNumBuilder = Seq.newBuilder[Int]
         var lineNumber = 1
         while (iter.hasNext) {
             val str = iter.next()
             if (str.indexOf(lineTag) >=0) {
-                return Option(lineNumber)
+                lineNumBuilder += lineNumber
             }
             lineNumber += 1
         }
-        None
+        lineNumBuilder.result()
     }
 }

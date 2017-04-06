@@ -26,16 +26,12 @@ import java.nio.file.FileSystems
 import com.neowit.apex.{Project, TestConfigProvider}
 import com.neowit.apex.ast.AstBuilder
 import com.neowit.apex.nodes._
-import org.scalatest.{BeforeAndAfterEach, FunSuite}
+import org.scalatest.FunSuite
 
 /**
   * Created by Andrey Gavrikov 
   */
-class AscendingDefinitionFinderTest extends FunSuite with BeforeAndAfterEach with TestConfigProvider {
-
-    override def beforeEach(): Unit = {
-
-    }
+class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
 
     test("testFindDefinition") {
         val filePath = getProperty("AscendingDefinitionFinderTest.testFindDefinition.path")
@@ -55,9 +51,9 @@ class AscendingDefinitionFinderTest extends FunSuite with BeforeAndAfterEach wit
             case Some(result) =>
                 val rootNode = result.rootNode
                 // local variable
-                var lineNoOpt = getLineNoByTag(path, "#findLocalVariableType")
-                assert(lineNoOpt.nonEmpty, "Invalid test data, expected to find line with tag: #findLocalVariableType in file: " + filePath)
-                var lineNo = lineNoOpt.get
+                var lineNos = getLineNoByTag(path, "#findLocalVariableType")
+                assertResult(1, "Invalid test data, expected to find line with tag: #findLocalVariableType in file: " + filePath)(lineNos.length)
+                var lineNo = lineNos.head
 
                 val typeNameInt =
                     getDefinition("#findLocalVariableType", rootNode, Position(lineNo, 28)) match {
@@ -69,9 +65,9 @@ class AscendingDefinitionFinderTest extends FunSuite with BeforeAndAfterEach wit
                 assertResult("Integer")(typeNameInt)
 
                 // class variable
-                lineNoOpt = getLineNoByTag(path, "#findClassVariableType")
-                assert(lineNoOpt.nonEmpty, "Invalid test data, expected to find line with tag: #findClassVariableType in file: " + filePath)
-                lineNo = lineNoOpt.get
+                lineNos = getLineNoByTag(path, "#findClassVariableType")
+                assertResult(1, "Invalid test data, expected to find line with tag: #findClassVariableType in file: " + filePath)(lineNos.length)
+                lineNo = lineNos.head
                 val typeNameStr =
                     getDefinition("#findClassVariableType", rootNode, Position(lineNo, 33)) match {
                         case Some(node) =>
@@ -82,9 +78,9 @@ class AscendingDefinitionFinderTest extends FunSuite with BeforeAndAfterEach wit
                 assertResult("String")(typeNameStr)
 
                 // class variable
-                lineNoOpt = getLineNoByTag(path, "#findMethodType")
-                assert(lineNoOpt.nonEmpty, "Invalid test data, expected to find line with tag: #findMethodType in file: " + filePath)
-                lineNo = lineNoOpt.get
+                lineNos = getLineNoByTag(path, "#findMethodType")
+                assertResult(1, "Invalid test data, expected to find line with tag: #findMethodType in file: " + filePath)(lineNos.length)
+                lineNo = lineNos.head
                 val typeNameMethod =
                     getDefinition("#findMethodType", rootNode, Position(lineNo, 20)) match {
                         case Some(node) =>
