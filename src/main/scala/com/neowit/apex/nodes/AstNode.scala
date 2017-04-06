@@ -23,6 +23,8 @@ package com.neowit.apex.nodes
 
 import com.neowit.apex.Project
 
+import scala.annotation.tailrec
+
 trait AstNode {
 
     private var _parent: Option[AstNode] = None
@@ -42,7 +44,16 @@ trait AstNode {
         parent
     }
 
-    def getParent: Option[AstNode] = _parent
+    @tailrec
+    final def getParent(skipFallThroughNodes: Boolean = false): Option[AstNode] = {
+        _parent match {
+          case Some(parent) if skipFallThroughNodes && FallThroughNodeType == parent.nodeType=>
+              // skip FallThrough Nodes and get to first meaningful parent
+              parent.getParent(skipFallThroughNodes)
+          case Some(parent) => Option(parent)
+          case None => None
+        }
+    }
 
     /**
       * find parent matching specified condition
@@ -50,7 +61,7 @@ trait AstNode {
       * @return
       */
     def findParent(filter: (AstNode) => Boolean): Option[AstNode] = {
-        getParent match {
+        getParent(true) match {
             case Some(parentMember) =>
                 if (filter(parentMember)) Some(parentMember) else parentMember.findParent(filter)
             case None => None
@@ -138,7 +149,7 @@ trait AstNode {
     protected def getLevelsDeep: Int = {
         if (levelsDeep < 0) {
             levelsDeep =
-                getParent match {
+                getParent(true) match {
                     case Some(p) => p.getLevelsDeep + 1
                     case None => 0
                 }
