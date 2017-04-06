@@ -19,7 +19,7 @@
  *
  */
 
-package com.neowit.apex.resolvers
+package com.neowit.apex.matchers
 
 import com.neowit.apex.nodes.{DataType, MethodNode, QualifiedName}
 
@@ -28,29 +28,6 @@ import com.neowit.apex.nodes.{DataType, MethodNode, QualifiedName}
   */
 class MethodMatcher(methodName: QualifiedName, paramTypes: Seq[DataType]) {
     private val paramTypesLength = paramTypes.length
-
-//    def isSameMethod(otherMethodName: String, otherParamTypes: Seq[String]): Boolean = {
-//        if (methodNameLower == otherMethodName.toLowerCase && paramTypesLength == otherParamTypes.length) {
-//            if (0 == paramTypesLength && otherParamTypes.isEmpty) {
-//                // target method does not have parameters
-//                true
-//            } else if (paramTypesLength > 0 && paramTypesLength == otherParamTypes.length) {
-//                val typePairs = paramTypesLower.zip(otherParamTypes.map(_.toLowerCase))
-//                // check if there is a combination of parameters which do not match
-//                val notExactMatch =
-//                    typePairs.exists {
-//                        case (left, right) =>
-//                            left != right && "*" != right && left != "*"
-//                    }
-//                // found target method if number of parameter match
-//                !notExactMatch
-//            } else {
-//                false
-//            }
-//        } else {
-//            false
-//        }
-//    }
 
     /*
       * @param paramTypes list of type names (case insensitive) <br/>

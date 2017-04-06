@@ -22,6 +22,7 @@
 package com.neowit.apex.resolvers
 
 import com.neowit.apex.ast._
+import com.neowit.apex.matchers.MethodMatcher
 import com.neowit.apex.nodes._
 
 /**

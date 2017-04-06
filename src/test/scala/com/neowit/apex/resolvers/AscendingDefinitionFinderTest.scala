@@ -33,9 +33,8 @@ import org.scalatest.FunSuite
   */
 class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
 
-    test("testFindDefinition") {
+    test("testFindDefinition - for Variables") {
         val filePath = getProperty("AscendingDefinitionFinderTest.testFindDefinition.path")
-        //val filePath = "/Users/andrey/temp/VirtualClass.cls"
         val path = FileSystems.getDefault.getPath(filePath)
 
         val astBuilder = new AstBuilder(Project(path))
@@ -56,7 +55,7 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
                 var lineNo = lineNos.head
 
                 val typeNameInt =
-                    getDefinition("#findLocalVariableType", rootNode, Position(lineNo, 28)) match {
+                    getVariableDefinition("#findLocalVariableType", rootNode, Position(lineNo, 28)) match {
                         case Some(node) =>
                             assertResult(LocalVariableNodeType)(node.asInstanceOf[AstNode].nodeType)
                             node.getType.map(_.toString).getOrElse("NOT FOUND")
@@ -69,7 +68,7 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
                 assertResult(1, "Invalid test data, expected to find line with tag: #findClassVariableType in file: " + filePath)(lineNos.length)
                 lineNo = lineNos.head
                 val typeNameStr =
-                    getDefinition("#findClassVariableType", rootNode, Position(lineNo, 33)) match {
+                    getVariableDefinition("#findClassVariableType", rootNode, Position(lineNo, 33)) match {
                         case Some(node) =>
                             assertResult(ClassVariableNodeType)(node.asInstanceOf[AstNode].nodeType)
                             node.getType.map(_.toString).getOrElse("NOT FOUND")
@@ -82,7 +81,7 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
                 assertResult(1, "Invalid test data, expected to find line with tag: #findMethodType in file: " + filePath)(lineNos.length)
                 lineNo = lineNos.head
                 val typeNameMethod =
-                    getDefinition("#findMethodType", rootNode, Position(lineNo, 20)) match {
+                    getVariableDefinition("#findMethodType", rootNode, Position(lineNo, 20)) match {
                         case Some(node) =>
                             assertResult(MethodNodeType)(node.asInstanceOf[AstNode].nodeType)
                             node.getType.map(_.toString).getOrElse("NOT FOUND")
@@ -92,7 +91,7 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
         }
     }
 
-    private def getDefinition(hint: String, rootNode: AstNode, location: Position): Option[HasTypeDefinition] = {
+    private def getVariableDefinition(hint: String, rootNode: AstNode, location: Position): Option[HasTypeDefinition] = {
         val finder = new AscendingDefinitionFinder()
         finder.findDefinition(rootNode, location)  match {
             case Some(node: HasTypeDefinition) =>
