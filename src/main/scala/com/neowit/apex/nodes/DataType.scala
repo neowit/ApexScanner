@@ -24,18 +24,23 @@ package com.neowit.apex.nodes
 trait DataType {
     def qualifiedName: QualifiedName
     def typeArguments: Seq[DataType]
-    def isSameType(otherDataType: DataType): Boolean = {
-        val namesMatch = qualifiedName.couldBeMatch(otherDataType.qualifiedName)
 
-        //names match, now compare type arguments
-        if (namesMatch && typeArguments.length == otherDataType.typeArguments.length) {
-            val numOfMatchingArgs =
-                typeArguments.zip(otherDataType.typeArguments).count{
-                    case (left, right) => left.isSameType(right)
+    def isSameType(otherDataType: DataType): Boolean = {
+        otherDataType match {
+            case DataTypeAny => true
+            case _ =>
+                val namesMatch = qualifiedName.couldBeMatch(otherDataType.qualifiedName)
+
+                //names match, now compare type arguments
+                if (namesMatch && typeArguments.length == otherDataType.typeArguments.length) {
+                    val numOfMatchingArgs =
+                        typeArguments.zip(otherDataType.typeArguments).count{
+                            case (left, right) => left.isSameType(right)
+                        }
+                    numOfMatchingArgs == typeArguments.length
+                } else {
+                    false
                 }
-            numOfMatchingArgs == typeArguments.length
-        } else {
-            false
         }
     }
 
