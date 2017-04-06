@@ -22,20 +22,23 @@
 package com.neowit.apex.nodes
 
 case class MethodNode(range: Range ) extends AstNode with HasApexDoc with HasTypeDefinition with ClassOrInterfaceBodyMember{
+
     def nameOpt: Option[String] =
         getChild[MethodHeaderNode](MethodHeaderNodeType).flatMap(_.methodName)
 
     override def nodeType: AstNodeType = MethodNodeType
 
     def getApexDoc: Option[DocNode] = getChildren[DocNode](DocNodeType).headOption
+
     override def getDebugInfo: String = super.getDebugInfo + " Method: " + nameOpt
+
     def getParameterTypes: Seq[String] = {
-        getChildren[MethodParameterNode](MethodParameterNodeType, recursively = true).flatMap(_.getType.map(_.text))
+        getChildren[MethodParameterNode](MethodParameterNodeType, recursively = true).flatMap(_.getType.map(_.toString))
     }
 
     lazy val isAbstract: Boolean = getChild[MethodBodyNode](MethodBodyNodeType).nonEmpty
 
-    override def getType: Option[DataTypeBase] = {
+    override def getType: Option[DataType] = {
         getChild[MethodHeaderNode](MethodHeaderNodeType).flatMap(_.dataType)
     }
 

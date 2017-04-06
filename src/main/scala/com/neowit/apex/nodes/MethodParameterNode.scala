@@ -26,5 +26,5 @@ case class MethodParameterNode(name: String, range: Range) extends AstNode {
 
     override def getDebugInfo: String = super.getDebugInfo + " TODO"
 
-    def getType: Option[DataType] = getChild[DataType](DataTypeNodeType)
+    def getType: Option[DataType] = getChild[DataTypeNode](DataTypeNodeType).map(_.getDataType)
 }

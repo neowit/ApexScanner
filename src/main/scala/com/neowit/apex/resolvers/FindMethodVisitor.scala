@@ -22,7 +22,7 @@
 package com.neowit.apex.resolvers
 
 import com.neowit.apex.ast.AstVisitor
-import com.neowit.apex.nodes.{AstNode, MethodNode, MethodNodeType}
+import com.neowit.apex.nodes.{AstNode, MethodNode, MethodNodeType, QualifiedName}
 
 /**
   * Created by Andrey Gavrikov
@@ -32,14 +32,14 @@ import com.neowit.apex.nodes.{AstNode, MethodNode, MethodNodeType}
   *                   List("integer", "*") - "*" means any type of second argument is a match
   *
   */
-class FindMethodVisitor(methodName: String, paramTypes: Seq[String]) extends AstVisitor {
+class FindMethodVisitor(methodName: QualifiedName, paramTypes: Seq[String]) extends AstVisitor {
     private val matcher = new MethodMatcher(methodName, paramTypes)
     private var foundMethodNode: Option[MethodNode] = None
 
     override def visit(node: AstNode): Boolean = {
         if (MethodNodeType == node.nodeType) {
             val methodNode = node.asInstanceOf[MethodNode]
-            methodNode.nameOpt match {
+            methodNode.qualifiedName match {
                 case Some(otherMethodName) =>
                     if (matcher.isSameMethod(otherMethodName, methodNode.getParameterTypes)) {
                         foundMethodNode = Option(methodNode)
@@ -56,37 +56,3 @@ class FindMethodVisitor(methodName: String, paramTypes: Seq[String]) extends Ast
     }
 }
 
-class MethodMatcher(methodName: String, paramTypes: Seq[String]) {
-    private val methodNameLower = methodName.toLowerCase()
-    private val paramTypesLower = paramTypes.map(_.toLowerCase())
-    private val paramTypesLength = paramTypes.length
-
-    /*
-      * @param paramTypes list of type names (case insensitive) <br/>
-      *                   List("integer", "list❮String❯") <br/>
-      *                   List("integer", "*") - "*" means any type of second argument is a match
-      *
-     */
-    def isSameMethod(otherMethodName: String, otherParamTypes: Seq[String]): Boolean = {
-        if (methodNameLower == otherMethodName.toLowerCase && paramTypesLength == otherParamTypes.length) {
-            if (0 == paramTypesLength && otherParamTypes.isEmpty) {
-                // target method does not have parameters
-                true
-            } else if (paramTypesLength > 0 && paramTypesLength == otherParamTypes.length) {
-                val typePairs = paramTypesLower.zip(otherParamTypes.map(_.toLowerCase))
-                // check if there is a combination of parameters which do not match
-                val notExactMatch =
-                    typePairs.exists {
-                        case (left, right) =>
-                            left != right && "*" != right && left != "*"
-                    }
-                // found target method if number of parameter match
-                !notExactMatch
-            } else {
-                false
-            }
-        } else {
-            false
-        }
-    }
-}

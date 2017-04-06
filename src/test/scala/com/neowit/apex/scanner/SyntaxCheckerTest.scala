@@ -12,6 +12,7 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider {
     private val projectPath = getProperty("SyntaxCheckerTest.path")
 
 
+
     private val ignoredNames = Set(
         "A-Fake-Class.cls", // not real apex code
         "IObjectWrapper.cls" // old class, contains no longer supported type parameter: interface Name<T>

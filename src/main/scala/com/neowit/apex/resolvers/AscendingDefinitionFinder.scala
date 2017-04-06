@@ -67,7 +67,7 @@ class AscendingDefinitionFinder() {
         target match {
             case n: LocalVariableNode => Option(n)
             case n: ClassVariableNode  => Option(n)
-            case n: MethodNode  => Option(n)
+            case n: MethodNode => Option(n) //TODO - for methods we need to check method parameter types as well
             case _ => startNode.getParent match {
               case Some(parent) =>
                   val definitionNode =
@@ -85,5 +85,12 @@ class AscendingDefinitionFinder() {
               case None => None
             }
         }
+    }
+    private def findVariableDefinition(target: AstNode, startNode: AstNode): Option[AstNode] = {
+        ???
+    }
+
+    private def findMethodDefinition(target: AstNode, startNode: AstNode): Option[AstNode] = {
+        ???
     }
 }

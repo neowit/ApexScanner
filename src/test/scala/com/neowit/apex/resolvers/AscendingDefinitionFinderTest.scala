@@ -39,6 +39,7 @@ class AscendingDefinitionFinderTest extends FunSuite with BeforeAndAfterEach wit
 
     test("testFindDefinition") {
         val filePath = getProperty("AscendingDefinitionFinderTest.testFindDefinition.path")
+        //val filePath = "/Users/andrey/temp/VirtualClass.cls"
         val path = FileSystems.getDefault.getPath(filePath)
 
         val astBuilder = new AstBuilder(Project(path))
@@ -62,7 +63,7 @@ class AscendingDefinitionFinderTest extends FunSuite with BeforeAndAfterEach wit
                     getDefinition("#findLocalVariableType", rootNode, Position(lineNo, 28)) match {
                         case Some(node) =>
                             assertResult(LocalVariableNodeType)(node.asInstanceOf[AstNode].nodeType)
-                            node.getType.map(_.text).getOrElse("NOT FOUND")
+                            node.getType.map(_.toString).getOrElse("NOT FOUND")
                         case None => "NOT FOUND"
                     }
                 assertResult("Integer")(typeNameInt)
@@ -75,7 +76,7 @@ class AscendingDefinitionFinderTest extends FunSuite with BeforeAndAfterEach wit
                     getDefinition("#findClassVariableType", rootNode, Position(lineNo, 33)) match {
                         case Some(node) =>
                             assertResult(ClassVariableNodeType)(node.asInstanceOf[AstNode].nodeType)
-                            node.getType.map(_.text).getOrElse("NOT FOUND")
+                            node.getType.map(_.toString).getOrElse("NOT FOUND")
                         case None => "NOT FOUND"
                     }
                 assertResult("String")(typeNameStr)
@@ -88,7 +89,7 @@ class AscendingDefinitionFinderTest extends FunSuite with BeforeAndAfterEach wit
                     getDefinition("#findMethodType", rootNode, Position(lineNo, 20)) match {
                         case Some(node) =>
                             assertResult(MethodNodeType)(node.asInstanceOf[AstNode].nodeType)
-                            node.getType.map(_.text).getOrElse("NOT FOUND")
+                            node.getType.map(_.toString).getOrElse("NOT FOUND")
                         case None => "NOT FOUND"
                     }
                 assertResult("M2Type")(typeNameMethod)
@@ -100,7 +101,7 @@ class AscendingDefinitionFinderTest extends FunSuite with BeforeAndAfterEach wit
         finder.findDefinition(rootNode, location)  match {
             case Some(node: HasTypeDefinition) =>
                 println(hint + ": FOUND: " + node)
-                println("   type: " + node.getType.map(_.text).getOrElse("NOT FOUND"))
+                println("   type: " + node.getType.map(_.toString).getOrElse("NOT FOUND"))
                 return Option(node)
             case Some(node) =>
                 println(hint + ": FOUND: " + node)

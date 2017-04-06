@@ -22,10 +22,14 @@
 package com.neowit.apex.nodes
 
 case class TypeArgumentsNode(range: Range) extends AstNode {
+
     override def nodeType: AstNodeType = TypeArgumentsNodeType
-    def components: Seq[DataTypeBase] =
-        getChildren[DataTypeBase](DataTypeNodeType, recursively = true)
+
+    def components: Seq[DataTypeNode] =
+        getChildren[DataTypeNode](DataTypeNodeType, recursively = true)
+
     def text:String =
-        if (components.nonEmpty) "<" + components.map(_.text).mkString(", ") + ">"  else ""
+        if (components.nonEmpty) "<" + components.map(_.getDataType).mkString(", ") + ">"  else ""
+
     override def getDebugInfo: String = super.getDebugInfo + " " + text
 }

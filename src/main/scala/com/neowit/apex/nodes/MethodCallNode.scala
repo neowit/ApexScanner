@@ -24,7 +24,7 @@ package com.neowit.apex.nodes
 /**
   * Created by Andrey Gavrikov 
   */
-case class MethodCallNode(methodName: String, range: Range) extends AstNode {
+case class MethodCallNode(methodName: QualifiedName, range: Range) extends AstNode {
     override def nodeType: AstNodeType = MethodCallNodeType
 
     /**
@@ -42,5 +42,11 @@ case class MethodCallNode(methodName: String, range: Range) extends AstNode {
           case None => Seq.empty
         }
 
+    }
+}
+
+object MethodCallNode {
+    def apply(methodName: String, range: Range): MethodCallNode = {
+        MethodCallNode(QualifiedName(methodName.split("\\.")), range)
     }
 }

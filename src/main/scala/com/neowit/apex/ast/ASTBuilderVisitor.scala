@@ -123,19 +123,24 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
 
     override def visitDataType(ctx: DataTypeContext): AstNode = {
         if (null != ctx.VOID()) {
-            DataTypeVoid(Range(ctx))
-        } else if(null != ctx.typeArguments()) {
-            val qualifiedNameNode = visit(ctx.qualifiedName()).asInstanceOf[QualifiedNameNode]
-            val typeArgumentsNode =
-                if (null != ctx.typeArguments())
-                    Option(visit(ctx.typeArguments()).asInstanceOf[TypeArgumentsNode])
-                else
-                    None
-            DataType(qualifiedNameNode, typeArgumentsNode, Range(ctx))
+            DataTypeNodeVoid(Range(ctx))
         } else {
-            // last option
             val qualifiedNameNode = visit(ctx.qualifiedName()).asInstanceOf[QualifiedNameNode]
-            DataType(qualifiedNameNode, typeArgumentsOpt = None, Range(ctx))
+            if (null != ctx.arrayType) {
+                DataTypeNodeArray(qualifiedNameNode, Range(ctx))
+            } else if(null != ctx.typeArguments()) {
+                //val qualifiedNameNode = visit(ctx.qualifiedName()).asInstanceOf[QualifiedNameNode]
+                val typeArgumentsNode =
+                    if (null != ctx.typeArguments())
+                        Option(visit(ctx.typeArguments()).asInstanceOf[TypeArgumentsNode])
+                    else
+                        None
+                DataTypeNodeGeneric(qualifiedNameNode, typeArgumentsNode, Range(ctx))
+            } else {
+                // last option
+                //val qualifiedNameNode = visit(ctx.qualifiedName()).asInstanceOf[QualifiedNameNode]
+                DataTypeNodeGeneric(qualifiedNameNode, typeArgumentsOpt = None, Range(ctx))
+            }
         }
     }
 

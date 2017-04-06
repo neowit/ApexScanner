@@ -21,28 +21,60 @@
 
 package com.neowit.apex.nodes
 
-trait DataTypeBase extends AstNode {
+trait DataType {
+    def qualifiedName: QualifiedName
+    def typeArguments: Seq[DataType]
+    def isSameType(otherDataType: DataType): Boolean = {
+        val namesMatch = qualifiedName.couldBeMatch(otherDataType.qualifiedName)
 
-    override def nodeType: AstNodeType = DataTypeNodeType
-    def text: String
-    override def getDebugInfo: String = super.getDebugInfo + " " + text
+        //names match, now compare type arguments
+        if (namesMatch && typeArguments.length == otherDataType.typeArguments.length) {
+            val numOfMatchingArgs =
+                typeArguments.zip(otherDataType.typeArguments).count{
+                    case (left, right) => left.isSameType(right)
+                }
+            numOfMatchingArgs == typeArguments.length
+        } else {
+            false
+        }
+    }
+
+    override def toString: String = {
+        val arguments = if (typeArguments.isEmpty) "" else "<" + typeArguments.mkString(",") + ">"
+        qualifiedName + arguments
+    }
 }
-case class DataType(qualifiedName: QualifiedNameNode, typeArgumentsOpt: Option[TypeArgumentsNode],
-                    range: Range) extends DataTypeBase {
-    def text: String =
-        qualifiedName.text +
-            typeArgumentsOpt.map(_.text).getOrElse("")
+//Map<String, Map<Integer, List<String>>>
+case class DataTypeConcrete(qualifiedName: QualifiedName, typeArguments: Seq[DataType]) extends DataType {
+
+    //def text: String = qualifiedName + typeArgumentsOpt.map(_.text).getOrElse("")
 
 }
 
 //VOID
-case class DataTypeVoid(range: Range) extends DataTypeBase {
-    override def text: String = "void"
+case object DataTypeVoid extends DataType {
+    //override def text: String = "void"
+    def qualifiedName: QualifiedName = QualifiedName(Array("void"))
+
+    override def typeArguments: Seq[DataType] = Seq.empty
+}
+//ANY - special type which match all and any types
+case object DataTypeAny extends DataType {
+    //override def text: String = "void"
+    def qualifiedName: QualifiedName = QualifiedName(Array.empty)
+
+    override def typeArguments: Seq[DataType] = Seq.empty
+
+    override def isSameType(otherDataType: DataType): Boolean = true
 }
 
 //Some[] - array type
-case class DataTypeArray(qualifiedName: QualifiedNameNode, range: Range) extends DataTypeBase {
-    def text: String = qualifiedName.text + "[]"
+case class DataTypeArray(qualifiedNameNode: QualifiedNameNode) extends DataType {
+    def qualifiedName: QualifiedName = qualifiedNameNode.qualifiedName
+
+    override def toString: String = qualifiedName + "[]"
+
+    override def typeArguments: Seq[DataType] = Seq.empty
 }
 
 

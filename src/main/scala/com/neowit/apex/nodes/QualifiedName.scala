@@ -27,11 +27,29 @@ package com.neowit.apex.nodes
   * this is different from QualifiedNameNode as not being part of AST
   */
 case class QualifiedName(components: Array[String]) {
+    protected val componentsLower:Array[String] = components.map(_.toLowerCase)
+    val length: Int = components.length
+
     def getFirstComponent: String = components.head
     def getLastComponent: String = components.last
 
-    def endsWith(name: QualifiedName): Boolean = components.endsWith(name.components)
+    def endsWith(name: QualifiedName): Boolean = componentsLower.endsWith(name.componentsLower)
 
+    /**
+      * check if two Qualified Names may be match by assuming that if one ends with another then they may be matching
+      * @param otherName name to compare with
+      * @return
+      */
+    def couldBeMatch(otherName: QualifiedName): Boolean = {
+        val (left, right) =
+            if (length > otherName.length)
+                (this, otherName)
+            else
+                (otherName, this)
+        left.endsWith(right)
+    }
+
+    override def toString: String = components.mkString(".")
 }
 
 object QualifiedName {
