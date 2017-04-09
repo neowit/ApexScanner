@@ -27,15 +27,15 @@ import com.neowit.apex.nodes._
 import scala.annotation.tailrec
 
 object AscendingDefinitionFinder {
+    type NodeMatcherFunc = AstNode => Boolean
 
-    def variableMatchFunc(targetName: QualifiedName)(n: AstNode): Boolean = {
-        n match {
-            case node: HasTypeDefinition =>
-                node.qualifiedName.exists(_.couldBeMatch(targetName))
-            case _ => false
-        }
+    def variableMatchFunc(targetName: QualifiedName): NodeMatcherFunc = {
+        case node: HasTypeDefinition =>
+            node.qualifiedName.exists(_.couldBeMatch(targetName))
+        case _ => false
     }
-    def methodMatchFunc(targetCaller: MethodCallNode)(n: AstNode): Boolean = {
+    
+    def methodMatchFunc(targetCaller: MethodCallNode): NodeMatcherFunc = (n: AstNode) => {
         val methodMatcher = new MethodMatcher(targetCaller)
         n match {
             case node: MethodNode =>
@@ -69,14 +69,14 @@ class AscendingDefinitionFinder() {
         target.getParent(skipFallThroughNodes = true) match {
             case Some(methodCaller: MethodCallNode) =>
                 // looks like target is a method call
-                val matchFunc = methodMatchFunc(methodCaller)(_)
+                val matchFunc = methodMatchFunc(methodCaller)
                 findDefinitionInternal(target, methodCaller.methodName, startNode, matchFunc)
             case _ =>
                 target match {
                     case t:IdentifierNode =>
                         val targetName = QualifiedName(Array(t.name))
                         // assume variable
-                        val matchFunc = variableMatchFunc(targetName)(_)
+                        val matchFunc = variableMatchFunc(targetName)
                         findDefinitionInternal(target, targetName, startNode, matchFunc)
                     case _ =>
                         None
