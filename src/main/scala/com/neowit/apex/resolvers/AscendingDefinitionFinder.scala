@@ -21,12 +21,28 @@
 
 package com.neowit.apex.resolvers
 
+import com.neowit.apex.matchers.MethodMatcher
 import com.neowit.apex.nodes._
 
 import scala.annotation.tailrec
 
 object AscendingDefinitionFinder {
-    type NodeMatcherFunc = HasTypeDefinition => Boolean
+
+    def variableMatchFunc(targetName: QualifiedName)(n: AstNode): Boolean = {
+        n match {
+            case node: HasTypeDefinition =>
+                node.qualifiedName.exists(_.couldBeMatch(targetName))
+            case _ => false
+        }
+    }
+    def methodMatchFunc(targetCaller: MethodCallNode)(n: AstNode): Boolean = {
+        val methodMatcher = new MethodMatcher(targetCaller)
+        n match {
+            case node: MethodNode =>
+                methodMatcher.isSameMethod(node)
+            case _ => false
+        }
+    }
 }
 /**
   * Created by Andrey Gavrikov
@@ -42,70 +58,56 @@ class AscendingDefinitionFinder() {
         // first find actual node which we need to find the definition for
         val nodeFinder = new NodeByLocationFinder(location)
         nodeFinder.findInside(rootNode) match {
-          case Some(targetNode) if targetNode.getParent(skipFallThroughNodes = true).exists(_.nodeType == MethodCallNodeType)=>
-              // method call
-              findDefinitionInternal(targetNode, targetNode) //TODO add appropriate matcher
-          case Some(targetNode) =>
-              // variable
-              findDefinitionInternal(targetNode, targetNode) //TODO add appropriate matcher
+          case Some(targetNode)=>
+              findDefinition(targetNode, targetNode)
           case None =>
                 None
         }
     }
 
     def findDefinition(target: AstNode, startNode: AstNode): Option[AstNode] = {
-        findDefinitionInternal(target, startNode)
+        target.getParent(skipFallThroughNodes = true) match {
+            case Some(methodCaller: MethodCallNode) =>
+                // looks like target is a method call
+                val matchFunc = methodMatchFunc(methodCaller)(_)
+                findDefinitionInternal(target, methodCaller.methodName, startNode, matchFunc)
+            case _ =>
+                target match {
+                    case t:IdentifierNode =>
+                        val targetName = QualifiedName(Array(t.name))
+                        // assume variable
+                        val matchFunc = variableMatchFunc(targetName)(_)
+                        findDefinitionInternal(target, targetName, startNode, matchFunc)
+                    case _ =>
+                        None
+                }
+
+        }
     }
 
     /**
       * starting from startNode go UP  the scope (node hierarchy) and look for potential definition of given target node
-      * @param target node which definition we are trying to find
+      * @param target node definition of which we are trying to find
+      * @param targetName  QualifiedName of the node we are trying to find
       * @param startNode lowest node to start from and go UP
       * @return
       */
     @tailrec
-    private def findDefinitionInternal(target: AstNode, startNode: AstNode): Option[AstNode] = {
-        val targetName = target match {
-            case t:IdentifierNode =>
-                Option(QualifiedName(Array(t.name)))
-            case _ =>
-                None
-        }
-        target match {
-            case n: LocalVariableNode =>
-                Option(n)
-            case n: ClassVariableNode  =>
-                Option(n)
-            case n: MethodNode =>
-                Option(n) //TODO - for methods we need to check method parameter types as well
-            case _ => startNode.getParent(true) match {
-              case Some(parent) =>
-                  val definitionNode =
-                      parent.findChild{
-                          case child: HasTypeDefinition =>
-                              targetName.exists(qName => child.qualifiedName.exists(_.couldBeMatch(qName)))
-                          case _ => false
-                      }
-                  definitionNode match {
-                    case Some(_) => definitionNode
+    private def findDefinitionInternal(target: AstNode, targetName: QualifiedName, startNode: AstNode,
+                                       isMatching: AstNode => Boolean): Option[AstNode] = {
+
+        startNode.getParent(true) match {
+            case Some(parent) =>
+                parent.findChild(n => isMatching(n)) match {
+                    case definitionNode @ Some(_) => definitionNode
                     case None =>
                         // go higher in parents hierarchy
-                        findDefinitionInternal(target, parent)
-                  }
-              case None => None
-            }
+                        findDefinitionInternal(target, targetName, parent, isMatching)
+                }
+            case None => None
         }
-    }
-    private def findVariableDefinition(target: AstNode, startNode: AstNode): Option[AstNode] = {
-        ???
+
+
     }
 
-    private def findMethodDefinition(target: AstNode, startNode: AstNode): Option[AstNode] = {
-        ???
-    }
-
-    //TODO
-    private def getVariableMatcher(targetName: QualifiedName): NodeMatcherFunc = {
-        (node: HasTypeDefinition) => node.qualifiedName.exists(_.couldBeMatch(targetName))
-    }
 }
