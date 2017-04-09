@@ -24,16 +24,16 @@ public virtual class MyClass {
 
     public void findMethodType(String str) {
         Integer int = 0; 
-        methodWith2Params(int, str); //#findMethodType
+        methodWith2Params(int, str); //#findMethodType  #findMethodType_int_str
     } 
 
-    private M2Type methodWith2Params(Integer i, String s) { // result of findMethodType
+    private M2Type methodWith2Params(Integer i, String s) { // #result of findMethodType
         String str;
         Integer int;
         
     }
 
-    private M2Type methodWith2Params(String s1, String s2) { // result of findMethodType
+    private M2Type methodWith2Params(String s1, String s2) { // #result of findMethodType
         String str;
         Integer int;
         

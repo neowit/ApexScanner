@@ -55,11 +55,14 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
                 var lineNo = lineNos.head
 
                 val typeNameInt =
-                    getVariableDefinition("#findLocalVariableType", rootNode, Position(lineNo, 28)) match {
-                        case Some(node) =>
+                    getNodeDefinition("#findLocalVariableType", rootNode, Position(lineNo, 28)) match {
+                        case nodes if nodes.nonEmpty =>
+                            assertResult(1, "Expected exactly 1 local variable definition")(nodes.length)
+                            val node = nodes.head
                             assertResult(LocalVariableNodeType)(node.asInstanceOf[AstNode].nodeType)
-                            node.getType.map(_.toString).getOrElse("NOT FOUND")
-                        case None => "NOT FOUND"
+
+                            node.asInstanceOf[HasTypeDefinition].getType.map(_.toString).getOrElse("NOT FOUND")
+                        case _ => "NOT FOUND"
                     }
                 assertResult("Integer")(typeNameInt)
 
@@ -68,43 +71,73 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
                 assertResult(1, "Invalid test data, expected to find line with tag: #findClassVariableType in file: " + filePath)(lineNos.length)
                 lineNo = lineNos.head
                 val typeNameStr =
-                    getVariableDefinition("#findClassVariableType", rootNode, Position(lineNo, 33)) match {
-                        case Some(node) =>
+                    getNodeDefinition("#findClassVariableType", rootNode, Position(lineNo, 33)) match {
+                        case nodes if nodes.nonEmpty =>
+                            assertResult(1, "Expected exactly 1 class variable definition")(nodes.length)
+                            val node = nodes.head
                             assertResult(ClassVariableNodeType)(node.asInstanceOf[AstNode].nodeType)
-                            node.getType.map(_.toString).getOrElse("NOT FOUND")
-                        case None => "NOT FOUND"
+
+                            node.asInstanceOf[HasTypeDefinition].getType.map(_.toString).getOrElse("NOT FOUND")
+                        case _ => "NOT FOUND"
                     }
                 assertResult("String")(typeNameStr)
 
-                // class variable
+                // method by name & No of Parameters without specific type
                 lineNos = getLineNoByTag(path, "#findMethodType")
+                val resLineNos = getLineNoByTag(path, "#result of findMethodType")
+                assertResult(1, "Invalid test data, expected to find line with tag: #findMethodType in file: " + filePath)(lineNos.length)
+                lineNo = lineNos.head
+                val typeNameMethodFuzzy =
+                    getNodeDefinition("#findMethodType", rootNode, Position(lineNo, 20)) match {
+                        case nodes if nodes.nonEmpty =>
+                            assertResult(resLineNos.length, s". Expected exactly ${resLineNos.length} methods (as we do not yet resolve parameter types)")(nodes.length)
+                            val node = nodes.head
+                            assertResult(MethodNodeType)(node.asInstanceOf[AstNode].nodeType)
+
+                            node.asInstanceOf[HasTypeDefinition].getType.map(_.toString).getOrElse("NOT FOUND")
+                        case _ => "NOT FOUND"
+                    }
+                assertResult("M2Type")(typeNameMethodFuzzy)
+
+                /*
+                // method by name & parameter types
+                lineNos = getLineNoByTag(path, "#findMethodType_int_str")
                 assertResult(1, "Invalid test data, expected to find line with tag: #findMethodType in file: " + filePath)(lineNos.length)
                 lineNo = lineNos.head
                 val typeNameMethod =
-                    getVariableDefinition("#findMethodType", rootNode, Position(lineNo, 20)) match {
-                        case Some(node) =>
+                    getNodeDefinition("#findMethodType", rootNode, Position(lineNo, 20)) match {
+                        case nodes if nodes.nonEmpty =>
+                            assertResult(1, s". Expected exactly 1 method")(nodes.length)
+                            val node = nodes.head
                             assertResult(MethodNodeType)(node.asInstanceOf[AstNode].nodeType)
-                            node.getType.map(_.toString).getOrElse("NOT FOUND")
-                        case None => "NOT FOUND"
+
+                            node.asInstanceOf[HasTypeDefinition].getType.map(_.toString).getOrElse("NOT FOUND")
+                        case _ => "NOT FOUND"
                     }
                 assertResult("M2Type")(typeNameMethod)
+                */
         }
     }
 
-    private def getVariableDefinition(hint: String, rootNode: AstNode, location: Position): Option[HasTypeDefinition] = {
+    private def getNodeDefinition(hint: String, rootNode: AstNode, location: Position): Seq[AstNode] = {
         val finder = new AscendingDefinitionFinder()
         finder.findDefinition(rootNode, location)  match {
-            case Some(node: HasTypeDefinition) =>
-                println(hint + ": FOUND: " + node)
-                println("   type: " + node.getType.map(_.toString).getOrElse("NOT FOUND"))
-                return Option(node)
-            case Some(node) =>
-                println(hint + ": FOUND: " + node)
-                assert(false, hint + ": WARNING - NOT IMPLEMENTED - this is not HasTypeDefinition node ")
+            case nodes if nodes.nonEmpty =>
+                println("FOUND NODES")
+                nodes.foreach{node =>
+                    println(" "  + node)
+                    node match {
+                        case n:HasTypeDefinition =>
+                            println("   type: " + n.getType.map(_.toString).getOrElse("NOT FOUND"))
+                        case n =>
+                            assert(false, hint + ": WARNING - NOT IMPLEMENTED - this is not HasTypeDefinition node ")
+                    }
+                }
+                nodes
             case _ =>
                 assert(false, hint + ": NOT FOUND")
+                Seq.empty
         }
-        None
     }
 
 

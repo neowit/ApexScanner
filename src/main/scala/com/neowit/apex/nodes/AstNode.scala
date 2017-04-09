@@ -83,6 +83,14 @@ trait AstNode {
         }
     }
 
+    def findChildren(filter: (AstNode) => Boolean): Seq[AstNode] = {
+        val immediateChildren = _children.filter(filter(_))
+
+        // in case any of the children represent a FallThroughNode, query their children one step further
+        immediateChildren ++ _children.filter(_.nodeType == FallThroughNodeType).flatMap(_.findChildren(filter))
+
+    }
+
     def addChild(node: AstNode): AstNode = {
         if (NullNodeType != node.nodeType) {
             _children += node

@@ -34,7 +34,7 @@ object AscendingDefinitionFinder {
             node.qualifiedName.exists(_.couldBeMatch(targetName))
         case _ => false
     }
-    
+
     def methodMatchFunc(targetCaller: MethodCallNode): NodeMatcherFunc = (n: AstNode) => {
         val methodMatcher = new MethodMatcher(targetCaller)
         n match {
@@ -54,32 +54,32 @@ object AscendingDefinitionFinder {
 class AscendingDefinitionFinder() {
     import AscendingDefinitionFinder._
 
-    def findDefinition(rootNode: AstNode, location: Position): Option[AstNode] = {
+    def findDefinition(rootNode: AstNode, location: Position): Seq[AstNode] = {
         // first find actual node which we need to find the definition for
         val nodeFinder = new NodeByLocationFinder(location)
         nodeFinder.findInside(rootNode) match {
           case Some(targetNode)=>
               findDefinition(targetNode, targetNode)
           case None =>
-                None
+              Seq.empty
         }
     }
 
-    def findDefinition(target: AstNode, startNode: AstNode): Option[AstNode] = {
+    def findDefinition(target: AstNode, startNode: AstNode): Seq[AstNode] = {
         target.getParent(skipFallThroughNodes = true) match {
             case Some(methodCaller: MethodCallNode) =>
                 // looks like target is a method call
                 val matchFunc = methodMatchFunc(methodCaller)
-                findDefinitionInternal(target, methodCaller.methodName, startNode, matchFunc)
+                findDefinitionInternal(target, methodCaller.methodName, startNode, matchFunc, Seq.empty)
             case _ =>
                 target match {
                     case t:IdentifierNode =>
                         val targetName = QualifiedName(Array(t.name))
                         // assume variable
                         val matchFunc = variableMatchFunc(targetName)
-                        findDefinitionInternal(target, targetName, startNode, matchFunc)
+                        findDefinitionInternal(target, targetName, startNode, matchFunc, Seq.empty)
                     case _ =>
-                        None
+                        Seq.empty
                 }
 
         }
@@ -94,17 +94,19 @@ class AscendingDefinitionFinder() {
       */
     @tailrec
     private def findDefinitionInternal(target: AstNode, targetName: QualifiedName, startNode: AstNode,
-                                       isMatching: AstNode => Boolean): Option[AstNode] = {
+                                       isMatching: AstNode => Boolean, foundNodes: Seq[AstNode]): Seq[AstNode] = {
 
         startNode.getParent(true) match {
             case Some(parent) =>
-                parent.findChild(n => isMatching(n)) match {
-                    case definitionNode @ Some(_) => definitionNode
-                    case None =>
+                parent.findChildren(n => isMatching(n)) match {
+                    case definitionNodes if definitionNodes.nonEmpty =>
+                        println(definitionNodes.length)
+                        findDefinitionInternal(target, targetName, parent, isMatching, foundNodes ++ definitionNodes)
+                    case _ =>
                         // go higher in parents hierarchy
-                        findDefinitionInternal(target, targetName, parent, isMatching)
+                        findDefinitionInternal(target, targetName, parent, isMatching, foundNodes)
                 }
-            case None => None
+            case None => foundNodes
         }
 
 
