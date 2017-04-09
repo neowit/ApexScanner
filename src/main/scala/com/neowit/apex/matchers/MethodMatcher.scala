@@ -21,13 +21,17 @@
 
 package com.neowit.apex.matchers
 
-import com.neowit.apex.nodes.{DataType, MethodNode, QualifiedName}
+import com.neowit.apex.nodes.{DataType, MethodCallNode, MethodNode, QualifiedName}
 
 /**
   * Created by Andrey Gavrikov 
   */
 class MethodMatcher(methodName: QualifiedName, paramTypes: Seq[DataType]) {
     private val paramTypesLength = paramTypes.length
+
+    def this(methodCallNode: MethodCallNode) = {
+        this(methodCallNode.methodName, methodCallNode.getParameterTypes)
+    }
 
     /*
       * @param paramTypes list of type names (case insensitive) <br/>

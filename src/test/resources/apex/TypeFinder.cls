@@ -27,7 +27,13 @@ public virtual class MyClass {
         methodWith2Params(int, str); //#findMethodType
     } 
 
-    private M2Type methodWith2Params(String s, Integer i) {
+    private M2Type methodWith2Params(Integer i, String s) { // result of findMethodType
+        String str;
+        Integer int;
+        
+    }
+
+    private M2Type methodWith2Params(String s1, String s2) { // result of findMethodType
         String str;
         Integer int;
         

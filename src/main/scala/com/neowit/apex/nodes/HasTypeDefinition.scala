@@ -29,6 +29,5 @@ trait HasTypeDefinition {
     def qualifiedName: Option[QualifiedName]
     //def name: Option[String]
 
-    //def isSameName(str: String): Boolean = name.contains(str)
-    def isSameName(otherName: QualifiedName): Boolean = qualifiedName.exists(_.endsWith(otherName))
+    //def isSameName(otherName: QualifiedName): Boolean = qualifiedName.exists(_.endsWith(otherName))
 }

@@ -21,11 +21,13 @@
 
 package com.neowit.apex.resolvers
 
-import com.neowit.apex.matchers.NodeMatcher
 import com.neowit.apex.nodes._
 
 import scala.annotation.tailrec
 
+object AscendingDefinitionFinder {
+    type NodeMatcherFunc = HasTypeDefinition => Boolean
+}
 /**
   * Created by Andrey Gavrikov
   *
@@ -34,6 +36,7 @@ import scala.annotation.tailrec
   * Use this to find definition in the same file as target node
   */
 class AscendingDefinitionFinder() {
+    import AscendingDefinitionFinder._
 
     def findDefinition(rootNode: AstNode, location: Position): Option[AstNode] = {
         // first find actual node which we need to find the definition for
@@ -69,9 +72,12 @@ class AscendingDefinitionFinder() {
                 None
         }
         target match {
-            case n: LocalVariableNode => Option(n)
-            case n: ClassVariableNode  => Option(n)
-            case n: MethodNode => Option(n) //TODO - for methods we need to check method parameter types as well
+            case n: LocalVariableNode =>
+                Option(n)
+            case n: ClassVariableNode  =>
+                Option(n)
+            case n: MethodNode =>
+                Option(n) //TODO - for methods we need to check method parameter types as well
             case _ => startNode.getParent(true) match {
               case Some(parent) =>
                   val definitionNode =
@@ -99,9 +105,7 @@ class AscendingDefinitionFinder() {
     }
 
     //TODO
-    private def getVariableMatcher(targetName: QualifiedName): NodeMatcher[HasTypeDefinition] = {
-        new NodeMatcher[HasTypeDefinition] {
-            override def isMatch(node: HasTypeDefinition): Boolean = node.qualifiedName.exists(_.couldBeMatch(targetName))
-        }
+    private def getVariableMatcher(targetName: QualifiedName): NodeMatcherFunc = {
+        (node: HasTypeDefinition) => node.qualifiedName.exists(_.couldBeMatch(targetName))
     }
 }
