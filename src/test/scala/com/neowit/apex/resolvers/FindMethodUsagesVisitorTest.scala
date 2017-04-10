@@ -24,9 +24,8 @@ package com.neowit.apex.resolvers
 import java.nio.file.FileSystems
 
 import com.neowit.apex.{Project, TestConfigProvider}
-import com.neowit.apex.ast.{AstBuilder, AstWalker}
-import com.neowit.apex.nodes.{ValueType, QualifiedName}
 import com.neowit.apex.ast.{AstBuilder, AstWalker, QualifiedName}
+import com.neowit.apex.nodes.ValueType
 import org.scalatest.FunSuite
 
 /**
