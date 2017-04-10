@@ -31,9 +31,10 @@ import com.neowit.apex.nodes.Location
   * - method is useful to display ina file structure
   * - anonymous code block or method variable are not useful parts of displayable file structure
   */
-trait DocumentSymbol {
+trait Symbol {
     def symbolName: String
     def symbolKind: SymbolKind
     def symbolLocation: Location
-    def parentSymbol: Option[DocumentSymbol]
+    def parentSymbol: Option[Symbol]
+
 }
