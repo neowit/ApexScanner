@@ -19,7 +19,7 @@
  *
  */
 
-package com.neowit.apex.nodes
+package com.neowit.apex.ast
 
 /**
   * Created by Andrey Gavrikov

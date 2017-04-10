@@ -21,7 +21,8 @@
 
 package com.neowit.apex.matchers
 
-import com.neowit.apex.nodes.{ValueType, MethodCallNode, MethodNode, QualifiedName}
+import com.neowit.apex.ast.QualifiedName
+import com.neowit.apex.nodes.{MethodCallNode, MethodNode, ValueType}
 
 /**
   * Created by Andrey Gavrikov 

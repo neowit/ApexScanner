@@ -21,6 +21,8 @@
 
 package com.neowit.apex.nodes
 
+import com.neowit.apex.ast.QualifiedName
+
 /**
   * Created by Andrey Gavrikov 
   */

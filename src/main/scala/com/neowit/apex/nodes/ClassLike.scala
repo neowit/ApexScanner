@@ -24,6 +24,7 @@ package com.neowit.apex.nodes
 import java.nio.file.Path
 
 import com.neowit.apex.Project
+import com.neowit.apex.ast.QualifiedName
 import com.neowit.apex.symbols.Symbol
 
 trait ClassLike extends AstNode with HasApexDoc with IsTypeDefinition with Symbol { self =>

@@ -20,11 +20,18 @@
  */
 
 package com.neowit.apex.nodes
+import com.neowit.apex.ast.{AstVisitor, QualifiedName}
 
 /**
   * Created by Andrey Gavrikov 
   */
-case class MethodCallNode(methodName: QualifiedName, range: Range) extends AstNode {
+object MethodCallNode {
+    def apply(methodName: String, range: Range): MethodCallNode = {
+        MethodCallNode(QualifiedName(methodName.split("\\.")), range)
+    }
+}
+
+case class MethodCallNode(methodName: QualifiedName, range: Range) extends AstNode with HasTypeDefinition {
     override def nodeType: AstNodeType = MethodCallNodeType
 
     private var _resolvedParameterTypes: Option[Seq[ValueType]] = None
@@ -62,8 +69,3 @@ case class MethodCallNode(methodName: QualifiedName, range: Range) extends AstNo
     }
 }
 
-object MethodCallNode {
-    def apply(methodName: String, range: Range): MethodCallNode = {
-        MethodCallNode(QualifiedName(methodName.split("\\.")), range)
-    }
-}

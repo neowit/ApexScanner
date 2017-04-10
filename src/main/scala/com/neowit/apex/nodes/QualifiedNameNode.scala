@@ -21,6 +21,8 @@
 
 package com.neowit.apex.nodes
 
+import com.neowit.apex.ast.QualifiedName
+
 case class QualifiedNameNode(range: Range) extends AstNode {
     override def nodeType: AstNodeType = QualifiedNameNodeType
     def qualifiedName:QualifiedName = QualifiedName(getChildren[IdentifierNode](IdentifierNodeType).map(_.name).toArray)

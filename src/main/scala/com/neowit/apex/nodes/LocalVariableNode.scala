@@ -20,6 +20,7 @@
  */
 
 package com.neowit.apex.nodes
+import com.neowit.apex.ast.{AstVisitor, QualifiedName}
 
 /**
   * Created by Andrey Gavrikov 

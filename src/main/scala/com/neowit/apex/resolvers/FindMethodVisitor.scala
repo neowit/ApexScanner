@@ -21,7 +21,7 @@
 
 package com.neowit.apex.resolvers
 
-import com.neowit.apex.ast.AstVisitor
+import com.neowit.apex.ast.{AstVisitor, QualifiedName}
 import com.neowit.apex.matchers.MethodMatcher
 import com.neowit.apex.nodes._
 

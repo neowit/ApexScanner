@@ -20,6 +20,7 @@
  */
 
 package com.neowit.apex.nodes
+import com.neowit.apex.ast.{AstVisitor, QualifiedName}
 
 case class MethodNode(range: Range ) extends AstNode with HasApexDoc with IsTypeDefinition with ClassOrInterfaceBodyMember{
 

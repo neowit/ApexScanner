@@ -21,6 +21,8 @@
 
 package com.neowit.apex.nodes
 
+import com.neowit.apex.ast.QualifiedName
+
 trait ValueType {
     def qualifiedName: QualifiedName
     def typeArguments: Seq[ValueType]

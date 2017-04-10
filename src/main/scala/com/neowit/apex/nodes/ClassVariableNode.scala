@@ -20,6 +20,7 @@
  */
 
 package com.neowit.apex.nodes
+import com.neowit.apex.ast.{AstVisitor, QualifiedName}
 
 case class ClassVariableNode(range: Range) extends VariableLike with ClassOrInterfaceBodyMember {
     override def nodeType: AstNodeType = ClassVariableNodeType
