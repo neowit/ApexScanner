@@ -24,7 +24,7 @@ package com.neowit.apex.nodes
 case class ClassVariableNode(range: Range) extends VariableLike with ClassOrInterfaceBodyMember {
     override def nodeType: AstNodeType = ClassVariableNodeType
 
-    override def getType: Option[DataType] = {
+    override def getValueType: Option[ValueType] = {
         getChild[DataTypeNode](DataTypeNodeType) .map(_.getDataType)
     }
 

@@ -61,7 +61,7 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
                             val node = nodes.head
                             assertResult(LocalVariableNodeType)(node.asInstanceOf[AstNode].nodeType)
 
-                            node.asInstanceOf[HasTypeDefinition].getType.map(_.toString).getOrElse("NOT FOUND")
+                            node.asInstanceOf[IsTypeDefinition].getValueType.map(_.toString).getOrElse("NOT FOUND")
                         case _ => "NOT FOUND"
                     }
                 assertResult("Integer")(typeNameInt)
@@ -77,7 +77,7 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
                             val node = nodes.head
                             assertResult(ClassVariableNodeType)(node.asInstanceOf[AstNode].nodeType)
 
-                            node.asInstanceOf[HasTypeDefinition].getType.map(_.toString).getOrElse("NOT FOUND")
+                            node.asInstanceOf[IsTypeDefinition].getValueType.map(_.toString).getOrElse("NOT FOUND")
                         case _ => "NOT FOUND"
                     }
                 assertResult("String")(typeNameStr)
@@ -94,7 +94,7 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
                             val node = nodes.head
                             assertResult(MethodNodeType)(node.asInstanceOf[AstNode].nodeType)
 
-                            node.asInstanceOf[HasTypeDefinition].getType.map(_.toString).getOrElse("NOT FOUND")
+                            node.asInstanceOf[IsTypeDefinition].getValueType.map(_.toString).getOrElse("NOT FOUND")
                         case _ => "NOT FOUND"
                     }
                 assertResult("M2Type")(typeNameMethodFuzzy)
@@ -127,8 +127,8 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
                 nodes.foreach{node =>
                     println(" "  + node)
                     node match {
-                        case n:HasTypeDefinition =>
-                            println("   type: " + n.getType.map(_.toString).getOrElse("NOT FOUND"))
+                        case n:IsTypeDefinition =>
+                            println("   type: " + n.getValueType.map(_.toString).getOrElse("NOT FOUND"))
                         case n =>
                             assert(false, hint + ": WARNING - NOT IMPLEMENTED - this is not HasTypeDefinition node ")
                     }

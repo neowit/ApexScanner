@@ -23,26 +23,26 @@ package com.neowit.apex.nodes
 
 trait DataTypeNode extends AstNode {
     override def nodeType: AstNodeType = DataTypeNodeType
-    def getDataType: DataType
+    def getDataType: ValueType
 }
 /**
   * Created by Andrey Gavrikov 
   */
 case class DataTypeNodeGeneric(qualifiedNameNode: QualifiedNameNode, typeArgumentsOpt: Option[TypeArgumentsNode], range: Range) extends DataTypeNode {
 
-    def getDataType: DataType = {
+    def getDataType: ValueType = {
         typeArgumentsOpt match {
             case Some(typeArguments) =>
-                DataTypeConcrete(qualifiedNameNode.qualifiedName, typeArguments.components.map(_.getDataType))
+                ValueTypeComplex(qualifiedNameNode.qualifiedName, typeArguments.components.map(_.getDataType))
             case None =>
-                DataTypeConcrete(qualifiedNameNode.qualifiedName, Seq.empty)
+                ValueTypeComplex(qualifiedNameNode.qualifiedName, Seq.empty)
         }
     }
 }
 case class DataTypeNodeVoid(range: Range ) extends DataTypeNode {
-    override def getDataType: DataType = DataTypeVoid
+    override def getDataType: ValueType = ValueTypeVoid
 }
 
 case class DataTypeNodeArray(qualifiedNameNode: QualifiedNameNode, range: Range ) extends DataTypeNode {
-    override def getDataType: DataType = DataTypeArray(qualifiedNameNode)
+    override def getDataType: ValueType = ValueTypeArray(qualifiedNameNode)
 }

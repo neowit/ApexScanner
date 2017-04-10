@@ -24,9 +24,9 @@ package com.neowit.apex.nodes
 import java.nio.file.Path
 
 import com.neowit.apex.Project
-import com.neowit.apex.symbols.DocumentSymbol
+import com.neowit.apex.symbols.Symbol
 
-trait ClassLike extends AstNode with HasApexDoc with DocumentSymbol { self =>
+trait ClassLike extends AstNode with HasApexDoc with IsTypeDefinition with Symbol { self =>
 
     def name: Option[String] = getChild[IdentifierNode](IdentifierNodeType).map(_.name)
     def annotations: Seq[AnnotationNode] = getChildren[AnnotationNode](AnnotationNodeType)
@@ -65,7 +65,7 @@ trait ClassLike extends AstNode with HasApexDoc with DocumentSymbol { self =>
     }
 
 
-    override def parentSymbol: Option[DocumentSymbol] = parentClass
+    override def parentSymbol: Option[Symbol] = parentClass
 
     def hasModifier(modifierType: ModifierNode.ModifierType): Boolean = {
         modifiers.exists(m => m.modifierType == modifierType)

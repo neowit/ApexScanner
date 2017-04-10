@@ -27,6 +27,7 @@ package com.neowit.apex.nodes
 case class MethodCallNode(methodName: QualifiedName, range: Range) extends AstNode {
     override def nodeType: AstNodeType = MethodCallNodeType
 
+    private var _resolvedParameterTypes: Option[Seq[ValueType]] = None
     /**
       * used for debug purposes
       *
@@ -36,12 +37,28 @@ case class MethodCallNode(methodName: QualifiedName, range: Range) extends AstNo
 
     //TODO implement taking real parameter types into account
     // current version returns "*" for each parameter
-    def getParameterTypes: Seq[DataType] = {
-        getChild[ExpressionListNode](ExpressionListNodeType) match {
-          case Some( expressionList ) => expressionList.getExpressions.map(e => DataTypeAny)
-          case None => Seq.empty
+    def getParameterTypes: Seq[ValueType] = {
+        _resolvedParameterTypes match {
+          case Some(paramTypes) =>
+              paramTypes
+          case None =>
+              getChild[ExpressionListNode](ExpressionListNodeType) match {
+                  case Some( expressionList ) => expressionList.getExpressions.map(e => ValueTypeAny)
+                  case None => Seq.empty
+              }
         }
+    }
 
+    def setResolvedParameterTypes(paramTypes: Seq[ValueType]): Unit = {
+        _resolvedParameterTypes = Option(paramTypes)
+    }
+    def isParameterTypesResolved: Boolean = _resolvedParameterTypes.nonEmpty
+
+    def getParameterExpressionNodes: Seq[AstNode] = {
+        getChild[ExpressionListNode](ExpressionListNodeType) match {
+            case Some( expressionList ) => expressionList.getExpressions
+            case None => Seq.empty
+        }
     }
 }
 

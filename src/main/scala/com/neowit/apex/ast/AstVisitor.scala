@@ -32,7 +32,9 @@ import com.neowit.apex.scanner.actions.SyntaxChecker
   * Created by Andrey Gavrikov 
   */
 trait AstVisitor {
+    def preVisit(node: AstNode): Unit = {}
     def visit(node: AstNode): Boolean
+    def postVisit(node: AstNode): Unit = {}
 }
 
 class DebugVisitor extends AstVisitor {

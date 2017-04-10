@@ -21,14 +21,10 @@
 
 package com.neowit.apex.nodes
 
-trait VariableLike extends AstNode with HasApexDoc with IsTypeDefinition {
-
-    def annotations: Seq[AnnotationNode] = getChildren(AnnotationNodeType).map(_.asInstanceOf[AnnotationNode])
-    def modifiers: Set[ModifierNode] = getChildren(ModifierNodeType).map(_.asInstanceOf[ModifierNode]).toSet
-    def name: Option[String] = getChild[IdentifierNode](IdentifierNodeType).map(_.name)
-    def dataType: Option[ValueType] = getChildren(DataTypeNodeType).headOption.map(_.asInstanceOf[ValueType])
-    def initExpression: Option[ExpressionNode] = getChildren(ExpressionNodeType).headOption.map(_.asInstanceOf[ExpressionNode])
-
-    override def getApexDoc: Option[DocNode] = getChildren(DocNodeType).map(_.asInstanceOf[DocNode]).headOption
+/**
+  * Created by Andrey Gavrikov 
+  */
+trait IsTypeDefinition extends HasQualifiedName with HasTypeDefinition {
+    def getValueType: Option[ValueType]
+    def qualifiedName: Option[QualifiedName]
 }
-

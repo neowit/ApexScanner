@@ -21,12 +21,12 @@
 
 package com.neowit.apex.matchers
 
-import com.neowit.apex.nodes.{DataType, MethodCallNode, MethodNode, QualifiedName}
+import com.neowit.apex.nodes.{ValueType, MethodCallNode, MethodNode, QualifiedName}
 
 /**
   * Created by Andrey Gavrikov 
   */
-class MethodMatcher(methodName: QualifiedName, paramTypes: Seq[DataType]) {
+class MethodMatcher(methodName: QualifiedName, paramTypes: Seq[ValueType]) {
     private val paramTypesLength = paramTypes.length
 
     def this(methodCallNode: MethodCallNode) = {
@@ -39,7 +39,7 @@ class MethodMatcher(methodName: QualifiedName, paramTypes: Seq[DataType]) {
       *                   List("integer", "*") - "*" means any type of second argument is a match
       *
      */
-    def isSameMethod(otherMethodName: QualifiedName, otherParamTypes: Seq[DataType]): Boolean = {
+    def isSameMethod(otherMethodName: QualifiedName, otherParamTypes: Seq[ValueType]): Boolean = {
         val nameMatch = methodName.couldBeMatch(otherMethodName)
 
         if (nameMatch && paramTypesLength == otherParamTypes.length) {

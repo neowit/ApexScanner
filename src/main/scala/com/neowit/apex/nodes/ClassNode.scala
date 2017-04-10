@@ -27,6 +27,12 @@ case class ClassNode(range: Range) extends ClassLike {
     override def nodeType: AstNodeType = ClassNodeType
 
     override def symbolKind: SymbolKind = SymbolKind.Class
+
+    override def getValueType: Option[ValueType] = {
+        qualifiedName.map(name => ValueTypeClass(name))
+    }
+
+    override def resolveDefinition: Option[AstNode] = Option(this)
 }
 
 

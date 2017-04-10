@@ -25,9 +25,5 @@ package com.neowit.apex.nodes
   * Created by Andrey Gavrikov 
   */
 trait HasTypeDefinition {
-    def getType: Option[DataType]
-    def qualifiedName: Option[QualifiedName]
-    //def name: Option[String]
-
-    //def isSameName(otherName: QualifiedName): Boolean = qualifiedName.exists(_.endsWith(otherName))
+    def resolveDefinition: Option[AstNode]
 }

@@ -25,14 +25,14 @@ import java.nio.file.FileSystems
 
 import com.neowit.apex.{Project, TestConfigProvider}
 import com.neowit.apex.ast.{AstBuilder, AstWalker}
-import com.neowit.apex.nodes.{DataType, QualifiedName}
+import com.neowit.apex.nodes.{ValueType, QualifiedName}
 import org.scalatest.FunSuite
 
 /**
   * Created by Andrey Gavrikov 
   */
 class FindMethodUsagesVisitorTest extends FunSuite with TestConfigProvider {
-    case class DataTypeForTest(typeName: String, typeArguments: Seq[DataType] = Seq.empty) extends DataType {
+    case class ValueTypeForTest(typeName: String, typeArguments: Seq[ValueType] = Seq.empty) extends ValueType {
         override def qualifiedName: QualifiedName = QualifiedName(Array(typeName))
     }
 
@@ -55,7 +55,7 @@ class FindMethodUsagesVisitorTest extends FunSuite with TestConfigProvider {
 
             case Some(result) =>
                 val rootNode = result.rootNode
-                val findMethodVisitor = new FindMethodVisitor(QualifiedName(Array("method2")), List(DataTypeForTest("integer"), DataTypeForTest("list", Seq(DataTypeForTest("String")))))
+                val findMethodVisitor = new FindMethodVisitor(QualifiedName(Array("method2")), List(ValueTypeForTest("integer"), ValueTypeForTest("list", Seq(ValueTypeForTest("String")))))
                 new AstWalker().walk(rootNode, findMethodVisitor)
                 findMethodVisitor.getFoundMethod match {
                     case Some(methodNode) =>

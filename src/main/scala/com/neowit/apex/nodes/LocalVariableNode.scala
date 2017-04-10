@@ -27,10 +27,11 @@ package com.neowit.apex.nodes
 case class LocalVariableNode(range: Range) extends VariableLike {
     override def nodeType: AstNodeType = LocalVariableNodeType
 
-    override def getType: Option[DataType] = {
+    override def getValueType: Option[ValueType] = {
         getChild[DataTypeNode](DataTypeNodeType)
             .map(_.getDataType)
     }
+    override def resolveDefinition: Option[AstNode] = Option(this)
 
     override def qualifiedName: Option[QualifiedName] = name.map(n => QualifiedName(Array(n)))
 }

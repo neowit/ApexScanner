@@ -27,4 +27,10 @@ case class InterfaceNode(range: Range ) extends ClassLike {
     override def nodeType: AstNodeType = InterfaceNodeType
 
     override def symbolKind: SymbolKind = SymbolKind.Interface
+
+    override def getValueType: Option[ValueType] = {
+        qualifiedName.map(name => ValueTypeInterface(name))
+    }
+
+    override def resolveDefinition: Option[AstNode] = Option(this)
 }

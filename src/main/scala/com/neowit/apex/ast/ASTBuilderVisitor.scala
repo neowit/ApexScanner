@@ -47,7 +47,6 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
     }
 
     private def visitChildren(parent: AstNode, ruleNode: RuleNode): AstNode = {
-
         for (i <- scala.collection.immutable.Range(0, ruleNode.getChildCount)) {
             val elem = ruleNode.getChild(i)
             val node = visit(elem)
@@ -56,7 +55,6 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
                 parent.addChild(node)
             }
         }
-        //super.visitChildren(ruleNode)
         parent
     }
 

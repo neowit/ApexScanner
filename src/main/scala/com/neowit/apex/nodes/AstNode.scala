@@ -157,7 +157,7 @@ trait AstNode {
     protected def getLevelsDeep: Int = {
         if (levelsDeep < 0) {
             levelsDeep =
-                getParent(true) match {
+                getParent(skipFallThroughNodes = true) match {
                     case Some(p) => p.getLevelsDeep + 1
                     case None => 0
                 }

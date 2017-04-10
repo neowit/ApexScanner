@@ -30,7 +30,7 @@ object AscendingDefinitionFinder {
     type NodeMatcherFunc = AstNode => Boolean
 
     def variableMatchFunc(targetName: QualifiedName): NodeMatcherFunc = {
-        case node: HasTypeDefinition =>
+        case node: IsTypeDefinition =>
             node.qualifiedName.exists(_.couldBeMatch(targetName))
         case _ => false
     }
@@ -69,6 +69,9 @@ class AscendingDefinitionFinder() {
         target.getParent(skipFallThroughNodes = true) match {
             case Some(methodCaller: MethodCallNode) =>
                 // looks like target is a method call
+                // try to resolve call parameter types first
+                val paramTypes = resolveMethodCallParameters(methodCaller)
+                methodCaller.setResolvedParameterTypes(paramTypes)
                 val matchFunc = methodMatchFunc(methodCaller)
                 findDefinitionInternal(target, methodCaller.methodName, startNode, matchFunc, Seq.empty)
             case _ =>
@@ -78,6 +81,12 @@ class AscendingDefinitionFinder() {
                         // assume variable
                         val matchFunc = variableMatchFunc(targetName)
                         findDefinitionInternal(target, targetName, startNode, matchFunc, Seq.empty)
+                    case t:FallThroughNode =>
+                        //TODO - given an expression (e.g. method parameter) - resolve its final type
+                        // maybe FallThroughNode is not the best type here
+                        //resolveExpressionType(t)
+                        ???
+
                     case _ =>
                         Seq.empty
                 }
@@ -108,8 +117,26 @@ class AscendingDefinitionFinder() {
                 }
             case None => foundNodes
         }
-
-
     }
 
+    private def resolveMethodCallParameters(methodCallNode: MethodCallNode): Seq[ValueType] = {
+        if (methodCallNode.isParameterTypesResolved) {
+            methodCallNode.getParameterTypes
+        } else {
+            methodCallNode.getParameterExpressionNodes.map{paramNode =>
+                findDefinition(paramNode, methodCallNode)
+                    .headOption
+                    .flatMap{
+                        case paramDefinitionNode: IsTypeDefinition =>
+                            paramDefinitionNode.getValueType
+                        case _ => None
+
+                    }.getOrElse(ValueTypeAny)
+            }
+        }
+    }
+
+    private def resolveExpressionType(target: FallThroughNode): Option[ValueType] = {
+        ???
+    }
 }

@@ -27,5 +27,5 @@ package com.neowit.apex.nodes
 case class MethodHeaderNode(range: Range) extends AstNode{
     override def nodeType: AstNodeType = MethodHeaderNodeType
     def methodName: Option[String] = getChild[MethodNameNode](MethodNameNodeType).map(_.name)
-    def dataType: Option[DataType] = getChild[DataTypeNode](DataTypeNodeType).map(_.getDataType)
+    def dataType: Option[ValueType] = getChild[DataTypeNode](DataTypeNodeType).map(_.getDataType)
 }

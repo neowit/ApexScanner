@@ -33,7 +33,7 @@ import com.neowit.apex.nodes._
   *                   List("integer", "*") - "*" means any type of second argument is a match
   *
   */
-class FindMethodVisitor(methodName: QualifiedName, paramTypes: Seq[DataType]) extends AstVisitor {
+class FindMethodVisitor(methodName: QualifiedName, paramTypes: Seq[ValueType]) extends AstVisitor {
     private val matcher = new MethodMatcher(methodName, paramTypes)
     private var foundMethodNode: Option[MethodNode] = None
 

@@ -21,13 +21,13 @@
 
 package com.neowit.apex.nodes
 
-trait DataType {
+trait ValueType {
     def qualifiedName: QualifiedName
-    def typeArguments: Seq[DataType]
+    def typeArguments: Seq[ValueType]
 
-    def isSameType(otherDataType: DataType): Boolean = {
+    def isSameType(otherDataType: ValueType): Boolean = {
         otherDataType match {
-            case DataTypeAny => true
+            case ValueTypeAny => true
             case _ =>
                 val namesMatch = qualifiedName.couldBeMatch(otherDataType.qualifiedName)
 
@@ -50,36 +50,60 @@ trait DataType {
     }
 }
 //Map<String, Map<Integer, List<String>>>
-case class DataTypeConcrete(qualifiedName: QualifiedName, typeArguments: Seq[DataType]) extends DataType {
+case class ValueTypeComplex(qualifiedName: QualifiedName, typeArguments: Seq[ValueType]) extends ValueType
 
-    //def text: String = qualifiedName + typeArgumentsOpt.map(_.text).getOrElse("")
+// String
+case class ValueTypeSimple(qualifiedName: QualifiedName) extends ValueType {
+    override def typeArguments: Seq[ValueType] = Seq.empty
+}
 
+case class ValueTypeClass(qualifiedName: QualifiedName) extends ValueType {
+    override def typeArguments: Seq[ValueType] = Seq.empty
+
+    override def toString: String = {
+        "class" + qualifiedName
+    }
+}
+case class ValueTypeInterface(qualifiedName: QualifiedName) extends ValueType {
+    override def typeArguments: Seq[ValueType] = Seq.empty
+
+    override def toString: String = {
+        "interface" + qualifiedName
+    }
+}
+
+case class ValueTypeTrigger(qualifiedName: QualifiedName) extends ValueType {
+    override def typeArguments: Seq[ValueType] = Seq.empty
+
+    override def toString: String = {
+        "trigger" + qualifiedName
+    }
 }
 
 //VOID
-case object DataTypeVoid extends DataType {
+case object ValueTypeVoid extends ValueType {
     //override def text: String = "void"
     def qualifiedName: QualifiedName = QualifiedName(Array("void"))
 
-    override def typeArguments: Seq[DataType] = Seq.empty
+    override def typeArguments: Seq[ValueType] = Seq.empty
 }
 //ANY - special type which match all and any types
-case object DataTypeAny extends DataType {
+case object ValueTypeAny extends ValueType {
     //override def text: String = "void"
     def qualifiedName: QualifiedName = QualifiedName(Array.empty)
 
-    override def typeArguments: Seq[DataType] = Seq.empty
+    override def typeArguments: Seq[ValueType] = Seq.empty
 
-    override def isSameType(otherDataType: DataType): Boolean = true
+    override def isSameType(otherDataType: ValueType): Boolean = true
 }
 
 //Some[] - array type
-case class DataTypeArray(qualifiedNameNode: QualifiedNameNode) extends DataType {
+case class ValueTypeArray(qualifiedNameNode: QualifiedNameNode) extends ValueType {
     def qualifiedName: QualifiedName = qualifiedNameNode.qualifiedName
 
     override def toString: String = qualifiedName + "[]"
 
-    override def typeArguments: Seq[DataType] = Seq.empty
+    override def typeArguments: Seq[ValueType] = Seq.empty
 }
 
 
