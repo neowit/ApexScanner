@@ -21,14 +21,11 @@
 
 package com.neowit.apex.nodes
 
-trait VariableLike extends AstNode with HasApexDoc with IsTypeDefinition {
+/**
+  * Created by Andrey Gavrikov
+  */
+case class ExpressionStatementNode(range: Range) extends AstNode {
+    override def nodeType: AstNodeType = ExpressionStatementNodeType
 
-    def annotations: Seq[AnnotationNode] = getChildren(AnnotationNodeType).map(_.asInstanceOf[AnnotationNode])
-    def modifiers: Set[ModifierNode] = getChildren(ModifierNodeType).map(_.asInstanceOf[ModifierNode]).toSet
-    def name: Option[String] = getChild[IdentifierNode](IdentifierNodeType).map(_.name)
-    def dataType: Option[ValueType] = getChildren(DataTypeNodeType).headOption.map(_.asInstanceOf[ValueType])
-    def initExpression: Option[ExpressionStatementNode] = getChildren(ExpressionNodeType).headOption.map(_.asInstanceOf[ExpressionStatementNode])
-
-    override def getApexDoc: Option[DocNode] = getChildren(DocNodeType).map(_.asInstanceOf[DocNode]).headOption
+    override def getDebugInfo: String = super.getDebugInfo + " STATEMENT"
 }
-

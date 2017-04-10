@@ -22,10 +22,13 @@
 package com.neowit.apex.nodes
 
 /**
-  * Created by Andrey Gavrikov
+  * Created by Andrey Gavrikov 
   */
-case class ExpressionNode(range: Range) extends AstNode {
+trait AbstractExpression extends AstNode {
     override def nodeType: AstNodeType = ExpressionNodeType
-
-    override def getDebugInfo: String = super.getDebugInfo + " TODO"
 }
+
+case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression
+
+
+case class PrimaryExpressionNode(range: Range) extends AbstractExpression

@@ -58,8 +58,11 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
         parent
     }
 
+
+
     /**
       * this Node is the top of the tree for given file
+      *
       * @param ctx the parse tree
       */
     override def visitCompilationUnit(ctx: CompilationUnitContext): AstNode = {
@@ -72,6 +75,9 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
         } else {
             NullNode
         }
+    }
+    override def visitPrimary(ctx: PrimaryContext): AstNode = {
+        super.visitPrimary(ctx)
     }
 
     override def visitClassDef(ctx: ClassDefContext): AstNode = {
@@ -188,7 +194,7 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
     }
 
     override def visitExpressionStmt(ctx: ExpressionStmtContext): AstNode = {
-        visitChildren(ExpressionNode(Range(ctx)), ctx)
+        visitChildren(ExpressionStatementNode(Range(ctx)), ctx)
     }
 
     override def visitMethodCallExpr(ctx: MethodCallExprContext): AstNode = {
@@ -199,4 +205,41 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
         visitChildren(ExpressionListNode(Range(ctx)), ctx)
     }
 
+    override def visitExprDotExpression(ctx: ExprDotExpressionContext): AstNode = {
+        visitChildren(ExpressionDotExpressionNode(Range(ctx)), ctx)
+    }
+
+    override def visitPrimaryExpr(ctx: PrimaryExprContext): AstNode = {
+        visitChildren(PrimaryExpressionNode(Range(ctx)), ctx)
+    }
+
+    ///////////////// literals ///////////////////////////////
+    override def visitIntLiteral(ctx: IntLiteralContext): AstNode = {
+        LiteralNode(IntegerLiteral, ctx.IntegerLiteral(), Range(ctx))
+    }
+
+    override def visitFpLiteral(ctx: FpLiteralContext): AstNode = {
+        LiteralNode(FloatingPointLiteral, ctx.FloatingPointLiteral(), Range(ctx))
+    }
+
+    override def visitStrLiteral(ctx: StrLiteralContext): AstNode = {
+        LiteralNode(StringLiteral, ctx.StringLiteral(), Range(ctx))
+    }
+
+    override def visitBoolLiteral(ctx: BoolLiteralContext): AstNode = {
+        LiteralNode(BooleanLiteral, ctx.BooleanLiteral(), Range(ctx))
+    }
+
+    override def visitNullLiteral(ctx: NullLiteralContext): AstNode = {
+        LiteralNode(NULL, ctx.NULL(), Range(ctx))
+    }
+
+    override def visitSoslLiteral(ctx: SoslLiteralContext): AstNode = {
+        LiteralNode(SoslLiteral, ctx.SoslLiteral(), Range(ctx))
+    }
+
+    override def visitSoqlLiteral(ctx: SoqlLiteralContext): AstNode = {
+        LiteralNode(SoqlLiteral, ctx.SoqlLiteral(), Range(ctx))
+    }
+    ///////////////// END literals ///////////////////////////////
 }
