@@ -20,10 +20,28 @@
  */
 
 package com.neowit.apex.nodes
+import com.neowit.apex.ast.AstVisitor
 
 /**
   * Created by Andrey Gavrikov 
   */
 trait HasTypeDefinition {
-    def resolveDefinition: Option[AstNode]
+    private var _resolvedDefinition: Option[AstNode] = None
+
+    protected def setResolvedDefinition(resolvedDefinition: Option[AstNode]): Unit = {
+        _resolvedDefinition = resolvedDefinition
+    }
+
+    def resolveDefinition(visitor: AstVisitor): Option[AstNode] = {
+        _resolvedDefinition match {
+          case resolvedDefinition @ Some(_) =>
+              // use earlier resolved value
+              resolvedDefinition
+          case None =>
+              // try to resolve value now
+              _resolvedDefinition = resolveDefinitionImpl(visitor)
+              _resolvedDefinition
+        }
+    }
+    protected def resolveDefinitionImpl(visitor: AstVisitor): Option[AstNode]
 }

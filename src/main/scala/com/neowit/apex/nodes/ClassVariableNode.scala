@@ -40,6 +40,8 @@ case class ClassVariableNode(range: Range) extends VariableLike with ClassOrInte
         }
     }
 
+    override protected def resolveDefinitionImpl(visitor: AstVisitor): Option[AstNode] = Option(this)
+
     override def getClassOrInterfaceNode: ClassLike = {
         findParent(p => p.nodeType == ClassNodeType || p.nodeType == InterfaceNodeType ) match {
           case Some(n: ClassLike) => n

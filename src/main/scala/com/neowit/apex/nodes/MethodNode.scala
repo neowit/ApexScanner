@@ -29,7 +29,7 @@ case class MethodNode(range: Range ) extends AstNode with HasApexDoc with IsType
 
     override def nodeType: AstNodeType = MethodNodeType
 
-    override def resolveDefinition: Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(visitor: AstVisitor): Option[AstNode] = Option(this)
 
     def getApexDoc: Option[DocNode] = getChildren[DocNode](DocNodeType).headOption
 

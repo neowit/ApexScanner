@@ -42,6 +42,10 @@ case class MethodCallNode(methodName: QualifiedName, range: Range) extends AstNo
       */
     override def getDebugInfo: String = super.getDebugInfo + " calling: " + methodName
 
+    override protected def resolveDefinitionImpl(visitor: AstVisitor): Option[AstNode] = {
+        ???
+    }
+
     //TODO implement taking real parameter types into account
     // current version returns "*" for each parameter
     def getParameterTypes: Seq[ValueType] = {

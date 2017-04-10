@@ -21,6 +21,7 @@
 
 package com.neowit.apex.nodes
 
+import com.neowit.apex.ast.AstVisitor
 import com.neowit.apex.symbols.SymbolKind
 
 case class ClassNode(range: Range) extends ClassLike {
@@ -32,24 +33,7 @@ case class ClassNode(range: Range) extends ClassLike {
         qualifiedName.map(name => ValueTypeClass(name))
     }
 
-    override def resolveDefinition: Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(visitor: AstVisitor): Option[AstNode] = Option(this)
 }
 
 
-/*
-object ApexClass{
-    def apply(ctx: ClassDefContext): ApexClass = {
-        var annotationOpt = None
-        val modifierSetBuilder = Set.newBuilder[Modifiers.Modifier]
-
-        ctx.children.iterator().forEachRemaining{
-            case elem: ClassOrInterfaceModifierContext =>
-
-            case elem: ClassDeclarationContext =>
-            case elem => throw new NotImplementedError("Unsupported element: " + elem)
-
-        }
-        ???
-    }
-}
-*/
