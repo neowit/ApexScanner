@@ -19,34 +19,17 @@
  *
  */
 
-package com.neowit.apex
+package com.neowit.apex.stdlib.impl
 
-import java.nio.file.{FileSystems, Path}
+import java.nio.file.Path
 
+import com.neowit.apex.ast.QualifiedName
 import com.neowit.apex.stdlib.StandardLibrary
-import com.neowit.apex.stdlib.impl.StdLibLocal
+import com.neowit.apex.stdlib.nodes.StdLibNode
 
 /**
   * Created by Andrey Gavrikov 
   */
-case class Project(path: Path) {
-    private var _stdLib: Option[StandardLibrary] = None
-
-    def getStandardLibrary: StandardLibrary = {
-        _stdLib match {
-          case Some(lib) => lib
-          case None =>
-              val lib = loadStandardLibrary()
-              _stdLib = Option(lib)
-             lib
-        }
-    }
-
-    private def loadStandardLibrary(): StandardLibrary = {
-
-        // TODO implement proper resolution of path to STD Library
-        val stdLibDir = "TODO"
-        val path = FileSystems.getDefault.getPath(stdLibDir)
-        new StdLibLocal(path)
-    }
+class StdLibLocal(path: Path) extends StandardLibrary {
+    override def findChild(name: QualifiedName): Option[StdLibNode] = ???
 }
