@@ -20,7 +20,7 @@
  */
 
 package com.neowit.apex.nodes
-import com.neowit.apex.ast.{AstVisitor, QualifiedName}
+import com.neowit.apex.ast.QualifiedName
 
 /**
   * Created by Andrey Gavrikov 
@@ -32,7 +32,7 @@ case class LocalVariableNode(range: Range) extends VariableLike {
         getChild[DataTypeNode](DataTypeNodeType)
             .map(_.getDataType)
     }
-    override protected def resolveDefinitionImpl(visitor: AstVisitor): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
 
     override def qualifiedName: Option[QualifiedName] = name.map(n => QualifiedName(Array(n)))
 }

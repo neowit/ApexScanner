@@ -21,7 +21,6 @@
 
 package com.neowit.apex.nodes
 
-import com.neowit.apex.ast.AstVisitor
 import com.neowit.apex.symbols.SymbolKind
 
 case class ClassNode(range: Range) extends ClassLike {
@@ -33,7 +32,7 @@ case class ClassNode(range: Range) extends ClassLike {
         qualifiedName.map(name => ValueTypeClass(name))
     }
 
-    override protected def resolveDefinitionImpl(visitor: AstVisitor): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
 }
 
 

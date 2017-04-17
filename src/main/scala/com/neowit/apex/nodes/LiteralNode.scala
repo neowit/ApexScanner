@@ -21,7 +21,7 @@
 
 package com.neowit.apex.nodes
 
-import com.neowit.apex.ast.{AstVisitor, QualifiedName}
+import com.neowit.apex.ast.QualifiedName
 import com.neowit.apex.scanner.antlr.ApexcodeParser._
 import org.antlr.v4.runtime.tree.TerminalNode
 
@@ -46,7 +46,7 @@ case class LiteralNode(literalType: Int, valueTerminal: TerminalNode, range: Ran
     override def nodeType: AstNodeType = LiteralNodeType
     def value: String = valueTerminal.getText
 
-    override protected def resolveDefinitionImpl(visitor: AstVisitor): Option[AstNode] = {
+    override protected def resolveDefinitionImpl(): Option[AstNode] = {
         val stdLibOpt = getProject.map(_.getStandardLibrary)
         stdLibOpt match {
           case Some(stdLib) => stdLib.findChild(getStandardNamespace(literalType))

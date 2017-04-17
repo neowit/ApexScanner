@@ -20,7 +20,7 @@
  */
 
 package com.neowit.apex.nodes
-import com.neowit.apex.ast.{AstVisitor, QualifiedName}
+import com.neowit.apex.ast.QualifiedName
 
 case class MethodNode(range: Range ) extends AstNode with HasApexDoc with IsTypeDefinition with ClassOrInterfaceBodyMember{
 
@@ -29,7 +29,7 @@ case class MethodNode(range: Range ) extends AstNode with HasApexDoc with IsType
 
     override def nodeType: AstNodeType = MethodNodeType
 
-    override protected def resolveDefinitionImpl(visitor: AstVisitor): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
 
     def getApexDoc: Option[DocNode] = getChildren[DocNode](DocNodeType).headOption
 

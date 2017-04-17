@@ -20,18 +20,19 @@
  */
 
 package com.neowit.apex.nodes
-import com.neowit.apex.ast.{AstVisitor, QualifiedName}
+import com.neowit.apex.ast.QualifiedName
+import com.neowit.apex.resolvers.AscendingDefinitionFinder
 
 /**
   * Created by Andrey Gavrikov 
   */
 object MethodCallNode {
-    def apply(methodName: String, range: Range): MethodCallNode = {
-        MethodCallNode(QualifiedName(methodName.split("\\.")), range)
+    def apply(methodName: String, parameterExpressions: Seq[AbstractExpression], range: Range): MethodCallNode = {
+        MethodCallNode(QualifiedName(methodName.split("\\.")), parameterExpressions, range)
     }
 }
 
-case class MethodCallNode(methodName: QualifiedName, range: Range) extends AstNode with HasTypeDefinition {
+case class MethodCallNode(methodName: QualifiedName, parameterExpressions: Seq[AbstractExpression], range: Range) extends AstNode with HasTypeDefinition {
     override def nodeType: AstNodeType = MethodCallNodeType
 
     private var _resolvedParameterTypes: Option[Seq[ValueType]] = None
@@ -40,23 +41,35 @@ case class MethodCallNode(methodName: QualifiedName, range: Range) extends AstNo
       *
       * @return textual representation of this node and its children
       */
-    override def getDebugInfo: String = super.getDebugInfo + " calling: " + methodName
+    override def getDebugInfo: String = super.getDebugInfo + " calling: " + methodName + "(" + parameterExpressions.mkString(",") + ")"
 
-    override protected def resolveDefinitionImpl(visitor: AstVisitor): Option[AstNode] = {
-        ???
+    override protected def resolveDefinitionImpl(): Option[AstNode] = {
+        println("resolve definition of method call: " + getDebugInfo)
+        val finder = new AscendingDefinitionFinder()
+        val res = finder.findDefinition(this, this).headOption
+        res
+
     }
 
     //TODO implement taking real parameter types into account
     // current version returns "*" for each parameter
     def getParameterTypes: Seq[ValueType] = {
         _resolvedParameterTypes match {
-          case Some(paramTypes) =>
-              paramTypes
-          case None =>
-              getChild[ExpressionListNode](ExpressionListNodeType) match {
-                  case Some( expressionList ) => expressionList.getExpressions.map(e => ValueTypeAny)
-                  case None => Seq.empty
-              }
+            case Some(paramTypes) =>
+                paramTypes
+            case None =>
+                //NOTE - when type can not be resolved it should be replaced with Any, and not removed
+                // because this will make number of method parameters incorrect
+                val valueTypes =
+                    parameterExpressions.map{n =>
+                        n.resolveDefinition() match {
+                            case Some(defNode: IsTypeDefinition) =>
+                                defNode.getValueType.getOrElse(ValueTypeAny)
+                            case _ => ValueTypeAny
+                        }
+                    }
+                setResolvedParameterTypes(valueTypes)
+                valueTypes
         }
     }
 

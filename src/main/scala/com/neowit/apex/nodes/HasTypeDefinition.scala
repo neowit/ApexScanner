@@ -20,7 +20,6 @@
  */
 
 package com.neowit.apex.nodes
-import com.neowit.apex.ast.AstVisitor
 
 /**
   * Created by Andrey Gavrikov 
@@ -32,16 +31,16 @@ trait HasTypeDefinition {
         _resolvedDefinition = resolvedDefinition
     }
 
-    def resolveDefinition(visitor: AstVisitor): Option[AstNode] = {
+    def resolveDefinition(): Option[AstNode] = {
         _resolvedDefinition match {
           case resolvedDefinition @ Some(_) =>
               // use earlier resolved value
               resolvedDefinition
           case None =>
               // try to resolve value now
-              _resolvedDefinition = resolveDefinitionImpl(visitor)
+              _resolvedDefinition = resolveDefinitionImpl()
               _resolvedDefinition
         }
     }
-    protected def resolveDefinitionImpl(visitor: AstVisitor): Option[AstNode]
+    protected def resolveDefinitionImpl(): Option[AstNode]
 }

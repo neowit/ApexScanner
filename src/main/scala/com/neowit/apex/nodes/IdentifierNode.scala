@@ -21,11 +21,20 @@
 
 package com.neowit.apex.nodes
 
+import com.neowit.apex.resolvers.AscendingDefinitionFinder
 import com.neowit.apex.scanner.antlr.ApexcodeParser.ClassDeclarationContext
 
-case class IdentifierNode(name: String, range: Range) extends AstNode {
+case class IdentifierNode(name: String, range: Range) extends AstNode with HasTypeDefinition {
     override def nodeType: AstNodeType = IdentifierNodeType
     override def getDebugInfo: String = super.getDebugInfo + " " + name
+
+    override protected def resolveDefinitionImpl(): Option[AstNode] = {
+        println("resolve definition of: " + name)
+        val finder = new AscendingDefinitionFinder()
+        val res = finder.findDefinition(this, this).headOption
+        res
+
+    }
 }
 
 object IdentifierNode {

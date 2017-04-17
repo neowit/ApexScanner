@@ -20,7 +20,7 @@
  */
 
 package com.neowit.apex.nodes
-import com.neowit.apex.ast.{AstVisitor, QualifiedName}
+import com.neowit.apex.ast.QualifiedName
 
 case class ClassVariableNode(range: Range) extends VariableLike with ClassOrInterfaceBodyMember {
     override def nodeType: AstNodeType = ClassVariableNodeType
@@ -40,7 +40,7 @@ case class ClassVariableNode(range: Range) extends VariableLike with ClassOrInte
         }
     }
 
-    override protected def resolveDefinitionImpl(visitor: AstVisitor): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
 
     override def getClassOrInterfaceNode: ClassLike = {
         findParent(p => p.nodeType == ClassNodeType || p.nodeType == InterfaceNodeType ) match {
