@@ -35,6 +35,10 @@ object SymbolKind {
     object File extends SymbolKind {
         override val code: Int = 1
     }
+    object Trigger extends SymbolKind {
+        // this is not mistake, LSP does not support a ntion of Trigger
+        override val code: Int = File.code
+    }
     object Class extends SymbolKind {
         override val code: Int = 5
     }
