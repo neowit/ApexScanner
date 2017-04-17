@@ -27,19 +27,52 @@ import com.neowit.apex.Project
 import com.neowit.apex.ast.QualifiedName
 import com.neowit.apex.symbols.Symbol
 
+object ClassLike {
+    val CLASS_LIKE_TYPES: Set[AstNodeType] = Set(ClassNodeType, IdentifierNodeType, TriggerNodeType)
+}
 trait ClassLike extends AstNode with HasApexDoc with IsTypeDefinition with Symbol { self =>
+    import ClassLike._
 
     def name: Option[String] = getChild[IdentifierNode](IdentifierNodeType).map(_.name)
     def annotations: Seq[AnnotationNode] = getChildren[AnnotationNode](AnnotationNodeType)
     def modifiers: Set[ModifierNode] = getChildren[ModifierNode](ModifierNodeType).toSet
-    def parentClass: Option[ClassNode] = findParent(_.nodeType == ClassNodeType).map(_.asInstanceOf[ClassNode])
+
+    /**
+      * find container of current class/interface
+      */
+    def parentClassOrInterface: Option[ClassLike] = findParent(n => CLASS_LIKE_TYPES.contains(n.nodeType)).map(_.asInstanceOf[ClassLike])
+
+    /**
+      * get super class of current class/interface
+      * @return
+      */
+    def getSuperClassOrInterface: Option[ClassLike] = {
+        extendsNode match {
+            case Some(_extendsNode) =>
+                // find definition of super class in global class map
+                getProject match {
+                    case Some(project) =>
+                        _extendsNode.dataType match {
+                            case Some(valueType) =>
+                                project.getByQualifiedName(valueType.qualifiedName) match {
+                                    case Some(n: ClassLike) =>
+                                        Option(n)
+                                    case _ => None
+                                }
+                            case None => None
+                        }
+                    case None => None
+                }
+            case None => None
+        }
+    }
 
     /**
       * ParentClass.CurrentClass
       * @return
       */
     def qualifiedName: Option[QualifiedName] = {
-        val parentNameComponents = parentClass.flatMap(c => c.qualifiedName.map(_.components)).getOrElse(Array.empty[String])
+        val parentNameComponents = parentClassOrInterface.flatMap(c => c.qualifiedName.map(_.components)).getOrElse(Array.empty[String])
         val thisNameComponents = name.map(Array(_)).getOrElse(Array.empty[String])
         //full QualifiedName is a concatenation of two arrays
         //parent components + Array(this.name)
@@ -66,7 +99,7 @@ trait ClassLike extends AstNode with HasApexDoc with IsTypeDefinition with Symbo
     }
 
 
-    override def parentSymbol: Option[Symbol] = parentClass
+    override def parentSymbol: Option[Symbol] = parentClassOrInterface
 
     def hasModifier(modifierType: ModifierNode.ModifierType): Boolean = {
         modifiers.exists(m => m.modifierType == modifierType)
