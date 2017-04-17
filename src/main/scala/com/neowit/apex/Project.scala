@@ -23,14 +23,20 @@ package com.neowit.apex
 
 import java.nio.file.{FileSystems, Path}
 
+import com.neowit.apex.ast.QualifiedName
+import com.neowit.apex.nodes.{AstNode, HasQualifiedName}
 import com.neowit.apex.stdlib.StandardLibrary
 import com.neowit.apex.stdlib.impl.StdLibLocal
+
+import scala.collection.mutable
 
 /**
   * Created by Andrey Gavrikov 
   */
 case class Project(path: Path) {
     private var _stdLib: Option[StandardLibrary] = None
+
+    private var _containerByQName = new mutable.HashMap[QualifiedName, AstNode with HasQualifiedName]()
 
     def getStandardLibrary: StandardLibrary = {
         _stdLib match {
@@ -48,5 +54,19 @@ case class Project(path: Path) {
         val stdLibDir = "TODO"
         val path = FileSystems.getDefault.getPath(stdLibDir)
         new StdLibLocal(path)
+    }
+
+    /**
+      * add given class/interface/trigger to global map of top level containers
+      * @param node usually class/interface/trigger
+      */
+    def addByQualifiedName(node: AstNode with HasQualifiedName): Unit = {
+        node.qualifiedName match {
+          case Some(qName) => _containerByQName += qName -> node
+          case None =>
+        }
+    }
+    def getByQualifiedName(qualifiedName: QualifiedName): Option[AstNode] = {
+        _containerByQName.get(qualifiedName)
     }
 }

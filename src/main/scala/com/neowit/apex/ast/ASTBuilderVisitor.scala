@@ -81,7 +81,34 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
         val classNode = ClassNode(Range(ctx))
         visitChildren(classNode, ctx)
 
+        project.addByQualifiedName(classNode)
         classNode
+    }
+
+
+    override def visitInterfaceDef(ctx: InterfaceDefContext): AstNode = {
+        val interfaceNode = InterfaceNode(Range(ctx))
+        visitChildren(interfaceNode, ctx)
+
+        project.addByQualifiedName(interfaceNode)
+        interfaceNode
+    }
+
+    override def visitTriggerDef(ctx: TriggerDefContext): AstNode = {
+        val triggerNode = TriggerNode(Range(ctx))
+        visitChildren(triggerNode, ctx)
+
+        project.addByQualifiedName(triggerNode)
+        triggerNode
+    }
+
+
+    override def visitEnumDef(ctx: EnumDefContext): AstNode = {
+        val enumNode = EnumNode(Range(ctx))
+        visitChildren(enumNode, ctx)
+
+        project.addByQualifiedName(enumNode)
+        enumNode
     }
 
     override def visitClassName(ctx: ClassNameContext): AstNode = {
