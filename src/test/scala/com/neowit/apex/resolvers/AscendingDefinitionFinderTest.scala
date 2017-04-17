@@ -83,6 +83,7 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
                 assertResult("String")(typeNameStr)
 
                 // method by name & No of Parameters without specific type
+                /*
                 lineNos = getLineNoByTag(path, "#findMethodType")
                 val resLineNos = getLineNoByTag(path, "#result of findMethodType")
                 assertResult(1, "Invalid test data, expected to find line with tag: #findMethodType in file: " + filePath)(lineNos.length)
@@ -98,8 +99,8 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
                         case _ => "NOT FOUND"
                     }
                 assertResult("M2Type")(typeNameMethodFuzzy)
+                */
 
-                /*
                 // method by name & parameter types
                 lineNos = getLineNoByTag(path, "#findMethodType_int_str")
                 assertResult(1, "Invalid test data, expected to find line with tag: #findMethodType in file: " + filePath)(lineNos.length)
@@ -111,11 +112,10 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
                             val node = nodes.head
                             assertResult(MethodNodeType)(node.asInstanceOf[AstNode].nodeType)
 
-                            node.asInstanceOf[HasTypeDefinition].getType.map(_.toString).getOrElse("NOT FOUND")
+                            node.asInstanceOf[IsTypeDefinition].getValueType.map(_.toString).getOrElse("NOT FOUND")
                         case _ => "NOT FOUND"
                     }
                 assertResult("M2Type")(typeNameMethod)
-                */
         }
     }
 

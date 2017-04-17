@@ -59,8 +59,13 @@ class AscendingDefinitionFinder() {
         // first find actual node which we need to find the definition for
         val nodeFinder = new NodeByLocationFinder(location)
         nodeFinder.findInside(rootNode) match {
+          case Some(targetNode: HasTypeDefinition)=>
+              //targetNode.resolveDefinition()
+              targetNode.resolveDefinition().map(Seq(_)).getOrElse(Seq.empty)
           case Some(targetNode)=>
-              findDefinition(targetNode, targetNode)
+              // TODO - make sure we do not need this
+              //findDefinition(targetNode, targetNode)
+              throw new NotImplementedError("Handling of node without HasTypeDefinition is not implemented and should not be needed")
           case None =>
               Seq.empty
         }
@@ -110,7 +115,6 @@ class AscendingDefinitionFinder() {
             case Some(parent) =>
                 parent.findChildren(n => isMatching(n)) match {
                     case definitionNodes if definitionNodes.nonEmpty =>
-                        println(definitionNodes.length)
                         findDefinitionInternal(target, targetName, parent, isMatching, foundNodes ++ definitionNodes)
                     case _ =>
                         // go higher in parents hierarchy
