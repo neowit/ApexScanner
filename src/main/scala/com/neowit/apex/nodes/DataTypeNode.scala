@@ -32,6 +32,8 @@ case class DataTypeNodeGeneric(qualifiedNameNode: QualifiedNameNode, typeArgumen
 
     def getDataType: ValueType = {
         typeArgumentsOpt match {
+            case Some(typeArguments) if typeArguments.components.nonEmpty =>
+                ValueTypeSimple(qualifiedNameNode.qualifiedName)
             case Some(typeArguments) =>
                 ValueTypeComplex(qualifiedNameNode.qualifiedName, typeArguments.components.map(_.getDataType))
             case None =>
