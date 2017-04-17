@@ -26,7 +26,7 @@ import com.neowit.apex.nodes.AstNode
 class AstWalker {
 
     def walk(node: AstNode, visitor: AstVisitor): Unit = {
-        visitor.postVisit(node)
+        visitor.preVisit(node)
         val continue = visitor.visit(node)
         if (continue) {
             node.children.foreach(walk(_, visitor))
