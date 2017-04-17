@@ -73,11 +73,8 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
         if (ApexcodeParser.Identifier == node.getSymbol.getType) {
             IdentifierNode(node.getText, Range(node))
         } else {
-            NullNode
+            NullNode // TODO - check if we need to return this
         }
-    }
-    override def visitPrimary(ctx: PrimaryContext): AstNode = {
-        super.visitPrimary(ctx)
     }
 
     override def visitClassDef(ctx: ClassDefContext): AstNode = {
@@ -198,7 +195,26 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
     }
 
     override def visitMethodCallExpr(ctx: MethodCallExprContext): AstNode = {
-        visitChildren(MethodCallNode(ctx.func.getText, Range(ctx)), ctx)
+        val methodCallNode =
+        if (null == ctx.expressionList()) {
+            //method without parameters
+            MethodCallNode(ctx.func.getText, Seq.empty, Range(ctx))
+        } else {
+            //method with parameters
+            val paramExpressionList = ExpressionListNode(Range(ctx.expressionList()))
+            visitChildren(paramExpressionList, ctx.expressionList())
+            // get individual parameter expressions
+            val paramExpressions =
+                paramExpressionList
+                    .getExpressions
+                    .filter{
+                        case n: AbstractExpression => true
+                        case _ => false
+                    }
+                    .map(_.asInstanceOf[AbstractExpression])
+            MethodCallNode(ctx.func.getText, paramExpressions, Range(ctx))
+        }
+        visitChildren(methodCallNode, ctx)
     }
 
     override def visitExpressionList(ctx: ExpressionListContext): AstNode = {
@@ -210,8 +226,23 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
     }
 
     override def visitPrimaryExpr(ctx: PrimaryExprContext): AstNode = {
-        visitChildren(PrimaryExpressionNode(Range(ctx)), ctx)
+        val primary = ctx.primary()
+        if (null != primary.Identifier()) {
+            IdentifierNode(primary.getText, Range(primary))
+        } else if (null != primary.THIS()) {
+            ThisExpressionNode(Range(primary))
+        } else if (null != primary.SUPER()) {
+            SuperExpressionNode(Range(primary))
+        } else if (null != primary.dataType()) {
+            //dataType '.' CLASS
+            val dataType = visitDataType(primary.dataType()).asInstanceOf[DataTypeNode]
+            ApexTypeExpressionNode(dataType, Range(primary))
+        } else {
+            // parExpr, literal
+            visitChildren(ctx)
+        }
     }
+
 
     ///////////////// literals ///////////////////////////////
     override def visitIntLiteral(ctx: IntLiteralContext): AstNode = {
