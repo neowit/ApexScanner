@@ -24,7 +24,7 @@ package com.neowit.apex.nodes
 import com.neowit.apex.resolvers.AscendingDefinitionFinder
 import com.neowit.apex.scanner.antlr.ApexcodeParser.ClassDeclarationContext
 
-case class IdentifierNode(name: String, range: Range) extends AstNode with HasTypeDefinition {
+case class IdentifierNode(name: String, range: Range) extends AbstractExpression with HasTypeDefinition {
     override def nodeType: AstNodeType = IdentifierNodeType
     override def getDebugInfo: String = super.getDebugInfo + " " + name
 

@@ -40,10 +40,9 @@ object LiteralNode {
         }
     }
 }
-case class LiteralNode(literalType: Int, valueTerminal: TerminalNode, range: Range) extends AstNode with HasTypeDefinition {
+case class LiteralNode(literalType: Int, valueTerminal: TerminalNode, range: Range) extends AbstractExpression with HasTypeDefinition {
     import LiteralNode._
 
-    override def nodeType: AstNodeType = LiteralNodeType
     def value: String = valueTerminal.getText
 
     override protected def resolveDefinitionImpl(): Option[AstNode] = {
