@@ -28,7 +28,7 @@ import com.neowit.apex.ast.QualifiedName
 import com.neowit.apex.symbols.Symbol
 
 object ClassLike {
-    val CLASS_LIKE_TYPES: Set[AstNodeType] = Set(ClassNodeType, IdentifierNodeType, TriggerNodeType)
+    val CLASS_LIKE_TYPES: Set[AstNodeType] = Set(ClassNodeType, InterfaceNodeType, TriggerNodeType)
 }
 trait ClassLike extends AstNode with HasApexDoc with IsTypeDefinition with Symbol { self =>
     import ClassLike._
