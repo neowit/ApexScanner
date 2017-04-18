@@ -50,12 +50,13 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
             case Some(result) =>
                 val rootNode = result.rootNode
                 // local variable
-                var lineNos = getLineNoByTag(path, "#findLocalVariableType")
-                assertResult(1, "Invalid test data, expected to find line with tag: #findLocalVariableType in file: " + filePath)(lineNos.length)
+                var testTag = "#findLocalVariableType"
+                var lineNos = getLineNoByTag(path, testTag)
+                assertResult(1, s"Invalid test data, expected to find line with tag: $testTag in file: " + filePath)(lineNos.length)
                 var lineNo = lineNos.head
 
                 val typeNameInt =
-                    getNodeDefinition("#findLocalVariableType", rootNode, Position(lineNo, 28)) match {
+                    getNodeDefinition(testTag, rootNode, Position(lineNo, 28)) match {
                         case nodes if nodes.nonEmpty =>
                             assertResult(1, "Expected exactly 1 local variable definition")(nodes.length)
                             val node = nodes.head
@@ -64,14 +65,16 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
                             node.asInstanceOf[IsTypeDefinition].getValueType.map(_.toString).getOrElse("NOT FOUND")
                         case _ => "NOT FOUND"
                     }
+                assert(typeNameInt.nonEmpty, testTag + ": NOT FOUND")
                 assertResult("Integer")(typeNameInt)
 
                 // class variable
-                lineNos = getLineNoByTag(path, "#findClassVariableType")
-                assertResult(1, "Invalid test data, expected to find line with tag: #findClassVariableType in file: " + filePath)(lineNos.length)
+                testTag = "#findClassVariableType"
+                lineNos = getLineNoByTag(path, testTag)
+                assertResult(1, s"Invalid test data, expected to find line with tag: $testTag in file: " + filePath)(lineNos.length)
                 lineNo = lineNos.head
                 val typeNameStr =
-                    getNodeDefinition("#findClassVariableType", rootNode, Position(lineNo, 33)) match {
+                    getNodeDefinition(testTag, rootNode, Position(lineNo, 33)) match {
                         case nodes if nodes.nonEmpty =>
                             assertResult(1, "Expected exactly 1 class variable definition")(nodes.length)
                             val node = nodes.head
@@ -80,6 +83,7 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
                             node.asInstanceOf[IsTypeDefinition].getValueType.map(_.toString).getOrElse("NOT FOUND")
                         case _ => "NOT FOUND"
                     }
+                assert(typeNameStr.nonEmpty, testTag + ": NOT FOUND")
                 assertResult("String")(typeNameStr)
 
                 // method by name & No of Parameters without specific type
@@ -102,11 +106,12 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
                 */
 
                 // method by name & parameter types
-                lineNos = getLineNoByTag(path, "#findMethodType_int_str")
-                assertResult(1, "Invalid test data, expected to find line with tag: #findMethodType in file: " + filePath)(lineNos.length)
+                testTag = "#findMethodType_int_str#"
+                lineNos = getLineNoByTag(path, testTag)
+                assertResult(1, s"Invalid test data, expected to find line with tag: $testTag in file: " + filePath)(lineNos.length)
                 lineNo = lineNos.head
-                val typeNameMethod =
-                    getNodeDefinition("#findMethodType", rootNode, Position(lineNo, 20)) match {
+                var typeNameMethod =
+                    getNodeDefinition(testTag, rootNode, Position(lineNo, 20)) match {
                         case nodes if nodes.nonEmpty =>
                             assertResult(1, s". Expected exactly 1 method")(nodes.length)
                             val node = nodes.head
@@ -115,7 +120,28 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
                             node.asInstanceOf[IsTypeDefinition].getValueType.map(_.toString).getOrElse("NOT FOUND")
                         case _ => "NOT FOUND"
                     }
+                assert(typeNameMethod.nonEmpty, testTag + ": NOT FOUND")
                 assertResult("M2Type")(typeNameMethod)
+
+                // method by name & parameter types & this
+                // TODO - find why test with 3 params does not work
+                // TODO - it is expected to find methodWith3Params() even though this.bool is not resolved properly
+                testTag = "#findMethodType_int_str_bool#"
+                lineNos = getLineNoByTag(path, testTag)
+                assertResult(1, s"Invalid test data, expected to find line with tag: $testTag in file: " + filePath)(lineNos.length)
+                lineNo = lineNos.head
+                typeNameMethod =
+                    getNodeDefinition(testTag, rootNode, Position(lineNo, 20)) match {
+                        case nodes if nodes.nonEmpty =>
+                            assertResult(1, s". Expected exactly 1 method")(nodes.length)
+                            val node = nodes.head
+                            assertResult(MethodNodeType)(node.asInstanceOf[AstNode].nodeType)
+
+                            node.asInstanceOf[IsTypeDefinition].getValueType.map(_.toString).getOrElse("NOT FOUND")
+                        case _ => "NOT FOUND"
+                    }
+                assert("NOT FOUND" != typeNameMethod, testTag + ": NOT FOUND")
+                assertResult("M3Type")(typeNameMethod)
         }
     }
 
@@ -135,7 +161,6 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
                 }
                 nodes
             case _ =>
-                assert(false, hint + ": NOT FOUND")
                 Seq.empty
         }
     }

@@ -1,6 +1,7 @@
 public virtual class MyClass {
     
     private String str; //result of findClassVariableType
+    private String bool; //result of findClassVariableTypeWithThis
     private MyClass classInstance;
 
     public virtual void methodToCall() {
@@ -24,7 +25,9 @@ public virtual class MyClass {
 
     public void findMethodType(String str) {
         Integer int = 0; 
-        methodWith2Params(int, str); //#findMethodType  #findMethodType_int_str
+        methodWith2Params(int, str); //#findMethodType#  #findMethodType_int_str#
+        
+        methodWith3Params(int, str, this.bool); //#findMethodType_int_str_bool#
     } 
 
     private M2Type methodWith2Params(Integer i, String s) { // #result of findMethodType
@@ -34,6 +37,11 @@ public virtual class MyClass {
     }
 
     private M2Type methodWith2Params(String s1, String s2) { // #result of findMethodType
+        String str;
+        Integer int;
+        
+    }
+    private M3Type methodWith3Params(Integer i, String s2, Boolean b1) { // #result of findMethodType_int_str_bool#
         String str;
         Integer int;
         
