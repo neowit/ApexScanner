@@ -27,12 +27,12 @@ import com.neowit.apex.resolvers.AscendingDefinitionFinder
   * Created by Andrey Gavrikov 
   */
 object MethodCallNode {
-    def apply(methodName: String, parameterExpressions: Seq[AbstractExpression], range: Range): MethodCallNode = {
-        MethodCallNode(QualifiedName(methodName.split("\\.")), parameterExpressions, range)
+    def apply(methodName: String, range: Range): MethodCallNode = {
+        MethodCallNode(QualifiedName(methodName.split("\\.")), range)
     }
 }
 
-case class MethodCallNode(methodName: QualifiedName, parameterExpressions: Seq[AbstractExpression], range: Range) extends AstNode with HasTypeDefinition {
+case class MethodCallNode(methodName: QualifiedName, range: Range) extends AstNode with HasTypeDefinition {
     override def nodeType: AstNodeType = MethodCallNodeType
 
     private var _resolvedParameterTypes: Option[Seq[ValueType]] = None
@@ -41,7 +41,7 @@ case class MethodCallNode(methodName: QualifiedName, parameterExpressions: Seq[A
       *
       * @return textual representation of this node and its children
       */
-    override def getDebugInfo: String = super.getDebugInfo + " calling: " + methodName + "(" + parameterExpressions.mkString(",") + ")"
+    override def getDebugInfo: String = super.getDebugInfo + " calling: " + methodName + "(" + getParameterExpressionNodes.mkString(",") + ")"
 
     override protected def resolveDefinitionImpl(): Option[AstNode] = {
         println("resolve definition of method call: " + getDebugInfo)
@@ -61,7 +61,7 @@ case class MethodCallNode(methodName: QualifiedName, parameterExpressions: Seq[A
                 //NOTE - when type can not be resolved it should be replaced with Any, and not removed
                 // because this will make number of method parameters incorrect
                 val valueTypes =
-                    parameterExpressions.map{n =>
+                    getParameterExpressionNodes.map{n =>
                         n.resolveDefinition() match {
                             case Some(defNode: IsTypeDefinition) =>
                                 defNode.getValueType.getOrElse(ValueTypeAny)
@@ -78,7 +78,7 @@ case class MethodCallNode(methodName: QualifiedName, parameterExpressions: Seq[A
     }
     def isParameterTypesResolved: Boolean = _resolvedParameterTypes.nonEmpty
 
-    def getParameterExpressionNodes: Seq[AstNode] = {
+    def getParameterExpressionNodes: Seq[AbstractExpression] = {
         getChild[ExpressionListNode](ExpressionListNodeType) match {
             case Some( expressionList ) => expressionList.getExpressions
             case None => Seq.empty

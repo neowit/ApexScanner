@@ -222,26 +222,7 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
     }
 
     override def visitMethodCallExpr(ctx: MethodCallExprContext): AstNode = {
-        val methodCallNode =
-        if (null == ctx.expressionList()) {
-            //method without parameters
-            MethodCallNode(ctx.func.getText, Seq.empty, Range(ctx))
-        } else {
-            //method with parameters
-            val paramExpressionList = ExpressionListNode(Range(ctx.expressionList()))
-            visitChildren(paramExpressionList, ctx.expressionList())
-            // get individual parameter expressions
-            val paramExpressions =
-                paramExpressionList
-                    .getExpressions
-                    .filter{
-                        case n: AbstractExpression => true
-                        case _ => false
-                    }
-                    .map(_.asInstanceOf[AbstractExpression])
-            MethodCallNode(ctx.func.getText, paramExpressions, Range(ctx))
-        }
-        visitChildren(methodCallNode, ctx)
+        visitChildren(MethodCallNode(ctx.func.getText, Range(ctx)), ctx)
     }
 
     override def visitExpressionList(ctx: ExpressionListContext): AstNode = {
