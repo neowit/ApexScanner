@@ -51,7 +51,9 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
             container
         } else {
             expressions match {
-                case head :: tail =>
+                case lst if lst.nonEmpty=>
+                    val head = lst.head
+                    val tail = lst.drop(1)
                     head match {
                         case n:IsTypeDefinition =>
                             if (tail.nonEmpty) {
@@ -81,7 +83,6 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
                             }
 
                     }
-
             }
         }
     }
