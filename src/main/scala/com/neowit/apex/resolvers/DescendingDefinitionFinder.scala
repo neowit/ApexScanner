@@ -57,6 +57,7 @@ class DescendingDefinitionFinder {
                             case Some(childName) => targetName.couldBeMatch(childName)
                             case None => false
                         }
+                    case _ => false
                 }
             case None => None
         }
