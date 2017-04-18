@@ -38,7 +38,7 @@ case object FileNodeType extends AstNodeType
 case object IdentifierNodeType extends AstNodeType
 case object ImplementsInterfaceNodeType extends AstNodeType
 case object InterfaceNodeType extends AstNodeType
-case object LiteralNodeType extends AstNodeType
+//case object LiteralNodeType extends AstNodeType
 case object LocalVariableNodeType extends AstNodeType
 case object MethodBodyNodeType extends AstNodeType
 case object MethodCallNodeType extends AstNodeType
