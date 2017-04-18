@@ -76,7 +76,8 @@ class AscendingDefinitionFinder() {
             case Some(methodCaller: MethodCallNode) =>
                 // looks like target is a method call
                 // try to resolve call parameter types first
-                val paramTypes = resolveMethodCallParameters(methodCaller)
+                //val paramTypes = resolveMethodCallParameters(methodCaller)
+                val paramTypes = methodCaller.getParameterTypes
                 methodCaller.setResolvedParameterTypes(paramTypes)
                 val matchFunc = methodMatchFunc(methodCaller)
                 findDefinitionInternal(target, methodCaller.methodName, startNode, matchFunc, Seq.empty)
@@ -124,6 +125,7 @@ class AscendingDefinitionFinder() {
         }
     }
 
+    /*
     private def resolveMethodCallParameters(methodCallNode: MethodCallNode): Seq[ValueType] = {
         if (methodCallNode.isParameterTypesResolved) {
             methodCallNode.getParameterTypes
@@ -140,8 +142,5 @@ class AscendingDefinitionFinder() {
             }
         }
     }
-
-    private def resolveExpressionType(target: FallThroughNode): Option[ValueType] = {
-        ???
-    }
+    */
 }
