@@ -33,7 +33,10 @@ trait AbstractExpression extends AstNode with HasTypeDefinition {
 
 case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression {
     override protected def resolveDefinitionImpl(): Option[AstNode] = {
-        val expressions = getChildren[AbstractExpression](ExpressionNodeType)
+        val expressions = findChildren{
+            case _:AbstractExpression => true
+            case _ => false
+        }.map(_.asInstanceOf[AbstractExpression])
         // start with unknown head/base definition
         resolveDefinitionFromHead(container = None, expressions)
     }
