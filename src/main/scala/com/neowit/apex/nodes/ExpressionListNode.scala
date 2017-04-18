@@ -27,7 +27,10 @@ package com.neowit.apex.nodes
 case class ExpressionListNode(range: Range) extends AstNode {
     override def nodeType: AstNodeType = ExpressionListNodeType
 
-    def getExpressions: Seq[AstNode] = children
+    def getExpressions: Seq[AbstractExpression] = findChildren{
+        case n: AbstractExpression => true
+        case _ => false
+    }.map(_.asInstanceOf[AbstractExpression])
 
     override def getDebugInfo: String = super.getDebugInfo + getExpressions.map(_.getDebugInfo).mkString(", ")
 }
