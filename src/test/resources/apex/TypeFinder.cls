@@ -1,7 +1,7 @@
 public virtual class MyClass {
     
     private String str; //result of findClassVariableType
-    private String bool; //result of findClassVariableTypeWithThis
+    private Boolean bool; //result of findClassVariableTypeWithThis
     private MyClass classInstance;
 
     public virtual void methodToCall() {
