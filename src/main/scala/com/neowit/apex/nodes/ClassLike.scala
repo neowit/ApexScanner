@@ -68,18 +68,16 @@ trait ClassLike extends AstNode with HasApexDoc with IsTypeDefinition with Symbo
     }
 
     /**
+      * full qualified name, including Parent(s)
       * ParentClass.CurrentClass
       * @return
       */
     def qualifiedName: Option[QualifiedName] = {
-        val parentNameComponents = parentClassOrInterface.flatMap(c => c.qualifiedName.map(_.components)).getOrElse(Array.empty[String])
         val thisNameComponents = name.map(Array(_)).getOrElse(Array.empty[String])
-        //full QualifiedName is a concatenation of two arrays
-        //parent components + Array(this.name)
-        if (parentNameComponents.nonEmpty || thisNameComponents.nonEmpty) {
-            Option(QualifiedName(parentNameComponents ++ thisNameComponents))
-        } else {
-            None
+        val thisName = QualifiedName(thisNameComponents)
+        parentClassOrInterface match {
+          case Some(parent) => QualifiedName.fromOptions(parent.qualifiedName, Option(thisName))
+          case None => Option(thisName)
         }
     }
 
