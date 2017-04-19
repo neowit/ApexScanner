@@ -56,4 +56,33 @@ object QualifiedName {
     def apply(n1: QualifiedName, n2: String): QualifiedName = {
         QualifiedName(n1.components ++ Array(n2))
     }
+
+    /**
+      * merge parent and child names
+      * e.g.
+      * - apply(OuterClass, InnerClass) => OuterClass.InnerClass
+      * - apply(OuterClass, OuterClass.InnerClass) => OuterClass.InnerClass
+      * @param parent name of parent in class hierarchy
+      * @param child name of child (may already contain parent) in class hierarchy
+      * @return
+      */
+    def apply(parent: QualifiedName, child: QualifiedName): QualifiedName = {
+        import scala.util.control.Breaks._
+        val parentComponents = parent.components
+        val childHead = child.getFirstComponent.toLowerCase
+        val resultBuilder = Array.newBuilder[String]
+        breakable {
+            for (name <- parentComponents) {
+                if (childHead == name.toLowerCase) {
+                    //parent name is already included
+                    break
+                } else {
+                    // parent name needs to be added
+                    resultBuilder += name
+                }
+            }
+        }
+        QualifiedName(resultBuilder.result() ++ child.components)
+    }
+
 }
