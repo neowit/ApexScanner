@@ -21,6 +21,8 @@
 
 package com.neowit.apex.ast
 
+import com.neowit.apex.nodes.{AstNode, ClassLike, HasQualifiedName, IsTypeDefinition}
+
 /**
   * Created by Andrey Gavrikov
   *
@@ -72,6 +74,19 @@ object QualifiedName {
 
     /**
       * merge parent and child names
+      * @return
+      */
+    def fromOptions(parentOpt: Option[QualifiedName], childOpt: Option[QualifiedName]): Option[QualifiedName] = {
+        parentOpt match {
+          case Some(parent) =>
+              childOpt.map(child => QualifiedName(parent, child))
+          case None =>
+                childOpt
+        }
+    }
+
+    /**
+      * merge parent and child names
       * e.g.
       * - apply(OuterClass, InnerClass) => OuterClass.InnerClass
       * - apply(OuterClass, OuterClass.InnerClass) => OuterClass.InnerClass
@@ -98,4 +113,51 @@ object QualifiedName {
         QualifiedName(resultBuilder.result() ++ child.components)
     }
 
+    /**
+      * variable defined like so
+      *     InnerClass1 var1;
+      * should have qualified valuetype name OuterClass.InnerClass1
+      * @param typeDefNode IsTypeDefinition node
+      * @return
+      */
+    def getFullyQualifiedValueTypeName(typeDefNode: AstNode with IsTypeDefinition): QualifiedName = {
+        val resNameOpt =
+            typeDefNode.getValueType.flatMap{childName =>
+                typeDefNode.findParentInAst{
+                    case _:ClassLike => true
+                    case _ => false
+                } match {
+                    case Some(parentClassNode: ClassLike) =>
+                        parentClassNode.qualifiedName.map{outerClassName =>
+                            QualifiedName(outerClassName, childName.qualifiedName)
+                        }
+                    case _ =>
+                        // there is no parent
+                        Option(childName.qualifiedName)
+                }
+            }
+        resNameOpt match {
+            case Some(resultName) => resultName
+            case None => throw new NotImplementedError("Handling of AstNode with IsTypeDefinition without Qualified Name is not implemented")
+        }
+    }
+
+    /**
+      * try to assemble full name, including parent's name
+      * @param astNode
+      * @return
+      */
+    def getFullyQualifiedName(astNode: AstNode with HasQualifiedName): Option[QualifiedName] = {
+        astNode.qualifiedName.flatMap{childName =>
+            astNode.findParentInAst(n => ClassLike.CLASS_LIKE_TYPES.contains(n.nodeType)) match {
+                case Some(parentClassNode: ClassLike) =>
+                    parentClassNode.qualifiedName.map{outerClassName =>
+                        QualifiedName(outerClassName, childName)
+                    }
+                case _ =>
+                    // there is no parent or it is not ClassLike
+                    Option(childName)
+            }
+        }
+    }
 }
