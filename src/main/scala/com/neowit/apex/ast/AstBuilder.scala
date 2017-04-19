@@ -56,6 +56,8 @@ class AstBuilder(project: Project) {
         val sourceFile = result.sourceFile
         astCache += sourceFile -> AstBuilderResult(result, compileUnit)
         fileNameCache += sourceFile.getFileName.toString -> result.sourceFile
+        // record all ClassLike nodes in project
+        visitor.getClassLikeNodes.foreach(project.addByQualifiedName(_))
     }
     private def getPath(fileName: String): Option[Path] = {
         fileNameCache.result().get(fileName)

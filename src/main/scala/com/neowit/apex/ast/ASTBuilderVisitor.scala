@@ -31,6 +31,8 @@ import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.{RuleNode, TerminalNode}
 
 class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisitor[AstNode] {
+    private val _classLikeListBuilder = List.newBuilder[ClassLike]
+    def getClassLikeNodes: List[ClassLike] = _classLikeListBuilder.result()
 
     override def defaultResult(): AstNode = NullNode
 
@@ -58,8 +60,6 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
         parent
     }
 
-
-
     /**
       * this Node is the top of the tree for given file
       *
@@ -81,7 +81,7 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
         val classNode = ClassNode(Range(ctx))
         visitChildren(classNode, ctx)
 
-        project.addByQualifiedName(classNode)
+        _classLikeListBuilder += classNode
         classNode
     }
 
@@ -90,7 +90,7 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
         val interfaceNode = InterfaceNode(Range(ctx))
         visitChildren(interfaceNode, ctx)
 
-        project.addByQualifiedName(interfaceNode)
+        _classLikeListBuilder += interfaceNode
         interfaceNode
     }
 
@@ -98,7 +98,7 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
         val triggerNode = TriggerNode(Range(ctx))
         visitChildren(triggerNode, ctx)
 
-        project.addByQualifiedName(triggerNode)
+        _classLikeListBuilder += triggerNode
         triggerNode
     }
 
@@ -107,7 +107,7 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
         val enumNode = EnumNode(Range(ctx))
         visitChildren(enumNode, ctx)
 
-        project.addByQualifiedName(enumNode)
+        _classLikeListBuilder += enumNode
         enumNode
     }
 
