@@ -33,7 +33,6 @@ case class IdentifierNode(name: String, range: Range) extends AbstractExpression
         getParentInAst(skipFallThroughNodes = true) match {
           case Some(n:ExpressionDotExpressionNode) =>
               // this identifier is part of expression1.expression2....
-              // TODO update ExpressionDotExpressionNode.resolveDefinition() to make it record all resolved parts
               n.getResolvedPartDefinition(this)
           case _ =>
               val finder = new AscendingDefinitionFinder()
