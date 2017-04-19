@@ -50,6 +50,19 @@ case class QualifiedName(components: Array[String]) {
     }
 
     override def toString: String = components.mkString(".")
+
+    override def canEqual(that: Any): Boolean = {
+        that match {
+            case QualifiedName(_components) =>
+                _components.sameElements(_components)
+            case _ => false
+        }
+    }
+
+
+    override def hashCode(): Int = componentsLower.mkString("").hashCode
+
+    override def equals(obj: scala.Any): Boolean = canEqual(obj)
 }
 
 object QualifiedName {
