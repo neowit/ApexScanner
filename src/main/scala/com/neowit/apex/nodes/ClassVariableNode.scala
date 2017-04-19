@@ -26,7 +26,7 @@ case class ClassVariableNode(range: Range) extends VariableLike with ClassOrInte
     override def nodeType: AstNodeType = ClassVariableNodeType
 
     override def getValueType: Option[ValueType] = {
-        getChild[DataTypeNode](DataTypeNodeType) .map(_.getDataType)
+        getChildInAst[DataTypeNode](DataTypeNodeType) .map(_.getDataType)
     }
 
     override def qualifiedName: Option[QualifiedName] = {
@@ -43,7 +43,7 @@ case class ClassVariableNode(range: Range) extends VariableLike with ClassOrInte
     override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
 
     override def getClassOrInterfaceNode: ClassLike = {
-        findParent(p => p.nodeType == ClassNodeType || p.nodeType == InterfaceNodeType ) match {
+        findParentInAst(p => p.nodeType == ClassNodeType || p.nodeType == InterfaceNodeType ) match {
           case Some(n: ClassLike) => n
           case n => throw new NotImplementedError("getClassOrInterfaceNode support for this element is not implemented: " + n)
         }

@@ -54,7 +54,7 @@ case class ThisExpressionNode(range: Range) extends AbstractExpression with HasT
     }
 
     def getClassOrInterfaceNode: ClassLike = {
-        findParent(p => p.nodeType == ClassNodeType || p.nodeType == InterfaceNodeType ) match {
+        findParentInAst(p => p.nodeType == ClassNodeType || p.nodeType == InterfaceNodeType ) match {
             case Some(n: ClassLike) => n
             case n => throw new NotImplementedError("getClassOrInterfaceNode support for this element is not implemented: " + n)
         }
@@ -67,7 +67,7 @@ case class SuperExpressionNode(range: Range) extends AbstractExpression with Has
     }
 
     def getClassOrInterfaceNode: ClassLike = {
-        findParent(p => p.nodeType == ClassNodeType || p.nodeType == InterfaceNodeType ) match {
+        findParentInAst(p => p.nodeType == ClassNodeType || p.nodeType == InterfaceNodeType ) match {
             case Some(n: ClassLike) => n
             case n => throw new NotImplementedError("getClassOrInterfaceNode support for this element is not implemented: " + n)
         }

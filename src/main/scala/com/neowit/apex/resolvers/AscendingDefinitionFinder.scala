@@ -72,7 +72,7 @@ class AscendingDefinitionFinder() {
     }
 
     def findDefinition(target: AstNode, startNode: AstNode): Seq[AstNode] = {
-        target.getParent(skipFallThroughNodes = true) match {
+        target.getParentInAst(skipFallThroughNodes = true) match {
             case Some(methodCaller: MethodCallNode) =>
                 // looks like target is a method call
                 // try to resolve call parameter types first
@@ -112,9 +112,9 @@ class AscendingDefinitionFinder() {
     private def findDefinitionInternal(target: AstNode, targetName: QualifiedName, startNode: AstNode,
                                        isMatching: AstNode => Boolean, foundNodes: Seq[AstNode]): Seq[AstNode] = {
 
-        startNode.getParent(true) match {
+        startNode.getParentInAst(true) match {
             case Some(parent) =>
-                parent.findChildren(n => isMatching(n)) match {
+                parent.findChildrenInAst(n => isMatching(n)) match {
                     case definitionNodes if definitionNodes.nonEmpty =>
                         findDefinitionInternal(target, targetName, parent, isMatching, foundNodes ++ definitionNodes)
                     case _ =>

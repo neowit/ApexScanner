@@ -26,7 +26,7 @@ case class TypeArgumentsNode(range: Range) extends AstNode {
     override def nodeType: AstNodeType = TypeArgumentsNodeType
 
     def components: Seq[DataTypeNode] =
-        getChildren[DataTypeNode](DataTypeNodeType, recursively = true)
+        getChildrenInAst[DataTypeNode](DataTypeNodeType, recursively = true)
 
     def text:String =
         if (components.nonEmpty) "<" + components.map(_.getDataType).mkString(", ") + ">"  else ""

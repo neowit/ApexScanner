@@ -33,14 +33,14 @@ object ClassLike {
 trait ClassLike extends AstNode with HasApexDoc with IsTypeDefinition with Symbol { self =>
     import ClassLike._
 
-    def name: Option[String] = getChild[IdentifierNode](IdentifierNodeType).map(_.name)
-    def annotations: Seq[AnnotationNode] = getChildren[AnnotationNode](AnnotationNodeType)
-    def modifiers: Set[ModifierNode] = getChildren[ModifierNode](ModifierNodeType).toSet
+    def name: Option[String] = getChildInAst[IdentifierNode](IdentifierNodeType).map(_.name)
+    def annotations: Seq[AnnotationNode] = getChildrenInAst[AnnotationNode](AnnotationNodeType)
+    def modifiers: Set[ModifierNode] = getChildrenInAst[ModifierNode](ModifierNodeType).toSet
 
     /**
       * find container of current class/interface
       */
-    def parentClassOrInterface: Option[ClassLike] = findParent(n => CLASS_LIKE_TYPES.contains(n.nodeType)).map(_.asInstanceOf[ClassLike])
+    def parentClassOrInterface: Option[ClassLike] = findParentInAst(n => CLASS_LIKE_TYPES.contains(n.nodeType)).map(_.asInstanceOf[ClassLike])
 
     /**
       * get super class of current class/interface
@@ -86,7 +86,7 @@ trait ClassLike extends AstNode with HasApexDoc with IsTypeDefinition with Symbo
     override def symbolName: String = name.getOrElse("")
 
     override def symbolLocation: Location = {
-        findParent(_.nodeType == FileNodeType)
+        findParentInAst(_.nodeType == FileNodeType)
             .map(_.asInstanceOf[FileNode])
             .map(f => new Location {
                 override def range: Range = self.range
@@ -105,13 +105,13 @@ trait ClassLike extends AstNode with HasApexDoc with IsTypeDefinition with Symbo
         modifiers.exists(m => m.modifierType == modifierType)
     }
 
-    def extendsNode: Option[ExtendsNode] = getChild[ExtendsNode](ExtendsNodeType)
+    def extendsNode: Option[ExtendsNode] = getChildInAst[ExtendsNode](ExtendsNodeType)
     def extendsText: Option[String] = extendsNode.flatMap(_.dataType.map(_.toString))
 
-    def implements: Seq[ImplementsInterfaceNode] = getChildren[ImplementsInterfaceNode](ImplementsInterfaceNodeType)
+    def implements: Seq[ImplementsInterfaceNode] = getChildrenInAst[ImplementsInterfaceNode](ImplementsInterfaceNodeType)
     def implementsText: Seq[String] = implements.map(_.text)
 
-    override def getApexDoc: Option[DocNode] = getChild[DocNode](DocNodeType)
+    override def getApexDoc: Option[DocNode] = getChildInAst[DocNode](DocNodeType)
 
     /**
       * used for debug purposes

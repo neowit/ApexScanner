@@ -51,7 +51,7 @@ class DescendingDefinitionFinder {
         val resultOpt =
         targetNameOpt match {
             case Some(targetName) =>
-                containerNode.findChild{
+                containerNode.findChildInAst{
                     case child:IsTypeDefinition =>
                         child.qualifiedName match {
                             case Some(childName) => targetName.couldBeMatch(childName)

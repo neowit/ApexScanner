@@ -30,7 +30,7 @@ case class IdentifierNode(name: String, range: Range) extends AbstractExpression
 
     override protected def resolveDefinitionImpl(): Option[AstNode] = {
         println("resolve definition of: " + name)
-        getParent(skipFallThroughNodes = true) match {
+        getParentInAst(skipFallThroughNodes = true) match {
           case Some(n:ExpressionDotExpressionNode) =>
               // this identifier is part of expression1.expression2....
               // TODO update ExpressionDotExpressionNode.resolveDefinition() to make it record all resolved parts

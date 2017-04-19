@@ -39,17 +39,17 @@ trait AstNode {
       */
     def language: Language = Language.ApexCode
 
-    def setParent(parent: AstNode): AstNode = {
+    def setParentInAst(parent: AstNode): AstNode = {
         _parent = Option(parent)
         parent
     }
 
     @tailrec
-    final def getParent(skipFallThroughNodes: Boolean = false): Option[AstNode] = {
+    final def getParentInAst(skipFallThroughNodes: Boolean = false): Option[AstNode] = {
         _parent match {
           case Some(parent) if skipFallThroughNodes && FallThroughNodeType == parent.nodeType=>
               // skip FallThrough Nodes and get to first meaningful parent
-              parent.getParent(skipFallThroughNodes)
+              parent.getParentInAst(skipFallThroughNodes)
           case Some(parent) => Option(parent)
           case None => None
         }
@@ -60,10 +60,10 @@ trait AstNode {
       * @param filter - condition
       * @return
       */
-    def findParent(filter: (AstNode) => Boolean): Option[AstNode] = {
-        getParent(true) match {
+    def findParentInAst(filter: (AstNode) => Boolean): Option[AstNode] = {
+        getParentInAst(true) match {
             case Some(parentMember) =>
-                if (filter(parentMember)) Some(parentMember) else parentMember.findParent(filter)
+                if (filter(parentMember)) Some(parentMember) else parentMember.findParentInAst(filter)
             case None => None
         }
     }
@@ -72,49 +72,49 @@ trait AstNode {
       * @param filter - condition
       * @return
       */
-    def findChild(filter: (AstNode) => Boolean): Option[AstNode] = {
+    def findChildInAst(filter: (AstNode) => Boolean): Option[AstNode] = {
         val immediateChildren = _children.filter(filter(_))
 
         if (immediateChildren.nonEmpty) {
             immediateChildren.headOption
         } else {
             // in case any of the children represent a FallThroughNode, query their children one step further
-            _children.filter(_.nodeType == FallThroughNodeType).flatMap(_.findChild(filter)).headOption
+            _children.filter(_.nodeType == FallThroughNodeType).flatMap(_.findChildInAst(filter)).headOption
         }
     }
 
-    def findChildren(filter: (AstNode) => Boolean): Seq[AstNode] = {
+    def findChildrenInAst(filter: (AstNode) => Boolean): Seq[AstNode] = {
         val immediateChildren = _children.filter(filter(_))
 
         // in case any of the children represent a FallThroughNode, query their children one step further
-        immediateChildren ++ _children.filter(_.nodeType == FallThroughNodeType).flatMap(_.findChildren(filter))
+        immediateChildren ++ _children.filter(_.nodeType == FallThroughNodeType).flatMap(_.findChildrenInAst(filter))
 
     }
 
-    def addChild(node: AstNode): AstNode = {
+    def addChildToAst(node: AstNode): AstNode = {
         if (NullNodeType != node.nodeType) {
             _children += node
-            node.setParent(this)
+            node.setParentInAst(this)
         }
         node
     }
 
     def children: Seq[AstNode] = _children
 
-    def getChildren[T <: AstNode](nodeType: AstNodeType, recursively: Boolean = false): Seq[T] = {
+    def getChildrenInAst[T <: AstNode](nodeType: AstNodeType, recursively: Boolean = false): Seq[T] = {
         val immediateChildren = _children.filter(_.nodeType == nodeType)
 
         // in case any of the children represent a FallThroughNode, query their children one step further
         val childrenViaFallThroughNodes =
             if (FallThroughNodeType != nodeType && !recursively) {
-                _children.filter(_.nodeType == FallThroughNodeType).flatMap(_.getChildren(nodeType))
+                _children.filter(_.nodeType == FallThroughNodeType).flatMap(_.getChildrenInAst(nodeType))
             } else {
                 Nil
             }
 
         val immediateAndRecursiveChildren =
             if (recursively) {
-                immediateChildren ++ _children.flatMap(_.getChildren(nodeType, recursively))
+                immediateChildren ++ _children.flatMap(_.getChildrenInAst(nodeType, recursively))
             } else {
                 immediateChildren
             }
@@ -123,8 +123,8 @@ trait AstNode {
 
         allChildren.map(_.asInstanceOf[T])
     }
-    def getChild[T <: AstNode](nodeType: AstNodeType, recursively: Boolean = false): Option[T] = {
-        getChildren[T](nodeType, recursively).headOption
+    def getChildInAst[T <: AstNode](nodeType: AstNodeType, recursively: Boolean = false): Option[T] = {
+        getChildrenInAst[T](nodeType, recursively).headOption
     }
 
     /**
@@ -134,7 +134,7 @@ trait AstNode {
         if (this.nodeType == FileNodeType) {
             Option(this.asInstanceOf[FileNode])
         } else {
-            findParent(_.nodeType == FileNodeType).map(_.asInstanceOf[FileNode])
+            findParentInAst(_.nodeType == FileNodeType).map(_.asInstanceOf[FileNode])
         }
     }
     /**
@@ -157,7 +157,7 @@ trait AstNode {
     protected def getLevelsDeep: Int = {
         if (levelsDeep < 0) {
             levelsDeep =
-                getParent(skipFallThroughNodes = true) match {
+                getParentInAst(skipFallThroughNodes = true) match {
                     case Some(p) => p.getLevelsDeep + 1
                     case None => 0
                 }

@@ -79,7 +79,7 @@ case class MethodCallNode(methodName: QualifiedName, range: Range) extends AstNo
     def isParameterTypesResolved: Boolean = _resolvedParameterTypes.nonEmpty
 
     def getParameterExpressionNodes: Seq[AbstractExpression] = {
-        getChild[ExpressionListNode](ExpressionListNodeType) match {
+        getChildInAst[ExpressionListNode](ExpressionListNodeType) match {
             case Some( expressionList ) => expressionList.getExpressions
             case None => Seq.empty
         }

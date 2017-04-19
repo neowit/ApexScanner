@@ -29,7 +29,7 @@ case class LocalVariableNode(range: Range) extends VariableLike {
     override def nodeType: AstNodeType = LocalVariableNodeType
 
     override def getValueType: Option[ValueType] = {
-        getChild[DataTypeNode](DataTypeNodeType)
+        getChildInAst[DataTypeNode](DataTypeNodeType)
             .map(_.getDataType)
     }
     override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)

@@ -27,7 +27,7 @@ package com.neowit.apex.nodes
 case class ImplementsInterfaceNode(range: Range) extends AstNode {
     override def nodeType: AstNodeType = ImplementsInterfaceNodeType
 
-    def dataType: Seq[ValueType] = getChildren[DataTypeNode](DataTypeNodeType).map(_.getDataType)
+    def dataType: Seq[ValueType] = getChildrenInAst[DataTypeNode](DataTypeNodeType).map(_.getDataType)
     def text: String = dataType.map(_.toString).mkString(",")
     override def getDebugInfo: String = super.getDebugInfo + " " + text
 }

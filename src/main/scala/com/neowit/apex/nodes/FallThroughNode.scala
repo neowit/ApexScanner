@@ -30,6 +30,6 @@ case class FallThroughNode(range: Range) extends AstNode {
     override def nodeType: AstNodeType = FallThroughNodeType
 
     def getConcreteChildren: Seq[AstNode] = {
-        findChildren(_.nodeType != FallThroughNodeType)
+        findChildrenInAst(_.nodeType != FallThroughNodeType)
     }
 }

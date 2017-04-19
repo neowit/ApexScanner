@@ -40,7 +40,7 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
     }
 
     private def getExpressions: Seq[AbstractExpression] = {
-        val expressions = findChildren{
+        val expressions = findChildrenInAst{
             case _:AbstractExpression => true
             case _ => false
         }.map(_.asInstanceOf[AbstractExpression])
@@ -171,8 +171,9 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
     private def resolveTailDefinitions(headOpt: Option[AstNode], tailExpressions: Seq[AbstractExpression]): Seq[AstNode] = {
         headOpt match {
           case Some(head: ClassLike) =>
+              val finder = new DescendingDefinitionFinder()
 
-          case None =>
+          case _ =>
               // head could not be resolved, no point to move further through the rest of the expression chain
               Seq.empty
         }

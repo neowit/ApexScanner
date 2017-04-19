@@ -52,7 +52,7 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
             val node = visit(elem)
             if (NullNode != node) {
                 //node.setParent(parent)
-                parent.addChild(node)
+                parent.addChildToAst(node)
             }
         }
         parent
@@ -144,7 +144,7 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
         val typeArgumentsNode = TypeArgumentsNode(Range(ctx))
         ctx.dataType().iterator().forEachRemaining{elem =>
             val dataType = visitDataType(elem)
-            typeArgumentsNode.addChild(dataType)
+            typeArgumentsNode.addChildToAst(dataType)
         }
         typeArgumentsNode
     }
