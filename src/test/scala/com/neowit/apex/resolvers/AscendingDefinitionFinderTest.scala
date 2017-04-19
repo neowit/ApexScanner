@@ -66,7 +66,7 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
                     case nodes if nodes.nonEmpty =>
                         assertResult(1, "Expected exactly 1 local variable definition")(nodes.length)
                         val node = nodes.head
-                        assertResult(LocalVariableNodeType)(node.asInstanceOf[AstNode].nodeType)
+                        assertResult(ClassVariableNodeType)(node.asInstanceOf[AstNode].nodeType)
 
                         node.asInstanceOf[IsTypeDefinition].getValueType.map(_.toString).getOrElse("NOT FOUND")
                     case _ => "NOT FOUND"
@@ -76,7 +76,7 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
         }
     }
 
-    ignore("testFindDefinition - for Variables") {
+    test("testFindDefinition - for Variables") {
         val filePath = getProperty("AscendingDefinitionFinderTest.testFindDefinition.path")
         val path = FileSystems.getDefault.getPath(filePath)
 

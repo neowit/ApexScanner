@@ -34,9 +34,9 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
         val expressions = getExpressions
         // start with unknown head/base definition
         //val lastNode = resolveDefinitionFromHead(container = None, expressions)
-        val resolvedDefinitions = resolveDefinitionFromHead(expressions)
+        _resolvedParts = resolveDefinitionFromHead(expressions).toArray
         _resolutionDone = true
-        resolvedDefinitions.lastOption
+        _resolvedParts.lastOption
     }
 
     private def getExpressions: Seq[AbstractExpression] = {
@@ -76,59 +76,6 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
         }
     }
 
-    /**
-      * traverse expression from left to right
-      * e.g.
-      * some.other.methodCall(methodCall2(param1, param2.other))
-      * @param container already resolved parent container, e.g. "some" in the above example
-      * @param expressions expressions yet to be resolved, e.g. "other.methodCall(methodCall2(param1, param2.other))" in the above example
-      * @return
-      */
-    /*
-    private def resolveDefinitionFromHead(container: Option[AstNode], expressions: Seq[AbstractExpression]): Option[AstNode] = {
-        container match {
-          case Some(_resolvedExprNode) =>
-              // add resolved part of expression to map
-              _resolvedParts += _resolvedExprNode
-          case _ =>
-        }
-        if (expressions.isEmpty) {
-            container
-        } else {
-            expressions match {
-                case lst if lst.nonEmpty=>
-                    val head = lst.head
-                    val tail = lst.drop(1)
-                    head match {
-                        case n:IsTypeDefinition => resolveDefinitionFromHead(Option(n), tail)
-                        case n: ThisExpressionNode => resolveDefinitionFromHead(n.resolveDefinition(), tail)
-                        case n: SuperExpressionNode => resolveDefinitionFromHead(n.resolveDefinition(), tail)
-                        case n =>
-                            container match {
-                                case Some(_container: IsTypeDefinition) =>
-                                    // from known parent descend through children
-                                    val finder = new DescendingDefinitionFinder()
-                                    finder.findDefinition(n, _container)
-                                        .headOption
-                                        .flatMap{
-                                            case _definition: IsTypeDefinition => resolveDefinitionFromHead(Option(_definition), tail)
-                                        }
-                                case _ =>
-                                    //head of expression has not been resolved yet, find its definition going UPwards
-                                    val finder = new AscendingDefinitionFinder()
-                                    finder.findDefinition(n, n)
-                                        .headOption
-                                        .flatMap{
-                                            case _definition: IsTypeDefinition => resolveDefinitionFromHead(Option(_definition), tail)
-                                        }
-
-                            }
-
-                    }
-            }
-        }
-    }
-    */
 
     /**
       * find definition of head element and then find definitions of the rest of the expression
@@ -137,7 +84,7 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
       * some = head
       * other = child of "some"
       * elem = child of "other"
-      * @param expressions
+      * @param expressions chain of expressions to be resolved
       * @return
       */
     private def resolveDefinitionFromHead(expressions: Seq[AbstractExpression]): Seq[AstNode] = {
@@ -149,14 +96,30 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
                     val head = lst.head
                     val tail = lst.drop(1)
                     head match {
-                        case n:IsTypeDefinition => resolveTailDefinitions(Option(n), tail)
-                        case n: ThisExpressionNode => resolveTailDefinitions(n.resolveDefinition(), tail)
-                        case n: SuperExpressionNode => resolveTailDefinitions(n.resolveDefinition(), tail)
+                        case n:IsTypeDefinition => resolveTailDefinitions(n, tail)
+                        case n: ThisExpressionNode =>
+                            n.resolveDefinition() match {
+                              case Some(_def: IsTypeDefinition) =>
+                                  resolveTailDefinitions(_def, tail)
+                              case _ =>
+                                    Seq.empty
+                            }
+                        case n: SuperExpressionNode =>
+                            n.resolveDefinition() match {
+                                case Some(_def: IsTypeDefinition) =>
+                                    resolveTailDefinitions(_def, tail)
+                                case _ =>
+                                    Seq.empty
+                            }
                         case n =>
                             //head of expression has not been resolved yet, find its definition going UPwards
                             val finder = new AscendingDefinitionFinder()
-                            val headDefinition = finder.findDefinition(n, n)
-                            resolveTailDefinitions(headDefinition.headOption, tail)
+                            finder.findDefinition(n, n).headOption match {
+                                case Some(_def: IsTypeDefinition) =>
+                                    resolveTailDefinitions(_def, tail)
+                                case _ =>
+                                    Seq.empty
+                            }
                     }
             }
         }
@@ -164,19 +127,29 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
 
     /**
       *
-      * @param headOpt resolved definition of Head expression
-      * @param tailExpressions all other expressions, except head one
+      * @param container resolved definition of Head expression
+      * @param expressionsToResolve all other expressions, except head one
       * @return Head + tail expression definitions
       */
-    private def resolveTailDefinitions(headOpt: Option[AstNode], tailExpressions: Seq[AbstractExpression]): Seq[AstNode] = {
-        headOpt match {
-          case Some(head: ClassLike) =>
-              val finder = new DescendingDefinitionFinder()
+    private def resolveTailDefinitions(container: AstNode with IsTypeDefinition, expressionsToResolve: Seq[AbstractExpression] ): Seq[AstNode] = {
 
-          case _ =>
-              // head could not be resolved, no point to move further through the rest of the expression chain
-              Seq.empty
+        def _resolveTailDefinitions(container: AstNode with IsTypeDefinition, expressionsToResolve: Seq[AbstractExpression],
+                                    resolvedExpressions: Seq[AstNode] = Seq.empty): Seq[AstNode] = {
+
+            if (expressionsToResolve.isEmpty) {
+                resolvedExpressions
+            } else {
+                val head = expressionsToResolve.head
+                val tail = expressionsToResolve.drop(1)
+                val finder = new DescendingDefinitionFinder()
+                finder.findDefinition(head, container).headOption match {
+                    case Some(_def: IsTypeDefinition) =>
+                        _resolveTailDefinitions(_def, tail, resolvedExpressions ++ Seq(_def))
+                    case _ =>
+                        Seq.empty
+                }
+            }
         }
-        ???
+        _resolveTailDefinitions(container, expressionsToResolve, Seq(container))
     }
 }

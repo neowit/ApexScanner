@@ -48,19 +48,43 @@ class DescendingDefinitionFinder {
                 case _target =>
                     throw new NotImplementedError("DescendingDefinitionFinder.findDefinition for node + " + _target.nodeType +" is not implemented")
             }
-        val resultOpt =
+        val result =
         targetNameOpt match {
             case Some(targetName) =>
-                containerNode.findChildInAst{
-                    case child:IsTypeDefinition =>
-                        child.qualifiedName match {
-                            case Some(childName) => targetName.couldBeMatch(childName)
-                            case None => false
+                // check if target is inside container node
+                val containerNodeChildOpt =
+                    containerNode.findChildInAst{
+                        case child:IsTypeDefinition =>
+                            child.qualifiedName match {
+                                case Some(childName) => targetName.couldBeMatch(childName)
+                                case None => false
+                            }
+                        case _ => false
+                    }
+                containerNodeChildOpt match {
+                    case Some(foundInAst) => Seq(foundInAst)
+                    case None =>
+                        // check if target is inside container valueType node
+                        // e.g. if container is variable definition with value type = Class
+                        containerNode.getValueType match {
+                            case Some(typeDef) =>
+                                containerNode.getProject match {
+                                    case Some(project) =>
+
+                                        project.getByQualifiedName(QualifiedName.getFullyQualifiedValueTypeName(containerNode)) match {
+                                            case Some(_container: IsTypeDefinition) =>
+                                                findDefinition(target, _container)
+                                            case _ => Seq.empty
+                                        }
+                                    case None => Seq.empty
+                                }
+
+                            case None => Seq.empty
                         }
-                    case _ => false
                 }
-            case None => None
+            case None => Seq.empty
         }
-        resultOpt.map(Seq(_)).getOrElse(Seq.empty)
+        result
     }
+
 }
