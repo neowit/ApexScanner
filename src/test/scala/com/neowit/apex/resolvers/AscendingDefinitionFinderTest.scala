@@ -21,7 +21,7 @@
 
 package com.neowit.apex.resolvers
 
-import java.nio.file.FileSystems
+import java.nio.file.{FileSystems, Path}
 
 import com.neowit.apex.{Project, TestConfigProvider}
 import com.neowit.apex.ast.AstBuilder
@@ -33,7 +33,50 @@ import org.scalatest.FunSuite
   */
 class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
 
-    test("testFindDefinition - for Variables") {
+    def withPathProperty(pathKey: String)(codeBlock: (String, Path, AstNode) => Any): Unit = {
+        val filePath = getProperty("AscendingDefinitionFinderTest.testFindDefinition.path")
+        val path = FileSystems.getDefault.getPath(filePath)
+
+        val astBuilder = new AstBuilder(Project(path))
+        astBuilder.build(path)
+
+        astBuilder.getAst(path) match {
+            case None =>
+            // do nothing
+            case Some(result) if result.fileScanResult.errors.nonEmpty =>
+                println("ERRORS ENCOUNTERED")
+                result.fileScanResult.errors.foreach(println(_))
+
+            case Some(result) =>
+                val rootNode = result.rootNode
+                codeBlock(filePath, path, rootNode)
+        }
+    }
+
+    test("testFindDefinition - inner class Variables") {
+        withPathProperty("AscendingDefinitionFinderTest.testFindDefinition.path"){ (filePath, path, rootNode) =>
+            // inner class variable
+            val testTag = "#findVarFromInnerClass#"
+            val lineNos = getLineNoByTag(path, testTag)
+            assertResult(1, s"Invalid test data, expected to find line with tag: $testTag in file: " + filePath)(lineNos.length)
+            val lineNo = lineNos.head
+
+            val typeNameStr =
+                getNodeDefinition(testTag, rootNode, Position(lineNo, 32)) match {
+                    case nodes if nodes.nonEmpty =>
+                        assertResult(1, "Expected exactly 1 local variable definition")(nodes.length)
+                        val node = nodes.head
+                        assertResult(LocalVariableNodeType)(node.asInstanceOf[AstNode].nodeType)
+
+                        node.asInstanceOf[IsTypeDefinition].getValueType.map(_.toString).getOrElse("NOT FOUND")
+                    case _ => "NOT FOUND"
+                }
+            assert(typeNameStr.nonEmpty, testTag + ": NOT FOUND")
+            assertResult("String")(typeNameStr)
+        }
+    }
+
+    ignore("testFindDefinition - for Variables") {
         val filePath = getProperty("AscendingDefinitionFinderTest.testFindDefinition.path")
         val path = FileSystems.getDefault.getPath(filePath)
 
@@ -124,8 +167,6 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
                 assertResult("M2Type")(typeNameMethod)
 
                 // method by name & parameter types & this
-                // TODO - find why test with 3 params does not work
-                // TODO - it is expected to find methodWith3Params() even though this.bool is not resolved properly
                 testTag = "#findMethodType_int_str_bool#"
                 lineNos = getLineNoByTag(path, testTag)
                 assertResult(1, s"Invalid test data, expected to find line with tag: $testTag in file: " + filePath)(lineNos.length)

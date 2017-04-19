@@ -22,7 +22,7 @@
 package com.neowit.apex.resolvers
 
 import com.neowit.apex.ast.QualifiedName
-import com.neowit.apex.nodes.{AstNode, HasQualifiedName, IdentifierNode, IsTypeDefinition}
+import com.neowit.apex.nodes._
 
 /**
   * Created by Andrey Gavrikov 

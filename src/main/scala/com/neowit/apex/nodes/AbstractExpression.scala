@@ -21,7 +21,6 @@
 
 package com.neowit.apex.nodes
 import com.neowit.apex.ast.QualifiedName
-import com.neowit.apex.resolvers.{AscendingDefinitionFinder, DescendingDefinitionFinder}
 
 
 /**
@@ -31,62 +30,7 @@ trait AbstractExpression extends AstNode with HasTypeDefinition {
     override def nodeType: AstNodeType = ExpressionNodeType
 }
 
-case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression {
-    override protected def resolveDefinitionImpl(): Option[AstNode] = {
-        val expressions = findChildren{
-            case _:AbstractExpression => true
-            case _ => false
-        }.map(_.asInstanceOf[AbstractExpression])
-        // start with unknown head/base definition
-        resolveDefinitionFromHead(container = None, expressions)
-    }
 
-    /**
-      * traverse expression from left to right
-      * e.g.
-      * some.other.methodCall(methodCall2(param1, param2.other))
-      * @param container already resolved parent container, e.g. "some" in the above example
-      * @param expressions expressions yet to be resolved, e.g. "other.methodCall(methodCall2(param1, param2.other))" in the above example
-      * @return
-      */
-    private def resolveDefinitionFromHead(container: Option[AstNode], expressions: Seq[AbstractExpression]): Option[AstNode] = {
-        if (expressions.isEmpty) {
-            container
-        } else {
-            expressions match {
-                case lst if lst.nonEmpty=>
-                    val head = lst.head
-                    val tail = lst.drop(1)
-                    head match {
-                        case n:IsTypeDefinition => resolveDefinitionFromHead(Option(n), tail)
-                        case n: ThisExpressionNode => resolveDefinitionFromHead(n.resolveDefinition(), tail)
-                        case n: SuperExpressionNode => resolveDefinitionFromHead(n.resolveDefinition(), tail)
-                        case n =>
-                            container match {
-                                case Some(_container: IsTypeDefinition) =>
-                                    // from known parent descend through children
-                                    val finder = new DescendingDefinitionFinder()
-                                    finder.findDefinition(n, _container)
-                                        .headOption
-                                        .flatMap{
-                                            case _definition: IsTypeDefinition => resolveDefinitionFromHead(Option(_definition), tail)
-                                        }
-                                case _ =>
-                                    //head of expression has not been resolved yet, find its definition going UPwards
-                                    val finder = new AscendingDefinitionFinder()
-                                    finder.findDefinition(n, n)
-                                        .headOption
-                                        .flatMap{
-                                            case _definition: IsTypeDefinition => resolveDefinitionFromHead(Option(_definition), tail)
-                                        }
-
-                            }
-
-                    }
-            }
-        }
-    }
-}
 
 
 /**

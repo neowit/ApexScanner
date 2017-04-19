@@ -44,7 +44,14 @@ public virtual class MyClass {
     private M3Type methodWith3Params(Integer i, String s2, Boolean b1) { // #result of findMethodType_int_str_bool#
         String str;
         Integer int;
-        
     }
 
+    private void findVarFromInnerClass() {
+        InnerClass1 cls1 = new InnerClass1();
+        String str = cls1.innerStr1; // #findVarFromInnerClass#
+    }
+
+    public class InnerClass1 {
+        public String innerStr1;
+    }
 }
