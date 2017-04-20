@@ -1,6 +1,7 @@
-// Generated from /Users/andrey/development/scala/projects/ApexScanner/src/main/resources/Apexcode.g4 by ANTLR 4.6
+// Generated from /Users/andrey/development/scala/projects/ApexScanner/src/main/resources/Apexcode.g4 by ANTLR 4.7
 
-package com.neowit.apexscanner.scanner.antlr;
+package com.neowit.apexscanner.antlr;
+import java.util.*;
 
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 

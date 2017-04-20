@@ -1,16 +1,20 @@
-// Generated from /Users/andrey/development/scala/projects/ApexScanner/src/main/resources/Apexcode.g4 by ANTLR 4.6
+// Generated from /Users/andrey/development/scala/projects/ApexScanner/src/main/resources/Apexcode.g4 by ANTLR 4.7
 
-package com.neowit.apexscanner.scanner.antlr;
+package com.neowit.apexscanner.antlr;
+import java.util.*;
 
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.misc.*;
 import org.antlr.v4.runtime.tree.*;
 import java.util.List;
+import java.util.Iterator;
+import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
 public class ApexcodeParser extends Parser {
-	static { RuntimeMetaData.checkVersion("4.6", RuntimeMetaData.VERSION); }
+	static { RuntimeMetaData.checkVersion("4.7", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
@@ -167,14 +171,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_compilationUnit; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterCompilationUnit(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitCompilationUnit(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitCompilationUnit(this);
 			else return visitor.visitChildren(this);
@@ -265,14 +261,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public TriggerDefContext(TypeDeclarationContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterTriggerDef(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitTriggerDef(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitTriggerDef(this);
 			else return visitor.visitChildren(this);
@@ -290,14 +278,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public ClassDefContext(TypeDeclarationContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterClassDef(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitClassDef(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitClassDef(this);
 			else return visitor.visitChildren(this);
@@ -308,14 +288,6 @@ public class ApexcodeParser extends Parser {
 			return getRuleContext(EnumDeclarationContext.class,0);
 		}
 		public EnumDefContext(TypeDeclarationContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterEnumDef(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitEnumDef(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitEnumDef(this);
@@ -334,14 +306,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public InterfaceDefContext(TypeDeclarationContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterInterfaceDef(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitInterfaceDef(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitInterfaceDef(this);
 			else return visitor.visitChildren(this);
@@ -349,14 +313,6 @@ public class ApexcodeParser extends Parser {
 	}
 	public static class EmptyDefContext extends TypeDeclarationContext {
 		public EmptyDefContext(TypeDeclarationContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterEmptyDef(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitEmptyDef(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitEmptyDef(this);
@@ -468,14 +424,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_classOrInterfaceModifier; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterClassOrInterfaceModifier(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitClassOrInterfaceModifier(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitClassOrInterfaceModifier(this);
 			else return visitor.visitChildren(this);
@@ -543,14 +491,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_classOrInterfaceVisibilityModifier; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterClassOrInterfaceVisibilityModifier(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitClassOrInterfaceVisibilityModifier(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitClassOrInterfaceVisibilityModifier(this);
 			else return visitor.visitChildren(this);
@@ -594,14 +534,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_classSharingModifier; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterClassSharingModifier(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitClassSharingModifier(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitClassSharingModifier(this);
@@ -657,14 +589,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_classDeclaration; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterClassDeclaration(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitClassDeclaration(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitClassDeclaration(this);
@@ -729,14 +653,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_className; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterClassName(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitClassName(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitClassName(this);
 			else return visitor.visitChildren(this);
@@ -773,14 +689,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_extendsDeclaration; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterExtendsDeclaration(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitExtendsDeclaration(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitExtendsDeclaration(this);
@@ -823,14 +731,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_implementsDeclaration; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterImplementsDeclaration(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitImplementsDeclaration(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitImplementsDeclaration(this);
@@ -901,14 +801,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_classBody; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterClassBody(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitClassBody(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitClassBody(this);
@@ -991,14 +883,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_classBodyMember; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterClassBodyMember(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitClassBodyMember(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitClassBodyMember(this);
@@ -1092,14 +976,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_classConstructor; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterClassConstructor(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitClassConstructor(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitClassConstructor(this);
 			else return visitor.visitChildren(this);
@@ -1187,14 +1063,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_classConstructorModifier; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterClassConstructorModifier(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitClassConstructorModifier(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitClassConstructorModifier(this);
 			else return visitor.visitChildren(this);
@@ -1272,14 +1140,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_interfaceDeclaration; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterInterfaceDeclaration(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitInterfaceDeclaration(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitInterfaceDeclaration(this);
 			else return visitor.visitChildren(this);
@@ -1333,14 +1193,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_interfaceName; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterInterfaceName(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitInterfaceName(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitInterfaceName(this);
 			else return visitor.visitChildren(this);
@@ -1379,14 +1231,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_interfaceBody; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterInterfaceBody(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitInterfaceBody(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitInterfaceBody(this);
@@ -1450,14 +1294,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_triggerDeclaration; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterTriggerDeclaration(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitTriggerDeclaration(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitTriggerDeclaration(this);
@@ -1528,14 +1364,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_triggerName; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterTriggerName(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitTriggerName(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitTriggerName(this);
 			else return visitor.visitChildren(this);
@@ -1569,14 +1397,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_triggerSObjectType; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterTriggerSObjectType(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitTriggerSObjectType(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitTriggerSObjectType(this);
@@ -1637,14 +1457,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_classVariable; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterClassVariable(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitClassVariable(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitClassVariable(this);
@@ -1767,14 +1579,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_classVariableModifier; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterClassVariableModifier(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitClassVariableModifier(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitClassVariableModifier(this);
 			else return visitor.visitChildren(this);
@@ -1857,14 +1661,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_variableName; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterVariableName(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitVariableName(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitVariableName(this);
 			else return visitor.visitChildren(this);
@@ -1903,14 +1699,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_classMethod; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterClassMethod(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitClassMethod(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitClassMethod(this);
@@ -1967,14 +1755,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_methodParameters; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterMethodParameters(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitMethodParameters(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitMethodParameters(this);
@@ -2033,14 +1813,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_methodParameter; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterMethodParameter(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitMethodParameter(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitMethodParameter(this);
 			else return visitor.visitChildren(this);
@@ -2087,14 +1859,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_methodParameterName; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterMethodParameterName(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitMethodParameterName(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitMethodParameterName(this);
@@ -2149,14 +1913,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_methodHeader; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterMethodHeader(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitMethodHeader(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitMethodHeader(this);
@@ -2255,14 +2011,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_methodHeaderModifier; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterMethodHeaderModifier(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitMethodHeaderModifier(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitMethodHeaderModifier(this);
 			else return visitor.visitChildren(this);
@@ -2359,14 +2107,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_methodName; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterMethodName(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitMethodName(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitMethodName(this);
 			else return visitor.visitChildren(this);
@@ -2402,14 +2142,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_methodBody; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterMethodBody(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitMethodBody(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitMethodBody(this);
@@ -2473,14 +2205,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_classProperty; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterClassProperty(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitClassProperty(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitClassProperty(this);
@@ -2589,14 +2313,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_propertyModifier; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterPropertyModifier(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitPropertyModifier(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitPropertyModifier(this);
 			else return visitor.visitChildren(this);
@@ -2672,14 +2388,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_propertyName; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterPropertyName(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitPropertyName(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitPropertyName(this);
 			else return visitor.visitChildren(this);
@@ -2726,14 +2434,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_propertyGet; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterPropertyGet(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitPropertyGet(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitPropertyGet(this);
@@ -2829,14 +2529,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_propertySet; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterPropertySet(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitPropertySet(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitPropertySet(this);
 			else return visitor.visitChildren(this);
@@ -2922,14 +2614,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_propertyGetSetModifier; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterPropertyGetSetModifier(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitPropertyGetSetModifier(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitPropertyGetSetModifier(this);
 			else return visitor.visitChildren(this);
@@ -3003,14 +2687,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_enumDeclaration; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterEnumDeclaration(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitEnumDeclaration(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitEnumDeclaration(this);
 			else return visitor.visitChildren(this);
@@ -3076,14 +2752,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_enumName; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterEnumName(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitEnumName(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitEnumName(this);
 			else return visitor.visitChildren(this);
@@ -3122,14 +2790,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_enumConstants; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterEnumConstants(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitEnumConstants(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitEnumConstants(this);
@@ -3182,14 +2842,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_enumConstant; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterEnumConstant(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitEnumConstant(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitEnumConstant(this);
 			else return visitor.visitChildren(this);
@@ -3231,14 +2883,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_annotation; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterAnnotation(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitAnnotation(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitAnnotation(this);
@@ -3305,14 +2949,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_annotationName; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterAnnotationName(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitAnnotationName(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitAnnotationName(this);
 			else return visitor.visitChildren(this);
@@ -3351,14 +2987,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_annotationElementValuePairs; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterAnnotationElementValuePairs(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitAnnotationElementValuePairs(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitAnnotationElementValuePairs(this);
@@ -3414,14 +3042,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_annotationElementValuePair; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterAnnotationElementValuePair(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitAnnotationElementValuePair(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitAnnotationElementValuePair(this);
 			else return visitor.visitChildren(this);
@@ -3464,14 +3084,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_annotationElementValue; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterAnnotationElementValue(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitAnnotationElementValue(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitAnnotationElementValue(this);
@@ -3555,14 +3167,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public AssignmentExprContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterAssignmentExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitAssignmentExpr(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitAssignmentExpr(this);
 			else return visitor.visitChildren(this);
@@ -3574,14 +3178,6 @@ public class ApexcodeParser extends Parser {
 			return getRuleContext(ExpressionContext.class,0);
 		}
 		public PostIncrementExprContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterPostIncrementExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitPostIncrementExpr(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitPostIncrementExpr(this);
@@ -3596,14 +3192,6 @@ public class ApexcodeParser extends Parser {
 			return getRuleContext(ExpressionContext.class,i);
 		}
 		public BitwiseXorExprContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterBitwiseXorExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitBitwiseXorExpr(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitBitwiseXorExpr(this);
@@ -3620,14 +3208,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public InstanceOfExprContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterInstanceOfExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitInstanceOfExpr(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitInstanceOfExpr(this);
 			else return visitor.visitChildren(this);
@@ -3641,14 +3221,6 @@ public class ApexcodeParser extends Parser {
 			return getRuleContext(ExpressionContext.class,i);
 		}
 		public ExprDotExpressionContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterExprDotExpression(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitExprDotExpression(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitExprDotExpression(this);
@@ -3664,14 +3236,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public BitwiseOrExprContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterBitwiseOrExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitBitwiseOrExpr(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitBitwiseOrExpr(this);
 			else return visitor.visitChildren(this);
@@ -3685,14 +3249,6 @@ public class ApexcodeParser extends Parser {
 			return getRuleContext(ExpressionContext.class,i);
 		}
 		public BitwiseAndExprContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterBitwiseAndExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitBitwiseAndExpr(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitBitwiseAndExpr(this);
@@ -3709,14 +3265,6 @@ public class ApexcodeParser extends Parser {
 		public TerminalNode WS() { return getToken(ApexcodeParser.WS, 0); }
 		public ComparisonExprContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterComparisonExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitComparisonExpr(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitComparisonExpr(this);
 			else return visitor.visitChildren(this);
@@ -3730,14 +3278,6 @@ public class ApexcodeParser extends Parser {
 			return getRuleContext(ExpressionContext.class,0);
 		}
 		public TypeCastComplexExprContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterTypeCastComplexExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitTypeCastComplexExpr(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitTypeCastComplexExpr(this);
@@ -3754,14 +3294,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public ArrayIndexExprContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterArrayIndexExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitArrayIndexExpr(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitArrayIndexExpr(this);
 			else return visitor.visitChildren(this);
@@ -3774,14 +3306,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public PreIncrementExprContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterPreIncrementExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitPreIncrementExpr(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitPreIncrementExpr(this);
 			else return visitor.visitChildren(this);
@@ -3793,14 +3317,6 @@ public class ApexcodeParser extends Parser {
 			return getRuleContext(CreatorContext.class,0);
 		}
 		public CreatorExpressionContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterCreatorExpression(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitCreatorExpression(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitCreatorExpression(this);
@@ -3817,14 +3333,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public MethodCallExprContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterMethodCallExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitMethodCallExpr(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitMethodCallExpr(this);
 			else return visitor.visitChildren(this);
@@ -3837,14 +3345,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public UnaryInequalityExprContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterUnaryInequalityExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitUnaryInequalityExpr(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitUnaryInequalityExpr(this);
 			else return visitor.visitChildren(this);
@@ -3856,14 +3356,6 @@ public class ApexcodeParser extends Parser {
 			return getRuleContext(ExpressionContext.class,0);
 		}
 		public UnaryExprContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterUnaryExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitUnaryExpr(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitUnaryExpr(this);
@@ -3879,14 +3371,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public InfixAndExprContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterInfixAndExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitInfixAndExpr(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitInfixAndExpr(this);
 			else return visitor.visitChildren(this);
@@ -3897,14 +3381,6 @@ public class ApexcodeParser extends Parser {
 			return getRuleContext(PrimaryContext.class,0);
 		}
 		public PrimaryExprContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterPrimaryExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitPrimaryExpr(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitPrimaryExpr(this);
@@ -3921,14 +3397,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public InfixMulExprContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterInfixMulExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitInfixMulExpr(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitInfixMulExpr(this);
 			else return visitor.visitChildren(this);
@@ -3942,14 +3410,6 @@ public class ApexcodeParser extends Parser {
 			return getRuleContext(ExpressionContext.class,i);
 		}
 		public TernaryExprContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterTernaryExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitTernaryExpr(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitTernaryExpr(this);
@@ -3965,14 +3425,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public InfixOrExprContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterInfixOrExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitInfixOrExpr(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitInfixOrExpr(this);
 			else return visitor.visitChildren(this);
@@ -3986,14 +3438,6 @@ public class ApexcodeParser extends Parser {
 			return getRuleContext(ExpressionContext.class,i);
 		}
 		public InfixShiftExprContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterInfixShiftExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitInfixShiftExpr(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitInfixShiftExpr(this);
@@ -4009,14 +3453,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public InfixAddExprContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterInfixAddExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitInfixAddExpr(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitInfixAddExpr(this);
 			else return visitor.visitChildren(this);
@@ -4031,14 +3467,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public InfixEqualityExprContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterInfixEqualityExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitInfixEqualityExpr(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitInfixEqualityExpr(this);
 			else return visitor.visitChildren(this);
@@ -4052,14 +3480,6 @@ public class ApexcodeParser extends Parser {
 			return getRuleContext(ExpressionContext.class,0);
 		}
 		public TypeCastSimpleExprContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterTypeCastSimpleExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitTypeCastSimpleExpr(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitTypeCastSimpleExpr(this);
@@ -4582,14 +4002,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_primary; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterPrimary(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitPrimary(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitPrimary(this);
 			else return visitor.visitChildren(this);
@@ -4671,14 +4083,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_parExpression; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterParExpression(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitParExpression(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitParExpression(this);
 			else return visitor.visitChildren(this);
@@ -4721,14 +4125,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_expressionList; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterExpressionList(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitExpressionList(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitExpressionList(this);
@@ -4786,14 +4182,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_runas_expression; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterRunas_expression(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitRunas_expression(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitRunas_expression(this);
@@ -4860,14 +4248,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public DbShortcutTwoOpContext(Db_shortcut_expressionContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterDbShortcutTwoOp(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitDbShortcutTwoOp(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitDbShortcutTwoOp(this);
 			else return visitor.visitChildren(this);
@@ -4882,14 +4262,6 @@ public class ApexcodeParser extends Parser {
 			return getRuleContext(ExpressionContext.class,i);
 		}
 		public DbShortcutMergeContext(Db_shortcut_expressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterDbShortcutMerge(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitDbShortcutMerge(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitDbShortcutMerge(this);
@@ -4906,14 +4278,6 @@ public class ApexcodeParser extends Parser {
 		public TerminalNode DB_UNDELETE() { return getToken(ApexcodeParser.DB_UNDELETE, 0); }
 		public TerminalNode DB_UPSERT() { return getToken(ApexcodeParser.DB_UPSERT, 0); }
 		public DbShortcutOneOpContext(Db_shortcut_expressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterDbShortcutOneOp(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitDbShortcutOneOp(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitDbShortcutOneOp(this);
@@ -5008,14 +4372,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_creator; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterCreator(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitCreator(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitCreator(this);
 			else return visitor.visitChildren(this);
@@ -5109,14 +4465,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_typeArguments; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterTypeArguments(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitTypeArguments(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitTypeArguments(this);
 			else return visitor.visitChildren(this);
@@ -5179,14 +4527,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_arrayCreatorRest; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterArrayCreatorRest(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitArrayCreatorRest(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitArrayCreatorRest(this);
@@ -5328,14 +4668,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_mapCreatorRest; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterMapCreatorRest(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitMapCreatorRest(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitMapCreatorRest(this);
 			else return visitor.visitChildren(this);
@@ -5474,14 +4806,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_setCreatorRest; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterSetCreatorRest(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitSetCreatorRest(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitSetCreatorRest(this);
 			else return visitor.visitChildren(this);
@@ -5567,14 +4891,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_classCreatorRest; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterClassCreatorRest(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitClassCreatorRest(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitClassCreatorRest(this);
 			else return visitor.visitChildren(this);
@@ -5613,14 +4929,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_variableInitializer; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterVariableInitializer(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitVariableInitializer(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitVariableInitializer(this);
@@ -5692,14 +5000,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_arrayInitializer; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterArrayInitializer(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitArrayInitializer(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitArrayInitializer(this);
@@ -5779,14 +5079,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_arguments; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterArguments(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitArguments(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitArguments(this);
 			else return visitor.visitChildren(this);
@@ -5838,14 +5130,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_codeBlock; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterCodeBlock(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitCodeBlock(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitCodeBlock(this);
@@ -5900,14 +5184,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_staticCodeBlock; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterStaticCodeBlock(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitStaticCodeBlock(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitStaticCodeBlock(this);
@@ -5964,14 +5240,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_localVariableDeclaration; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterLocalVariableDeclaration(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitLocalVariableDeclaration(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitLocalVariableDeclaration(this);
@@ -6065,14 +5333,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_localVariableModifier; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterLocalVariableModifier(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitLocalVariableModifier(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitLocalVariableModifier(this);
 			else return visitor.visitChildren(this);
@@ -6120,14 +5380,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_blockStatement; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterBlockStatement(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitBlockStatement(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitBlockStatement(this);
@@ -6180,14 +5432,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_qualifiedName; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterQualifiedName(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitQualifiedName(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitQualifiedName(this);
@@ -6252,14 +5496,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_forControl; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterForControl(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitForControl(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitForControl(this);
@@ -6346,14 +5582,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_forInit; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterForInit(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitForInit(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitForInit(this);
 			else return visitor.visitChildren(this);
@@ -6409,14 +5637,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_enhancedForControl; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterEnhancedForControl(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitEnhancedForControl(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitEnhancedForControl(this);
 			else return visitor.visitChildren(this);
@@ -6459,14 +5679,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_forUpdate; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterForUpdate(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitForUpdate(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitForUpdate(this);
 			else return visitor.visitChildren(this);
@@ -6508,14 +5720,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_catchClause; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterCatchClause(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitCatchClause(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitCatchClause(this);
@@ -6565,14 +5769,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_catchType; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterCatchType(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitCatchType(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitCatchType(this);
@@ -6627,14 +5823,6 @@ public class ApexcodeParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_finallyBlock; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterFinallyBlock(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitFinallyBlock(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitFinallyBlock(this);
 			else return visitor.visitChildren(this);
@@ -6685,14 +5873,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public ForStmtContext(StatementContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterForStmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitForStmt(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitForStmt(this);
 			else return visitor.visitChildren(this);
@@ -6708,14 +5888,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public WhileStmtContext(StatementContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterWhileStmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitWhileStmt(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitWhileStmt(this);
 			else return visitor.visitChildren(this);
@@ -6727,14 +5899,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public ExpressionStmtContext(StatementContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterExpressionStmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitExpressionStmt(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitExpressionStmt(this);
 			else return visitor.visitChildren(this);
@@ -6742,14 +5906,6 @@ public class ApexcodeParser extends Parser {
 	}
 	public static class EmptyStmtContext extends StatementContext {
 		public EmptyStmtContext(StatementContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterEmptyStmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitEmptyStmt(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitEmptyStmt(this);
@@ -6763,14 +5919,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public ReturnStmtContext(StatementContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterReturnStmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitReturnStmt(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitReturnStmt(this);
 			else return visitor.visitChildren(this);
@@ -6781,14 +5929,6 @@ public class ApexcodeParser extends Parser {
 			return getRuleContext(Db_shortcut_expressionContext.class,0);
 		}
 		public DbShortcutStmtContext(StatementContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterDbShortcutStmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitDbShortcutStmt(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitDbShortcutStmt(this);
@@ -6801,14 +5941,6 @@ public class ApexcodeParser extends Parser {
 			return getRuleContext(ExpressionContext.class,0);
 		}
 		public ThrowStmtContext(StatementContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterThrowStmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitThrowStmt(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitThrowStmt(this);
@@ -6831,14 +5963,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public TryCatchFinallyStmtContext(StatementContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterTryCatchFinallyStmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitTryCatchFinallyStmt(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitTryCatchFinallyStmt(this);
 			else return visitor.visitChildren(this);
@@ -6849,14 +5973,6 @@ public class ApexcodeParser extends Parser {
 			return getRuleContext(Runas_expressionContext.class,0);
 		}
 		public RunAsStmtContext(StatementContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterRunAsStmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitRunAsStmt(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitRunAsStmt(this);
@@ -6874,14 +5990,6 @@ public class ApexcodeParser extends Parser {
 		}
 		public DoWhileStmtContext(StatementContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterDoWhileStmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitDoWhileStmt(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitDoWhileStmt(this);
 			else return visitor.visitChildren(this);
@@ -6892,14 +6000,6 @@ public class ApexcodeParser extends Parser {
 			return getRuleContext(CodeBlockContext.class,0);
 		}
 		public BlockStmtContext(StatementContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterBlockStmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitBlockStmt(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitBlockStmt(this);
@@ -6920,14 +6020,6 @@ public class ApexcodeParser extends Parser {
 		public TerminalNode ELSE() { return getToken(ApexcodeParser.ELSE, 0); }
 		public IfElseStmtContext(StatementContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterIfElseStmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitIfElseStmt(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitIfElseStmt(this);
 			else return visitor.visitChildren(this);
@@ -6937,14 +6029,6 @@ public class ApexcodeParser extends Parser {
 		public TerminalNode BREAK() { return getToken(ApexcodeParser.BREAK, 0); }
 		public BreakStmtContext(StatementContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterBreakStmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitBreakStmt(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitBreakStmt(this);
 			else return visitor.visitChildren(this);
@@ -6953,14 +6037,6 @@ public class ApexcodeParser extends Parser {
 	public static class ContinueStmtContext extends StatementContext {
 		public TerminalNode CONTINUE() { return getToken(ApexcodeParser.CONTINUE, 0); }
 		public ContinueStmtContext(StatementContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterContinueStmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitContinueStmt(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitContinueStmt(this);
@@ -7242,14 +6318,6 @@ public class ApexcodeParser extends Parser {
 		public TerminalNode StringLiteral() { return getToken(ApexcodeParser.StringLiteral, 0); }
 		public StrLiteralContext(LiteralContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterStrLiteral(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitStrLiteral(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitStrLiteral(this);
 			else return visitor.visitChildren(this);
@@ -7258,14 +6326,6 @@ public class ApexcodeParser extends Parser {
 	public static class NullLiteralContext extends LiteralContext {
 		public TerminalNode NULL() { return getToken(ApexcodeParser.NULL, 0); }
 		public NullLiteralContext(LiteralContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterNullLiteral(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitNullLiteral(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitNullLiteral(this);
@@ -7276,14 +6336,6 @@ public class ApexcodeParser extends Parser {
 		public TerminalNode SoslLiteral() { return getToken(ApexcodeParser.SoslLiteral, 0); }
 		public SoslLiteralContext(LiteralContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterSoslLiteral(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitSoslLiteral(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitSoslLiteral(this);
 			else return visitor.visitChildren(this);
@@ -7292,14 +6344,6 @@ public class ApexcodeParser extends Parser {
 	public static class FpLiteralContext extends LiteralContext {
 		public TerminalNode FloatingPointLiteral() { return getToken(ApexcodeParser.FloatingPointLiteral, 0); }
 		public FpLiteralContext(LiteralContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterFpLiteral(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitFpLiteral(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitFpLiteral(this);
@@ -7310,14 +6354,6 @@ public class ApexcodeParser extends Parser {
 		public TerminalNode IntegerLiteral() { return getToken(ApexcodeParser.IntegerLiteral, 0); }
 		public IntLiteralContext(LiteralContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterIntLiteral(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitIntLiteral(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitIntLiteral(this);
 			else return visitor.visitChildren(this);
@@ -7327,14 +6363,6 @@ public class ApexcodeParser extends Parser {
 		public TerminalNode SoqlLiteral() { return getToken(ApexcodeParser.SoqlLiteral, 0); }
 		public SoqlLiteralContext(LiteralContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterSoqlLiteral(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitSoqlLiteral(this);
-		}
-		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitSoqlLiteral(this);
 			else return visitor.visitChildren(this);
@@ -7343,14 +6371,6 @@ public class ApexcodeParser extends Parser {
 	public static class BoolLiteralContext extends LiteralContext {
 		public TerminalNode BooleanLiteral() { return getToken(ApexcodeParser.BooleanLiteral, 0); }
 		public BoolLiteralContext(LiteralContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterBoolLiteral(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitBoolLiteral(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitBoolLiteral(this);
@@ -7449,14 +6469,6 @@ public class ApexcodeParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_dataType; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).enterDataType(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ApexcodeListener ) ((ApexcodeListener)listener).exitDataType(this);
-		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof ApexcodeVisitor ) return ((ApexcodeVisitor<? extends T>)visitor).visitDataType(this);
@@ -7567,7 +6579,7 @@ public class ApexcodeParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3p\u03bb\4\2\t\2\4"+
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3p\u03bb\4\2\t\2\4"+
 		"\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t"+
 		"\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22"+
 		"\4\23\t\23\4\24\t\24\4\25\t\25\4\26\t\26\4\27\t\27\4\30\t\30\4\31\t\31"+
@@ -7635,7 +6647,7 @@ public class ApexcodeParser extends Parser {
 		"\30\32\34\36 \"$&(*,.\60\62\64\668:<>@BDFHJLNPRTVXZ\\^`bdfhjlnprtvxz|"+
 		"~\u0080\u0082\u0084\u0086\u0088\u008a\u008c\u008e\u0090\u0092\u0094\u0096"+
 		"\u0098\2\f\b\2\66\66AACCII__dd\3\2ef\4\2AC__\3\2\17\20\3\2\21\22\3\2\24"+
-		"\26\3\2\31\34\4\2\n\n$-\4\2XY[]\4\2;;GG\u041e\2\u00a3\3\2\2\2\4\u00b6"+
+		"\26\3\2\31\34\4\2\n\n$-\4\2XY[]\4\2;;GG\2\u041e\2\u00a3\3\2\2\2\4\u00b6"+
 		"\3\2\2\2\6\u00bb\3\2\2\2\b\u00bd\3\2\2\2\n\u00bf\3\2\2\2\f\u00c1\3\2\2"+
 		"\2\16\u00cd\3\2\2\2\20\u00cf\3\2\2\2\22\u00d2\3\2\2\2\24\u00e0\3\2\2\2"+
 		"\26\u00e9\3\2\2\2\30\u00ef\3\2\2\2\32\u00fc\3\2\2\2\34\u00fe\3\2\2\2\36"+

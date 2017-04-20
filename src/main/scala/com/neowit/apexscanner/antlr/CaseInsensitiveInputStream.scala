@@ -20,14 +20,21 @@
  */
 package com.neowit.apexscanner.antlr
 
+/*
 import java.io.{InputStreamReader, InputStream, Reader}
 
 import org.antlr.v4.runtime.{IntStream, ANTLRInputStream}
-
+*/
 /**
   * NOTE - in order for this CaseInsensitiveInputStream to work all constants
   *        in .g4 grammar must be either *lower* case or *dual-case*
+  * NOTE 2 - as of ANTLR 4.7 ANTLRInputStream is deprecated and this method of
+  *         achieving case insensitivity can no longer be used
   */
+class CaseInsensitiveInputStream {
+
+}
+/*
 class CaseInsensitiveInputStream(r: Reader, initialSize: Int, readChunkSize: Int)
     extends ANTLRInputStream(r, initialSize, readChunkSize) {
 
@@ -64,3 +71,4 @@ class CaseInsensitiveInputStream(r: Reader, initialSize: Int, readChunkSize: Int
     }
 
 }
+*/
