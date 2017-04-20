@@ -57,9 +57,9 @@ class CaseInsensitiveInputStream(r: Reader, initialSize: Int, readChunkSize: Int
         }
 
         if (null != lowercaseData) {
-            lowercaseData(p + i - 1)
+            lowercaseData(p + i - 1).toInt
         } else {
-            data(p + i - 1).toLower
+            data(p + i - 1).toLower.toInt
         }
     }
 

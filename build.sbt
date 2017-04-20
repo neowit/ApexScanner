@@ -5,6 +5,7 @@ version := "1.0"
 
 scalaVersion := "2.12.2"
 
+//https://blog.threatstack.com/useful-scalac-options-for-better-scala-development-part-1
 scalacOptions ++= Seq(
     "-target:jvm-1.8",
     "-deprecation",
@@ -13,6 +14,8 @@ scalacOptions ++= Seq(
     "-encoding", "UTF-8",       // yes, this is 2 args
     "-Xfatal-warnings",
     "-Xlint",
+    "-Yno-adapted-args",
+    "-Ywarn-numeric-widen",
     "-Xfuture",
     "-Ywarn-unused-import"
 )
