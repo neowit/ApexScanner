@@ -53,5 +53,7 @@ public virtual class TypeFinder {
 
     public class InnerClass1 {
         public String innerStr1;
+        public M2Inner_I_S methodWith2Params(Integer i, String s2) {
+        }
     }
 }
