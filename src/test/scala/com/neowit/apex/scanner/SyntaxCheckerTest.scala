@@ -36,7 +36,7 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider {
         true
     }
 
-    test("test syntax of sample apex classes") {
+    ignore("test syntax of sample apex classes") {
         val checker = new SyntaxChecker()
         val path = FileSystems.getDefault.getPath(projectPath)
         val fileNameSetBuilder = Set.newBuilder[String]
