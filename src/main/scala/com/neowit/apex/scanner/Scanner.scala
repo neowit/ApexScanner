@@ -31,7 +31,7 @@ case class FileScanResult(sourceFile: Path, errors: Seq[SyntaxError], parseConte
 
 object Scanner{
 
-    private[Scanner] def emptyOnEachResult(result: FileScanResult): Unit = Unit
+    private[Scanner] def emptyOnEachResult(result: FileScanResult): Unit = ()
 
     private val ignoredDirs = Set("resources_unpacked", "Referenced Packages")
     def defaultIsIgnoredPath(path: Path): Boolean = {

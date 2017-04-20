@@ -145,6 +145,7 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
         ctx.dataType().iterator().forEachRemaining{elem =>
             val dataType = visitDataType(elem)
             typeArgumentsNode.addChildToAst(dataType)
+            ()
         }
         typeArgumentsNode
     }
