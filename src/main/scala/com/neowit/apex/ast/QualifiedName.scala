@@ -128,8 +128,16 @@ object QualifiedName {
                     case _ => false
                 } match {
                     case Some(parentClassNode: ClassLike) =>
-                        parentClassNode.qualifiedName.map{outerClassName =>
-                            QualifiedName(outerClassName, childName.qualifiedName)
+                        //check if parent does indeed contain childName node
+                        parentClassNode.findChildInAst(n => ClassLike.CLASS_LIKE_TYPES.contains(n.nodeType)) match {
+                          case Some(_) =>
+                              parentClassNode.qualifiedName.map{outerClassName =>
+                                  QualifiedName(outerClassName, childName.qualifiedName)
+                              }
+                          case None =>
+                              // given child is not defined as a ClassLike member of parentClassNode
+                              //i.e. it is not inner class or enum
+                              Option(childName.qualifiedName)
                         }
                     case _ =>
                         // there is no parent
