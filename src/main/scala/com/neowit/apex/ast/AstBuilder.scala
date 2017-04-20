@@ -63,6 +63,11 @@ class AstBuilder(project: Project) {
         fileNameCache.result().get(fileName)
     }
 
+    /**
+      * get cached AST for given file
+      * @param path single file path
+      * @return
+      */
     def getAst(path: Path): Option[AstBuilderResult] = {
         astCache.result().get(path)
     }
