@@ -12,6 +12,7 @@ scalacOptions ++= Seq(
     "-unchecked",
     "-encoding", "UTF-8",       // yes, this is 2 args
     "-Xfatal-warnings",
+    "-Xlint",
     "-Xfuture",
     "-Ywarn-unused-import"
 )

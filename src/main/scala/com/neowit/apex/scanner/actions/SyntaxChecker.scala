@@ -48,7 +48,7 @@ class SyntaxChecker {
 
         def onFileCheckResult(result: FileScanResult):Unit = {
             val sourceFile = result.sourceFile
-            val fileName = result.sourceFile.getName(sourceFile.getNameCount-1).toString
+            //val fileName = result.sourceFile.getName(sourceFile.getNameCount-1).toString
             val res = SyntaxCheckResult(sourceFile, result.errors)
             resultBuilder += res
             onEachResult(result)

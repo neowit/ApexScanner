@@ -36,7 +36,7 @@ import scala.collection.mutable
 case class Project(path: Path) {
     private var _stdLib: Option[StandardLibrary] = None
 
-    private var _containerByQName = new mutable.HashMap[QualifiedName, AstNode with HasQualifiedName]()
+    private val _containerByQName = new mutable.HashMap[QualifiedName, AstNode with HasQualifiedName]()
 
     def getStandardLibrary: StandardLibrary = {
         _stdLib match {

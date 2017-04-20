@@ -134,7 +134,7 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
     private def resolveTailDefinitions(container: AstNode with IsTypeDefinition, expressionsToResolve: Seq[AbstractExpression] ): Seq[AstNode] = {
 
         def _resolveTailDefinitions(container: AstNode with IsTypeDefinition, expressionsToResolve: Seq[AbstractExpression],
-                                    resolvedExpressions: Seq[AstNode] = Seq.empty): Seq[AstNode] = {
+                                    resolvedExpressions: Seq[AstNode]): Seq[AstNode] = {
 
             if (expressionsToResolve.isEmpty) {
                 resolvedExpressions
