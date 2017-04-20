@@ -1,8 +1,8 @@
-public virtual class MyClass {
+public virtual class TypeFinder {
     
     private String str; //result of findClassVariableType
     private Boolean bool; //result of findClassVariableTypeWithThis
-    private MyClass classInstance;
+    private TypeFinder classInstance;
 
     public virtual void methodToCall() {
         System.debug('Writing some text.');

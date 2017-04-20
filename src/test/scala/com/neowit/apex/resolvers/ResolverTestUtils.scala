@@ -32,11 +32,14 @@ import com.neowit.apex.nodes.AstNode
   */
 object ResolverTestUtils extends TestConfigProvider{
 
-    def withPathProperty(pathKey: String)(codeBlock: (String, Path, AstNode) => Any): Unit = {
-        val filePath = getProperty("AscendingDefinitionFinderTest.testFindDefinition.path")
+    /*
+    def withPathProperty(pathKey: String)(codeBlock: (String, Path, AstNode, Project) => Any): Unit = {
+        // pathKey = "AscendingDefinitionFinderTest.testFindDefinition.path"
+        val filePath = getProperty(pathKey)
         val path = FileSystems.getDefault.getPath(filePath)
 
-        val astBuilder = new AstBuilder(Project(path))
+        val project = Project(path)
+        val astBuilder = new AstBuilder(project)
         astBuilder.build(path)
 
         astBuilder.getAst(path) match {
@@ -48,7 +51,33 @@ object ResolverTestUtils extends TestConfigProvider{
 
             case Some(result) =>
                 val rootNode = result.rootNode
-                codeBlock(filePath, path, rootNode)
+                codeBlock(filePath, path, rootNode, project)
         }
     }
+    */
+
+    def getResolverTestData(pathKey: String, existingProject: Option[Project] = None): ResolverTestData = {
+        // pathKey = "AscendingDefinitionFinderTest.testFindDefinition.path"
+        val filePath = getProperty(pathKey)
+        val path = FileSystems.getDefault.getPath(filePath)
+
+        val project = existingProject.getOrElse(Project(path))
+        val astBuilder = new AstBuilder(project)
+        astBuilder.build(path)
+
+        astBuilder.getAst(path) match {
+            case None =>
+            // do nothing
+                ResolverTestData(filePath, path, rootNode = None, project)
+            case Some(result) if result.fileScanResult.errors.nonEmpty =>
+                println("ERRORS ENCOUNTERED")
+                result.fileScanResult.errors.foreach(println(_))
+                throw new RuntimeException("Syntax errors encountered while parsing: " + pathKey)
+            case Some(result) =>
+                val rootNode = result.rootNode
+                ResolverTestData(filePath, path, Option(rootNode), project)
+        }
+
+    }
 }
+case class ResolverTestData(filePath: String, path: Path, rootNode: Option[AstNode], project: Project)
