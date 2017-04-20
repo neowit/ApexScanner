@@ -31,5 +31,9 @@ import com.neowit.apex.stdlib.nodes.StdLibNode
   * Created by Andrey Gavrikov 
   */
 class StdLibLocal(path: Path) extends StandardLibrary {
-    override def findChild(name: QualifiedName): Option[StdLibNode] = ???
+    override def findChild(name: QualifiedName): Option[StdLibNode] = {
+        println("Checking StdLib type: " + name)
+        //TODO - implement StdLib nodes
+        None
+    }
 }

@@ -35,10 +35,10 @@ class FindMethodUsagesVisitorTest extends FunSuite with TestConfigProvider {
         override def qualifiedName: QualifiedName = QualifiedName(Array(typeName))
     }
 
-    test("testMethodUsages") {
+    test("Find MethodUsages") {
         val testFileData = ResolverTestUtils.getResolverTestData("FindMethodUsagesVisitorTest.testFindUsages.path")
 
-        val testTag = "#result"
+        val testTag = "#findMethodUsages_result#"
         val lineNos = getLineNoByTag(testFileData.path, testTag)
         assert(lineNos.nonEmpty, s"Invalid test data, expected to find line(s) with tag: $testTag in file: " + testFileData.filePath)
 
