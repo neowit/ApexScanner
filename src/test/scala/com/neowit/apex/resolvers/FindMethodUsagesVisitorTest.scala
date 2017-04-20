@@ -21,10 +21,9 @@
 
 package com.neowit.apex.resolvers
 
-import java.nio.file.FileSystems
 
-import com.neowit.apex.{Project, TestConfigProvider}
-import com.neowit.apex.ast.{AstBuilder, AstWalker, QualifiedName}
+import com.neowit.apex.TestConfigProvider
+import com.neowit.apex.ast.{AstWalker, QualifiedName}
 import com.neowit.apex.nodes.ValueType
 import org.scalatest.FunSuite
 
@@ -37,39 +36,26 @@ class FindMethodUsagesVisitorTest extends FunSuite with TestConfigProvider {
     }
 
     test("testMethodUsages") {
-        val filePath = getProperty("FindMethodUsagesVisitorTest.testFindUsages.path")
-        val path = FileSystems.getDefault.getPath(filePath)
+        val testFileData = ResolverTestUtils.getResolverTestData("FindMethodUsagesVisitorTest.testFindUsages.path")
 
-        val lineNos = getLineNoByTag(path, "#result")
-        assert(lineNos.nonEmpty, "Invalid test data, expected to find line(s) with tag: #result in file: " + filePath)
+        val testTag = "#result"
+        val lineNos = getLineNoByTag(testFileData.path, testTag)
+        assert(lineNos.nonEmpty, s"Invalid test data, expected to find line(s) with tag: $testTag in file: " + testFileData.filePath)
 
-        val astBuilder = new AstBuilder(Project(path))
-        astBuilder.build(path)
+        val findMethodVisitor = new FindMethodVisitor(QualifiedName(Array("method2")), List(ValueTypeForTest("integer"), ValueTypeForTest("list", Seq(ValueTypeForTest("String")))))
+        new AstWalker().walk(testFileData.rootNode.get, findMethodVisitor)
+        findMethodVisitor.getFoundMethod match {
+            case Some(methodNode) =>
+                val findUsagesVisitor = new FindMethodUsagesVisitor(methodNode)
+                new AstWalker().walk(testFileData.rootNode.get, findUsagesVisitor)
+                val results = findUsagesVisitor.getResult
+                results.foreach(methodCallNode => println("FOUND: " + methodCallNode))
+                val foundLines = results.map(_.range.start.line)
+                // check if there is exist a result line which does not match expected line
+                assertResult(lineNos.length, "Number of expected and found results does not match")(foundLines.intersect(lineNos).length)
 
-        astBuilder.getAst(path) match {
             case None =>
-            // do nothing
-            case Some(result) if result.fileScanResult.errors.nonEmpty =>
-                println("ERRORS ENCOUNTERED")
-                result.fileScanResult.errors.foreach(println(_))
-
-            case Some(result) =>
-                val rootNode = result.rootNode
-                val findMethodVisitor = new FindMethodVisitor(QualifiedName(Array("method2")), List(ValueTypeForTest("integer"), ValueTypeForTest("list", Seq(ValueTypeForTest("String")))))
-                new AstWalker().walk(rootNode, findMethodVisitor)
-                findMethodVisitor.getFoundMethod match {
-                    case Some(methodNode) =>
-                        val findUsagesVisitor = new FindMethodUsagesVisitor(methodNode)
-                        new AstWalker().walk(rootNode, findUsagesVisitor)
-                        val results = findUsagesVisitor.getResult
-                        results.foreach(methodCallNode => println("FOUND: " + methodCallNode))
-                        val foundLines = results.map(_.range.start.line)
-                        // check if there is exist a result line which does not match expected line
-                        assertResult(lineNos.length, "Number of expected and found results does not match")(foundLines.intersect(lineNos).length)
-
-                    case None =>
-                        assert(false, "NO USAGES FOUND")
-                }
+                assert(false, "Method not found ")
         }
     }
 
