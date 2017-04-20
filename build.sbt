@@ -18,7 +18,8 @@ scalacOptions ++= Seq(
     "-Ywarn-numeric-widen",
     "-Ywarn-value-discard",
     "-Xfuture",
-    "-Ywarn-unused-import"
+    "-Ywarn-unused-import",
+    "-Ywarn-dead-code"
 )
 // disable generation of scala-<version> folders, we do not need cross compilation
 crossPaths := false

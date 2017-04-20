@@ -23,12 +23,13 @@ package com.neowit.apex.nodes
 
 trait VariableLike extends AstNode with HasApexDoc with IsTypeDefinition {
 
-    def annotations: Seq[AnnotationNode] = getChildrenInAst(AnnotationNodeType).map(_.asInstanceOf[AnnotationNode])
-    def modifiers: Set[ModifierNode] = getChildrenInAst(ModifierNodeType).map(_.asInstanceOf[ModifierNode]).toSet
-    def name: Option[String] = getChildInAst[IdentifierNode](IdentifierNodeType).map(_.name)
-    def dataType: Option[ValueType] = getChildrenInAst(DataTypeNodeType).headOption.map(_.asInstanceOf[ValueType])
-    def initExpression: Option[ExpressionStatementNode] = getChildrenInAst(ExpressionNodeType).headOption.map(_.asInstanceOf[ExpressionStatementNode])
+    def annotations: Seq[AnnotationNode] = getChildrenInAst[AnnotationNode](AnnotationNodeType)
 
-    override def getApexDoc: Option[DocNode] = getChildrenInAst(DocNodeType).map(_.asInstanceOf[DocNode]).headOption
+    def modifiers: Set[ModifierNode] = getChildrenInAst[ModifierNode](ModifierNodeType).toSet
+    def name: Option[String] = getChildInAst[IdentifierNode](IdentifierNodeType).map(_.name)
+    //def dataType: Option[ValueType] = getChildrenInAst(DataTypeNodeType).headOption.map(_.asInstanceOf[ValueType])
+    def initExpression: Option[ExpressionStatementNode] = getChildrenInAst[ExpressionStatementNode](ExpressionNodeType).headOption
+
+    override def getApexDoc: Option[DocNode] = getChildrenInAst[DocNode](DocNodeType).headOption
 }
 
