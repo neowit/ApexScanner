@@ -36,3 +36,10 @@ libraryDependencies += "org.antlr" %  "antlr4-runtime" % "4.7"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 
+val circeVersion = "0.7.0"
+
+libraryDependencies ++= Seq(
+    "io.circe" %% "circe-core",
+    "io.circe" %% "circe-generic",
+    "io.circe" %% "circe-parser"
+).map(_ % circeVersion)

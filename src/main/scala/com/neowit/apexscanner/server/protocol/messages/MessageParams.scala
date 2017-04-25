@@ -19,35 +19,9 @@
  *
  */
 
-package com.neowit.apexscanner.protocol.lsp
-
-//import java.io.{InputStream, OutputStream}
+package com.neowit.apexscanner.server.protocol.messages
 
 /**
   * Created by Andrey Gavrikov 
   */
-trait LanguageServer {
-    def shutdown(): Unit
-
-    def getHandler(messageIn: String): MessageHandler = {
-        messageIn match {
-            case "initialize" =>
-                val h: MessageHandler = ( messageIn: String) => "initialize"
-                h
-            case "shutdown" =>
-                val h: MessageHandler = ( messageIn: String) => {
-                    shutdown()
-                    "shutdown"
-                }
-                h
-            case _ =>
-                val h: MessageHandler = ( messageIn: String) => s"Message not supported: $messageIn"
-                h
-        }
-    }
-
-}
-
-trait MessageHandler {
-    def handle(messageIn: String): String
-}
+trait MessageParams

@@ -19,47 +19,68 @@
  *
  */
 
-package com.neowit.apexscanner.protocol.lsp
+package com.neowit.apexscanner.server
 
+import java.io.{InputStream, OutputStream}
+import java.net.{ServerSocket, Socket}
 import java.util.concurrent.{ExecutorService, Executors}
 
+import com.neowit.apexscanner.server.protocol.LanguageServer
+
+
 /**
-  * Created by Andrey Gavrikov 
+  * Created by Andrey Gavrikov
   */
-object StdinOutServer {
+object SocketServer {
     def main(args: Array[String]): Unit = {
-        val server = new StdinOutServer(2)
-        server.run()
+        val server = new SocketServer(65001, 2)
+        server.start()
     }
 
 }
 // see also: https://twitter.github.io/scala_school/concurrency.html#executor for socket server example
-class StdinOutServer(poolSize: Int) extends LanguageServer {
+class SocketServer(port: Int, poolSize: Int) {
+    val serverSocket = new ServerSocket(port)
     private val pool: ExecutorService = Executors.newFixedThreadPool(poolSize)
 
-    def run(): Unit = {
+    def start(): Unit = {
         try {
             while (true) {
                 // This will block until a connection comes in.
-                val msg = scala.io.StdIn.readLine()
-                pool.execute(new SingleMessageProcessor(msg, getHandler(msg)))
+                val socket = serverSocket.accept()
+                pool.execute(new SocketLanguageServer(socket))
             }
         } finally {
             shutdown()
         }
     }
 
-    override def shutdown(): Unit = {
+    def shutdown(): Unit = {
         if (!pool.isShutdown)
             pool.shutdown()
     }
 }
 
-class SingleMessageProcessor(val messageIn: String, handler: MessageHandler) extends Runnable {
-
+class SocketLanguageServer(socket: Socket) extends Runnable with LanguageServer {
+    private val inStream: InputStream = socket.getInputStream
+    private val outStream: OutputStream = socket.getOutputStream
+    private val reader = new MessageReader(inStream)
+    private val writer = new MessageWriter(outStream)
+    //def message = (Thread.currentThread.getName() + "\n").getBytes
     def run(): Unit = {
-        println("Received: " + messageIn)
+        reader.read().foreach{message =>
+            println("Received:")
+            println(message)
+            process(message) match {
+              case Some(response) =>
+                  writer.write(response)
+              case None =>
+            }
 
-        println("Result: " + handler.handle(messageIn))
+        }
+    }
+
+    override def shutdown(): Unit = {
+        socket.close()
     }
 }
