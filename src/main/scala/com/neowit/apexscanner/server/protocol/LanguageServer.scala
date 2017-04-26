@@ -47,7 +47,9 @@ trait LanguageServer {
                 //A processed notification message must not send a response back. They work like events.
                 //TODO
                 None
-
+            case m @ NotificationMessage("initialized", _) =>
+                //initialized is a notification and does not require a response
+                None
             case NotificationMessage(_, _) =>
                 //A processed notification message must not send a response back. They work like events.
                 //TODO

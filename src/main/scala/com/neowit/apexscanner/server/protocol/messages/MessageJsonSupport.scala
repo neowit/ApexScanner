@@ -27,6 +27,7 @@ import io.circe._, io.circe.generic.semiauto._
   */
 trait MessageJsonSupport {
     implicit val RequestMessageDecoder: Decoder[RequestMessage] = deriveDecoder
+    implicit val NotificationMessageDecoder: Decoder[NotificationMessage] = deriveDecoder
 
     implicit val CompletionOptionsEncoder: Encoder[CompletionOptions] = deriveEncoder
     implicit val SignatureHelpOptionsEncoder: Encoder[SignatureHelpOptions] = deriveEncoder
