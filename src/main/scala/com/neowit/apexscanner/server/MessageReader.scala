@@ -31,31 +31,42 @@ import io.circe.parser._
   */
 class MessageReader (in: InputStream) extends MessageJsonSupport {
     private val reader = new BufferedReader(new InputStreamReader(in))
+    private var isClosed = false
+    def isStreamClosed: Boolean = isClosed
 
     private def readRaw(): String = {
         val headerStr = reader.readLine()
-        MessageHeader.parse(headerStr) match {
-            case Some(ContentLengthHeader(len)) =>
-                // have to skip 2 bytes because of additional '\r\n'
-                // see: https://github.com/Microsoft/language-server-protocol/blob/master/protocol.md#header-part
-                reader.skip(2)
-                // read the rest of the message
-                val data = new Array[Char](len)
-                reader.read(data)
-                data.mkString
-            case Some(ContentTypeHeader(contentType)) =>
-                println(headerStr)
-                ???
-            case _ =>
-                println("fallback header route: " + headerStr)
-                headerStr
+        if (null == headerStr) {
+            isClosed = true
+            println("Looks like Input Stream is closed")
+            headerStr
+        } else {
+            MessageHeader.parse(headerStr) match {
+                case Some(ContentLengthHeader(len)) =>
+                    // have to skip 2 bytes because of additional '\r\n'
+                    // see: https://github.com/Microsoft/language-server-protocol/blob/master/protocol.md#header-part
+                    reader.skip(2)
+                    // read the rest of the message
+                    val data = new Array[Char](len)
+                    reader.read(data)
+                    data.mkString
+                case Some(ContentTypeHeader(contentType)) =>
+                    println(headerStr)
+                    ???
+                case _ =>
+                    println("fallback header route: " + headerStr)
+                    headerStr
 
+            }
         }
     }
 
     def read(): Seq[Message] = {
         val jsonStr = readRaw()
-        if (null != jsonStr && jsonStr.nonEmpty) {
+        if (isClosed) {
+            isClosed = true
+            Seq.empty
+        } else {
             parse(jsonStr) match {
                 case Left(failure) =>
                     println(failure.message)
@@ -78,8 +89,6 @@ class MessageReader (in: InputStream) extends MessageJsonSupport {
                             Seq.empty
                     }
             }
-        } else {
-            Seq.empty
         }
     }
 }
