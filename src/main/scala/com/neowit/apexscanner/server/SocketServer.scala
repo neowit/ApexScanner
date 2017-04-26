@@ -69,6 +69,7 @@ class SocketLanguageServer(socket: Socket) extends Runnable with LanguageServer 
     //def message = (Thread.currentThread.getName() + "\n").getBytes
     def run(): Unit = {
         while (!reader.isStreamClosed) {
+        while (!reader.isStreamClosed && !socket.isClosed) {
             reader.read().foreach{message =>
                 println("Received:")
                 println(message)
