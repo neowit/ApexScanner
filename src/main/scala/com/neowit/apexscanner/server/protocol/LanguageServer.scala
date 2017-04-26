@@ -37,20 +37,20 @@ trait LanguageServer {
         message match {
             case RequestMessage(id, "initialize") =>
                 val error = ResponseError(ErrorCodes.MethodNotFound, s"Message not supported: $message")
-                val msg = ResponseMessage(id = 0, result = None, error = Option(error))
+                val msg = ResponseMessage(id, result = None, error = Option(error))
                 Option(msg)
-            case RequestMessage(id, "shutdown") =>
+            case RequestMessage(_, "shutdown") =>
                 shutdown()
                 None
             case NotificationMessage("cancelRequest", _) =>
-                val error = ResponseError(ErrorCodes.MethodNotFound, s"Message not supported: $message")
-                val msg = ResponseMessage(id = 0, result = None, error = Option(error))
-                Option(msg)
+                //A processed notification message must not send a response back. They work like events.
+                //TODO
+                None
 
             case NotificationMessage(_, _) =>
-                val error = ResponseError(ErrorCodes.MethodNotFound, s"Message not supported: $message")
-                val msg = ResponseMessage(id = 0, result = None, error = Option(error))
-                Option(msg)
+                //A processed notification message must not send a response back. They work like events.
+                //TODO
+                None
             case _ =>
                 val error = ResponseError(ErrorCodes.MethodNotFound, s"Message not supported: $message")
                 val msg = ResponseMessage(id = 0, result = None, error = Option(error))

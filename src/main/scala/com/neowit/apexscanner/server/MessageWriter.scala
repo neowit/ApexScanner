@@ -24,7 +24,7 @@ package com.neowit.apexscanner.server
 import java.io.OutputStream
 import java.nio.charset.Charset
 
-import com.neowit.apexscanner.server.protocol.ContentLengthHeader
+import com.neowit.apexscanner.server.protocol.{ContentLengthHeader, MessageHeader}
 import io.circe.syntax._
 import com.neowit.apexscanner.server.protocol.messages.{MessageJsonSupport, ResponseMessage}
 
@@ -37,13 +37,19 @@ class MessageWriter(out: OutputStream) extends MessageJsonSupport {
         val jsonString = msg.asJson.noSpaces
         val payloadBytes = jsonString.getBytes(MessageWriter.Utf8Charset)
         // write header
-        out.write(ContentLengthHeader(payloadBytes.length).toString.getBytes(AsciiCharset))
+        writeHeader(ContentLengthHeader(payloadBytes.length))
+        // write main payload (it must be separated from headers by extra "\n\r" sequence)
+        out.write("\r\n".getBytes(AsciiCharset))
         out.write(payloadBytes)
     }
 
+    private def writeHeader(header: MessageHeader): Unit = {
+        out.write(header.toString.getBytes(AsciiCharset))
+        out.write("\r\n".getBytes(AsciiCharset))
+    }
 }
 object MessageWriter {
-    val AsciiCharset = Charset.forName("ASCII")
-    val Utf8Charset = Charset.forName("UTF-8")
+    val AsciiCharset: Charset = Charset.forName("ASCII")
+    val Utf8Charset: Charset = Charset.forName("UTF-8")
 
 }
