@@ -68,16 +68,18 @@ class SocketLanguageServer(socket: Socket) extends Runnable with LanguageServer 
     private val writer = new MessageWriter(outStream)
     //def message = (Thread.currentThread.getName() + "\n").getBytes
     def run(): Unit = {
-        reader.read().foreach{message =>
-            println("Received:")
-            println(message)
+        while (!socket.isInputShutdown) {
+            reader.read().foreach{message =>
+                println("Received:")
+                println(message)
 
-            process(message) match {
-              case Some(response) =>
-                  writer.write(response)
-              case None =>
+                process(message) match {
+                    case Some(response) =>
+                        writer.write(response)
+                    case None =>
+                }
+
             }
-
         }
     }
 

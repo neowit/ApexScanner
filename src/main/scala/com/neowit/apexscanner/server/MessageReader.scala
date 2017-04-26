@@ -24,7 +24,7 @@ package com.neowit.apexscanner.server
 import java.io.{BufferedReader, InputStream, InputStreamReader}
 
 import com.neowit.apexscanner.server.protocol.{ContentLengthHeader, ContentTypeHeader, MessageHeader}
-import com.neowit.apexscanner.server.protocol.messages.{Message, MessageJsonSupport, RequestMessage}
+import com.neowit.apexscanner.server.protocol.messages.{Message, MessageJsonSupport, NotificationMessage, RequestMessage}
 import io.circe.parser._
 /**
   * Created by Andrey Gavrikov 
@@ -43,32 +43,43 @@ class MessageReader (in: InputStream) extends MessageJsonSupport {
                 val data = new Array[Char](len)
                 reader.read(data)
                 data.mkString
-            case Some(ContentTypeHeader(contentType)) => ???
-            case _ => ???
+            case Some(ContentTypeHeader(contentType)) =>
+                println(headerStr)
+                ???
+            case _ =>
+                println("fallback header route: " + headerStr)
+                headerStr
+
         }
     }
 
     def read(): Seq[Message] = {
         val jsonStr = readRaw()
-        parse(jsonStr) match {
-            case Left(failure) =>
-                println(failure.message)
-                Seq.empty
-            case Right(json) =>
-                json.as[RequestMessage] match {
-                    case Right(msg) => Seq(msg)
-                    case Left(failure)  =>
-                        println(failure.message)
-                        Seq.empty
-                }
-                /*
-                json.asObject match {
-                  case Some(jsonObject) =>
-                      val valueMap = jsonObject.toMap
-                      println(valueMap)
-                  case None =>
-                }
-                */
+        if (null != jsonStr && jsonStr.nonEmpty) {
+            parse(jsonStr) match {
+                case Left(failure) =>
+                    println(failure.message)
+                    Seq.empty
+                case Right(json) =>
+
+                    val decoderResult =
+                        if (json.asObject.exists(_.fieldSet.contains("id"))) {
+                            json.as[RequestMessage]
+                        } else {
+                            json.as[NotificationMessage]
+                        }
+
+                    decoderResult match {
+                        case Right(msg) => Seq(msg)
+                        case Left(failure)  =>
+                            println("Failed to parse request")
+                            println(jsonStr)
+                            println(failure.message)
+                            Seq.empty
+                    }
+            }
+        } else {
+            Seq.empty
         }
     }
 }
