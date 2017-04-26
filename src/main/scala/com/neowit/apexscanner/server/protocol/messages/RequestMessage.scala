@@ -21,10 +21,12 @@
 
 package com.neowit.apexscanner.server.protocol.messages
 
+import io.circe.Json
+
 /**
   * Created by Andrey Gavrikov 
   */
-case class RequestMessage(id: Int, method: String/*, params: Option[MessageParams]*/) extends Message
+case class RequestMessage(id: Int, method: String, params: Option[Json]) extends Message
 
 
 

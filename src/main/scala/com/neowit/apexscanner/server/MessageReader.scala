@@ -25,10 +25,7 @@ import java.io.{BufferedReader, InputStream, InputStreamReader}
 
 import com.neowit.apexscanner.server.protocol.{ContentLengthHeader, ContentTypeHeader, MessageHeader}
 import com.neowit.apexscanner.server.protocol.messages.{Message, MessageJsonSupport, RequestMessage}
-import io.circe._
-//import io.circe.generic.auto._
 import io.circe.parser._
-//import io.circe.syntax._
 /**
   * Created by Andrey Gavrikov 
   */
@@ -58,7 +55,6 @@ class MessageReader (in: InputStream) extends MessageJsonSupport {
                 println(failure.message)
                 Seq.empty
             case Right(json) =>
-                prettyPrint(json)
                 json.as[RequestMessage] match {
                     case Right(msg) => Seq(msg)
                     case Left(failure)  =>
@@ -74,11 +70,6 @@ class MessageReader (in: InputStream) extends MessageJsonSupport {
                 }
                 */
         }
-    }
-
-    private def prettyPrint(json: Json): Unit = {
-        //val pretty = decode[RequestMessage](raw.asJson.spaces4)
-        println(json.spaces4)
     }
 }
 

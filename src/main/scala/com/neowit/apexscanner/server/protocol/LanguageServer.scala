@@ -21,6 +21,7 @@
 
 package com.neowit.apexscanner.server.protocol
 
+import com.neowit.apexscanner.server.handlers.InitializeHandler
 import com.neowit.apexscanner.server.protocol.messages._
 
 /**
@@ -35,11 +36,11 @@ trait LanguageServer {
 
     def process(message: Message): Option[ResponseMessage] = {
         message match {
-            case RequestMessage(id, "initialize") =>
-                val error = ResponseError(ErrorCodes.MethodNotFound, s"Message not supported: $message")
-                val msg = ResponseMessage(id, result = None, error = Option(error))
+            case m @ RequestMessage(id, "initialize", initializeParams) =>
+                val handler = new InitializeHandler()
+                val msg = handler.handle(m)
                 Option(msg)
-            case RequestMessage(_, "shutdown") =>
+            case RequestMessage(_, "shutdown", None) =>
                 shutdown()
                 None
             case NotificationMessage("cancelRequest", _) =>
@@ -59,8 +60,4 @@ trait LanguageServer {
         }
     }
 
-}
-
-trait MessageHandler {
-    def handle(messageIn: Message): String
 }

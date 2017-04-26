@@ -19,21 +19,13 @@
  *
  */
 
-package com.neowit.apexscanner.server.protocol.messages
+package com.neowit.apexscanner.server.handlers
 
-import io.circe._, io.circe.generic.semiauto._
+import com.neowit.apexscanner.server.protocol.messages.{RequestMessage, ResponseMessage}
+
 /**
   * Created by Andrey Gavrikov 
   */
-trait MessageJsonSupport {
-    implicit val RequestMessageDecoder: Decoder[RequestMessage] = deriveDecoder
-
-    implicit val CompletionOptionsEncoder: Encoder[CompletionOptions] = deriveEncoder
-    implicit val SignatureHelpOptionsEncoder: Encoder[SignatureHelpOptions] = deriveEncoder
-    implicit val CodeLensOptionsEncoder: Encoder[CodeLensOptions] = deriveEncoder
-    implicit val DocumentOnTypeFormattingOptionsEncoder: Encoder[DocumentOnTypeFormattingOptions] = deriveEncoder
-    implicit val ServerCapabilitiesEncoder: Encoder[ServerCapabilities] = deriveEncoder
-
-    implicit val ResponseErrorEncoder: Encoder[ResponseError] = deriveEncoder
-    implicit val ResponseMessageEncoder: Encoder[ResponseMessage] = deriveEncoder
+trait MessageHandler {
+    def handle(messageIn: RequestMessage): ResponseMessage
 }

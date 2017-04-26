@@ -24,5 +24,5 @@ package com.neowit.apexscanner.server.protocol.messages
 /**
   * Created by Andrey Gavrikov 
   */
-case class NotificationMessage (method: String, params: Any) extends Message
+case class NotificationMessage[T](method: String, params: Option[T]) extends Message
 

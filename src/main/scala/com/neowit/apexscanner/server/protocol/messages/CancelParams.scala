@@ -21,19 +21,14 @@
 
 package com.neowit.apexscanner.server.protocol.messages
 
-import io.circe._, io.circe.generic.semiauto._
 /**
   * Created by Andrey Gavrikov 
   */
-trait MessageJsonSupport {
-    implicit val RequestMessageDecoder: Decoder[RequestMessage] = deriveDecoder
 
-    implicit val CompletionOptionsEncoder: Encoder[CompletionOptions] = deriveEncoder
-    implicit val SignatureHelpOptionsEncoder: Encoder[SignatureHelpOptions] = deriveEncoder
-    implicit val CodeLensOptionsEncoder: Encoder[CodeLensOptions] = deriveEncoder
-    implicit val DocumentOnTypeFormattingOptionsEncoder: Encoder[DocumentOnTypeFormattingOptions] = deriveEncoder
-    implicit val ServerCapabilitiesEncoder: Encoder[ServerCapabilities] = deriveEncoder
+/**
+  * part of cancelRequest notification
+  * @param id The request id to cancel.
+  */
+case class CancelParams(id: Int) {
 
-    implicit val ResponseErrorEncoder: Encoder[ResponseError] = deriveEncoder
-    implicit val ResponseMessageEncoder: Encoder[ResponseMessage] = deriveEncoder
 }

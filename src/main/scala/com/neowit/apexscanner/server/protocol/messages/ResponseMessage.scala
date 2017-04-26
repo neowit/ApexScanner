@@ -21,7 +21,9 @@
 
 package com.neowit.apexscanner.server.protocol.messages
 
+import io.circe.Json
+
 /**
   * Created by Andrey Gavrikov 
   */
-case class ResponseMessage(id: Int, result: Option[String], error: Option[ResponseError]) extends Message
+case class ResponseMessage(id: Int, result: Option[Json], error: Option[ResponseError]) extends Message

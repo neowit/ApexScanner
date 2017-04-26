@@ -71,6 +71,7 @@ class SocketLanguageServer(socket: Socket) extends Runnable with LanguageServer 
         reader.read().foreach{message =>
             println("Received:")
             println(message)
+
             process(message) match {
               case Some(response) =>
                   writer.write(response)

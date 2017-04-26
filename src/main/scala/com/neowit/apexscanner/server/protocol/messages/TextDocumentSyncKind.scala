@@ -21,19 +21,26 @@
 
 package com.neowit.apexscanner.server.protocol.messages
 
-import io.circe._, io.circe.generic.semiauto._
 /**
   * Created by Andrey Gavrikov 
   */
-trait MessageJsonSupport {
-    implicit val RequestMessageDecoder: Decoder[RequestMessage] = deriveDecoder
+object TextDocumentSyncKind {
+    /**
+      * Documents should not be synced at all.
+      */
+    final val None = 0
 
-    implicit val CompletionOptionsEncoder: Encoder[CompletionOptions] = deriveEncoder
-    implicit val SignatureHelpOptionsEncoder: Encoder[SignatureHelpOptions] = deriveEncoder
-    implicit val CodeLensOptionsEncoder: Encoder[CodeLensOptions] = deriveEncoder
-    implicit val DocumentOnTypeFormattingOptionsEncoder: Encoder[DocumentOnTypeFormattingOptions] = deriveEncoder
-    implicit val ServerCapabilitiesEncoder: Encoder[ServerCapabilities] = deriveEncoder
+    /**
+      * Documents are synced by always sending the full content
+      * of the document.
+      */
+    final val Full = 1
 
-    implicit val ResponseErrorEncoder: Encoder[ResponseError] = deriveEncoder
-    implicit val ResponseMessageEncoder: Encoder[ResponseMessage] = deriveEncoder
+    /**
+      * Documents are synced by sending the full content on open.
+      * After that only incremental updates to the document are
+      * send.
+      */
+    final val Incremental = 2
 }
+

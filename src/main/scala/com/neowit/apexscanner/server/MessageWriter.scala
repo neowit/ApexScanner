@@ -41,9 +41,11 @@ class MessageWriter(out: OutputStream) extends MessageJsonSupport {
         // write main payload (it must be separated from headers by extra "\n\r" sequence)
         out.write("\r\n".getBytes(AsciiCharset))
         out.write(payloadBytes)
+        println(jsonString)
     }
 
     private def writeHeader(header: MessageHeader): Unit = {
+        println(header.toString + "\r\n")
         out.write(header.toString.getBytes(AsciiCharset))
         out.write("\r\n".getBytes(AsciiCharset))
     }

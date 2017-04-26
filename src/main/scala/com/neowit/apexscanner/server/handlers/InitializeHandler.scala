@@ -19,21 +19,15 @@
  *
  */
 
-package com.neowit.apexscanner.server.protocol.messages
-
-import io.circe._, io.circe.generic.semiauto._
+package com.neowit.apexscanner.server.handlers
+import com.neowit.apexscanner.server.protocol.messages._
+import io.circe.syntax._
 /**
   * Created by Andrey Gavrikov 
   */
-trait MessageJsonSupport {
-    implicit val RequestMessageDecoder: Decoder[RequestMessage] = deriveDecoder
-
-    implicit val CompletionOptionsEncoder: Encoder[CompletionOptions] = deriveEncoder
-    implicit val SignatureHelpOptionsEncoder: Encoder[SignatureHelpOptions] = deriveEncoder
-    implicit val CodeLensOptionsEncoder: Encoder[CodeLensOptions] = deriveEncoder
-    implicit val DocumentOnTypeFormattingOptionsEncoder: Encoder[DocumentOnTypeFormattingOptions] = deriveEncoder
-    implicit val ServerCapabilitiesEncoder: Encoder[ServerCapabilities] = deriveEncoder
-
-    implicit val ResponseErrorEncoder: Encoder[ResponseError] = deriveEncoder
-    implicit val ResponseMessageEncoder: Encoder[ResponseMessage] = deriveEncoder
+class InitializeHandler extends MessageHandler with MessageJsonSupport {
+    override def handle(messageIn: RequestMessage): ResponseMessage = {
+        val serverCapabilities = ServerCapabilities()
+        ResponseMessage(messageIn.id, result = Option(serverCapabilities.asJson), error = None)
+    }
 }
