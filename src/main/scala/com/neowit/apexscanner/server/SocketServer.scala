@@ -26,6 +26,7 @@ import java.net.{ServerSocket, Socket}
 import java.util.concurrent.{ExecutorService, Executors}
 
 import com.neowit.apexscanner.server.protocol.LanguageServer
+import com.typesafe.scalalogging.LazyLogging
 
 
 /**
@@ -61,18 +62,17 @@ class SocketServer(port: Int, poolSize: Int) {
     }
 }
 
-class SocketLanguageServer(socket: Socket) extends Runnable with LanguageServer {
+class SocketLanguageServer(socket: Socket) extends Runnable with LanguageServer with LazyLogging {
     private val inStream: InputStream = socket.getInputStream
     private val outStream: OutputStream = socket.getOutputStream
     private val reader = new MessageReader(inStream)
     private val writer = new MessageWriter(outStream)
     //def message = (Thread.currentThread.getName() + "\n").getBytes
     def run(): Unit = {
-        while (!reader.isStreamClosed) {
         while (!reader.isStreamClosed && !socket.isClosed) {
             reader.read().foreach{message =>
-                println("Received:")
-                println(message)
+                logger.debug("Received:")
+                logger.debug(message.toString)
 
                 process(message) match {
                     case Some(response) =>

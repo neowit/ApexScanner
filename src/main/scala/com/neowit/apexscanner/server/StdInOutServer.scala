@@ -25,6 +25,7 @@ package com.neowit.apexscanner.server
 import java.io.{InputStream, OutputStream}
 
 import com.neowit.apexscanner.server.protocol.LanguageServer
+import com.typesafe.scalalogging.LazyLogging
 
 /**
   * Created by Andrey Gavrikov 
@@ -37,12 +38,12 @@ object StdInOutServer {
 
 }
 // see also: https://twitter.github.io/scala_school/concurrency.html#executor for socket server example
-class StdInOutServer(inStream: InputStream, outStream: OutputStream) extends LanguageServer {
+class StdInOutServer(inStream: InputStream, outStream: OutputStream) extends LanguageServer with LazyLogging {
     def start(): Unit = {
         val reader = new MessageReader(inStream)
         val data = reader.read()
-        println("Received:")
-        println(data.mkString)
+        logger.debug("Received:")
+        logger.debug(data.mkString)
     }
 
     override def shutdown(): Unit = {

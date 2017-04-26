@@ -25,11 +25,12 @@ import java.io.{BufferedReader, InputStream, InputStreamReader}
 
 import com.neowit.apexscanner.server.protocol.{ContentLengthHeader, ContentTypeHeader, MessageHeader}
 import com.neowit.apexscanner.server.protocol.messages.{Message, MessageJsonSupport, NotificationMessage, RequestMessage}
+import com.typesafe.scalalogging.LazyLogging
 import io.circe.parser._
 /**
   * Created by Andrey Gavrikov 
   */
-class MessageReader (in: InputStream) extends MessageJsonSupport {
+class MessageReader (in: InputStream) extends MessageJsonSupport with LazyLogging {
     private val reader = new BufferedReader(new InputStreamReader(in))
     private var isClosed = false
     def isStreamClosed: Boolean = isClosed
@@ -38,7 +39,7 @@ class MessageReader (in: InputStream) extends MessageJsonSupport {
         val headerStr = reader.readLine()
         if (null == headerStr) {
             isClosed = true
-            println("Looks like Input Stream is closed")
+            logger.debug("Looks like Input Stream is closed")
             headerStr
         } else {
             MessageHeader.parse(headerStr) match {
@@ -51,10 +52,10 @@ class MessageReader (in: InputStream) extends MessageJsonSupport {
                     reader.read(data)
                     data.mkString
                 case Some(ContentTypeHeader(contentType)) =>
-                    println(headerStr)
+                    logger.debug(headerStr)
                     ???
                 case _ =>
-                    println("fallback header route: " + headerStr)
+                    logger.debug("fallback header route: " + headerStr)
                     headerStr
 
             }
@@ -69,7 +70,7 @@ class MessageReader (in: InputStream) extends MessageJsonSupport {
         } else {
             parse(jsonStr) match {
                 case Left(failure) =>
-                    println(failure.message)
+                    logger.error(failure.message)
                     Seq.empty
                 case Right(json) =>
 
@@ -83,9 +84,9 @@ class MessageReader (in: InputStream) extends MessageJsonSupport {
                     decoderResult match {
                         case Right(msg) => Seq(msg)
                         case Left(failure)  =>
-                            println("Failed to parse request")
-                            println(jsonStr)
-                            println(failure.message)
+                            logger.error("Failed to parse request")
+                            logger.error(jsonStr)
+                            logger.error(failure.message)
                             Seq.empty
                     }
             }

@@ -27,11 +27,12 @@ import java.nio.charset.Charset
 import com.neowit.apexscanner.server.protocol.{ContentLengthHeader, MessageHeader}
 import io.circe.syntax._
 import com.neowit.apexscanner.server.protocol.messages.{MessageJsonSupport, ResponseMessage}
+import com.typesafe.scalalogging.LazyLogging
 
 /**
   * Created by Andrey Gavrikov 
   */
-class MessageWriter(out: OutputStream) extends MessageJsonSupport {
+class MessageWriter(out: OutputStream) extends MessageJsonSupport with LazyLogging {
     import MessageWriter._
     def write(msg: ResponseMessage): Unit = {
         val jsonString = msg.asJson.noSpaces
@@ -41,11 +42,11 @@ class MessageWriter(out: OutputStream) extends MessageJsonSupport {
         // write main payload (it must be separated from headers by extra "\n\r" sequence)
         out.write("\r\n".getBytes(AsciiCharset))
         out.write(payloadBytes)
-        println(jsonString)
+        logger.debug(jsonString)
     }
 
     private def writeHeader(header: MessageHeader): Unit = {
-        println(header.toString + "\r\n")
+        logger.debug(header.toString + "\r\n")
         out.write(header.toString.getBytes(AsciiCharset))
         out.write("\r\n".getBytes(AsciiCharset))
     }

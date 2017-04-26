@@ -36,6 +36,11 @@ libraryDependencies += "org.antlr" %  "antlr4-runtime" % "4.7"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 
+// logging
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.7"
+//libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.21"
+libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0"
+
 val circeVersion = "0.7.0"
 
 libraryDependencies ++= Seq(
