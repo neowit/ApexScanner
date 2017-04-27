@@ -29,6 +29,7 @@ case class ServerCapabilities(
        * Defines how text documents are synced.
        */
      textDocumentSync: Int = TextDocumentSyncKind.Full,
+     //textDocumentSync: TextDocumentSyncOptions = TextDocumentSyncOptions(),
      /**
        * The server provides hover support.
        */

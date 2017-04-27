@@ -37,6 +37,7 @@ class MessageReader (in: InputStream) extends MessageJsonSupport with LazyLoggin
 
     private def readRaw(): String = {
         val headerStr = reader.readLine()
+        logger.debug(headerStr)
         if (null == headerStr) {
             isClosed = true
             logger.debug("Looks like Input Stream is closed")
@@ -50,6 +51,7 @@ class MessageReader (in: InputStream) extends MessageJsonSupport with LazyLoggin
                     // read the rest of the message
                     val data = new Array[Char](len)
                     reader.read(data)
+                    logger.debug(data.mkString)
                     data.mkString
                 case Some(ContentTypeHeader(contentType)) =>
                     logger.debug(headerStr)

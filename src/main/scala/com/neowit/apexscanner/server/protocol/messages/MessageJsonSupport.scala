@@ -33,6 +33,8 @@ trait MessageJsonSupport {
     implicit val SignatureHelpOptionsEncoder: Encoder[SignatureHelpOptions] = deriveEncoder
     implicit val CodeLensOptionsEncoder: Encoder[CodeLensOptions] = deriveEncoder
     implicit val DocumentOnTypeFormattingOptionsEncoder: Encoder[DocumentOnTypeFormattingOptions] = deriveEncoder
+    implicit val SaveOptionsEncoder: Encoder[SaveOptions] = deriveEncoder
+    implicit val TextDocumentSyncOptionsEncoder: Encoder[TextDocumentSyncOptions] = deriveEncoder
     implicit val ServerCapabilitiesEncoder: Encoder[ServerCapabilities] = deriveEncoder
 
     implicit val ResponseErrorEncoder: Encoder[ResponseError] = deriveEncoder
