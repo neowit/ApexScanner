@@ -26,6 +26,7 @@ import java.nio.charset.Charset
 
 import com.neowit.apexscanner.server.protocol.{ContentLengthHeader, MessageHeader}
 import io.circe.syntax._
+import io.circe.Printer
 import com.neowit.apexscanner.server.protocol.messages.{MessageJsonSupport, ResponseMessage}
 import com.typesafe.scalalogging.LazyLogging
 
@@ -35,13 +36,14 @@ import com.typesafe.scalalogging.LazyLogging
 class MessageWriter(out: OutputStream) extends MessageJsonSupport with LazyLogging {
     import MessageWriter._
     def write(msg: ResponseMessage): Unit = {
-        val jsonString = msg.asJson.noSpaces
+        val jsonString = DROP_NULLS_PRINTER.pretty( msg.asJson )
         val payloadBytes = jsonString.getBytes(MessageWriter.Utf8Charset)
         // write header
         writeHeader(ContentLengthHeader(payloadBytes.length))
         // write main payload (it must be separated from headers by extra "\n\r" sequence)
         out.write("\r\n".getBytes(AsciiCharset))
         out.write(payloadBytes)
+        out.flush()
         logger.debug(jsonString)
     }
 
@@ -55,4 +57,8 @@ object MessageWriter {
     val AsciiCharset: Charset = Charset.forName("ASCII")
     val Utf8Charset: Charset = Charset.forName("UTF-8")
 
+    // when serialising JSON omit None values.
+    // By default it results in "key": null which is ugly
+    // https://github.com/circe/circe/issues/585
+    val DROP_NULLS_PRINTER: Printer = Printer.noSpaces.copy(dropNullKeys = true)
 }
