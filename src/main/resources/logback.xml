@@ -1,0 +1,27 @@
+<configuration>
+    <property name="DEV_HOME" value="/Users/andrey/temp" />
+    <appender name="FILE-AUDIT" class="ch.qos.logback.core.FileAppender">
+		<file>${DEV_HOME}/debug.log</file>
+        <encoder>
+          <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
+        </encoder>
+
+	</appender>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoders are assigned the type
+         ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--
+    <root level="warn">
+        <appender-ref ref="STDOUT" />
+    </root>
+    -->
+    <root level="debug">
+        <appender-ref ref="FILE-AUDIT" />
+    </root>
+</configuration>
