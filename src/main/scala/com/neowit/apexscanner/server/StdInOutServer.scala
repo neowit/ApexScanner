@@ -39,6 +39,10 @@ object StdInOutServer {
 }
 // see also: https://twitter.github.io/scala_school/concurrency.html#executor for socket server example
 class StdInOutServer(inStream: InputStream, outStream: OutputStream) extends LanguageServer with LazyLogging {
+    private val reader = new MessageReader(inStream)
+    private val writer = new MessageWriter(outStream)
+
+    /*
     def start(): Unit = {
         val reader = new MessageReader(inStream)
         val data = reader.read()
@@ -49,5 +53,26 @@ class StdInOutServer(inStream: InputStream, outStream: OutputStream) extends Lan
     override def shutdown(): Unit = {
         inStream.close()
         outStream.close()
+    }
+    */
+    def start(): Unit = {
+        logger.debug("Starting StdInOutServer")
+        while (!reader.isStreamClosed) {
+            reader.read().foreach{message =>
+                //logger.debug("Received:")
+                //logger.debug(message.toString)
+
+                process(message) match {
+                    case Some(response) =>
+                        writer.write(response)
+                    case None =>
+                }
+
+            }
+        }
+    }
+    override def shutdown(): Unit = {
+        logger.debug("SHUTDOWN...")
+        sys.exit(0)
     }
 }
