@@ -28,6 +28,6 @@ import io.circe.syntax._
 class InitializeHandler extends MessageHandler with MessageJsonSupport {
     override def handle(messageIn: RequestMessage): ResponseMessage = {
         val serverCapabilities = ServerCapabilities()
-        ResponseMessage(messageIn.id, result = Option(serverCapabilities.asJson), error = None)
+        ResponseMessage(messageIn.id, result = Option(Map("capabilities" -> serverCapabilities.asJson).asJson), error = None)
     }
 }

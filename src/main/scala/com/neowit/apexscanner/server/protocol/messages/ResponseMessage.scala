@@ -26,4 +26,4 @@ import io.circe.Json
 /**
   * Created by Andrey Gavrikov 
   */
-case class ResponseMessage(id: Int, result: Option[Json], error: Option[ResponseError]) extends Message
+case class ResponseMessage(id: Int, result: Option[Json], error: Option[ResponseError], jsonrpc: String = "2.0") extends Message
