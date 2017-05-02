@@ -48,7 +48,9 @@ libraryDependencies ++= Seq(
     "io.circe" %% "circe-generic",
     //"io.circe" %% "circe-optics",
     "io.circe" %% "circe-parser"
-).map(_ % circeVersion)/*
+).map(_ % circeVersion)
+
+/*
 val eclipseLSP4JVersion = "0.2.0.M7"
 
 libraryDependencies ++= Seq(
@@ -57,3 +59,21 @@ libraryDependencies ++= Seq(
     "org.eclipse.lsp4j" % "org.eclipse.lsp4j"
 ).map(_ % eclipseLSP4JVersion)
 */
+
+mainClass in assembly := Some("com.neowit.apexscanner.server.StdInOutServer")
+
+assemblyMergeStrategy in assembly := {
+    case x if x.endsWith(".java") => MergeStrategy.discard
+    case "commands.txt" => MergeStrategy.discard
+    case x if x.endsWith(".g4") => MergeStrategy.discard
+    case x =>
+        val oldStrategy = (assemblyMergeStrategy in assembly).value
+        oldStrategy(x)
+}
+
+//uncomment line below to disable tests during build
+test in assembly := {}
+
+//assemblyOption in assembly ~= { _.copy(includeScala = false) }
+logLevel in assembly := Level.Error
+
