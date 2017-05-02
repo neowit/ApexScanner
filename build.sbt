@@ -48,4 +48,12 @@ libraryDependencies ++= Seq(
     "io.circe" %% "circe-generic",
     //"io.circe" %% "circe-optics",
     "io.circe" %% "circe-parser"
-).map(_ % circeVersion)
+).map(_ % circeVersion)/*
+val eclipseLSP4JVersion = "0.2.0.M7"
+
+libraryDependencies ++= Seq(
+    "org.eclipse.lsp4j" % "org.eclipse.lsp4j.jsonrpc",
+    "org.eclipse.lsp4j" % "org.eclipse.lsp4j.generator",
+    "org.eclipse.lsp4j" % "org.eclipse.lsp4j"
+).map(_ % eclipseLSP4JVersion)
+*/
