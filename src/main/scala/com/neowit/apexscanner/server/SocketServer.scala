@@ -71,8 +71,8 @@ class SocketLanguageServer(socket: Socket) extends Runnable with LanguageServer 
     def run(): Unit = {
         while (!reader.isStreamClosed && !socket.isClosed) {
             reader.read().foreach{message =>
-                logger.debug("Received:")
-                logger.debug(message.toString)
+                //logger.debug("Received:")
+                //logger.debug(message.toString)
 
                 process(message) match {
                     case Some(response) =>
