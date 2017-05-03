@@ -83,9 +83,11 @@ class SocketLanguageServer(socket: Socket) extends Runnable with LanguageServer 
 
             }
         }
+        shutdown()
     }
 
     override def shutdown(): Unit = {
         socket.close()
+        sys.exit(0)
     }
 }

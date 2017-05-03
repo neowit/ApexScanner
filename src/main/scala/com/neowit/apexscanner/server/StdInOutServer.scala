@@ -70,6 +70,7 @@ class StdInOutServer(inStream: InputStream, outStream: OutputStream) extends Lan
 
             }
         }
+        shutdown()
     }
     override def shutdown(): Unit = {
         logger.debug("SHUTDOWN...")
