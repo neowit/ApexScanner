@@ -41,6 +41,9 @@ libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.7"
 //libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.21"
 libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0"
 
+// command line arguments
+libraryDependencies += "com.github.scopt" %% "scopt" % "3.5.0"
+
 val circeVersion = "0.7.0"
 
 libraryDependencies ++= Seq(
@@ -50,7 +53,7 @@ libraryDependencies ++= Seq(
     "io.circe" %% "circe-parser"
 ).map(_ % circeVersion)
 
-mainClass in assembly := Some("com.neowit.apexscanner.server.StdInOutServer")
+mainClass in assembly := Some("com.neowit.apexscanner.server.Main")
 
 assemblyMergeStrategy in assembly := {
     case x if x.endsWith(".java") => MergeStrategy.discard
