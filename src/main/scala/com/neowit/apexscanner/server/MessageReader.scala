@@ -35,7 +35,10 @@ class MessageReader (in: InputStream) extends MessageJsonSupport with LazyLoggin
     private var isClosed = false
     def isStreamClosed: Boolean = isClosed
 
-    private def readRaw(): String = {
+    // protect input stream from concurrent reads by multiple threads
+    private val lock = new Object
+
+    private def readRaw(): String = lock.synchronized {
         val headerStr = reader.readLine()
         logger.debug(headerStr)
         if (null == headerStr) {

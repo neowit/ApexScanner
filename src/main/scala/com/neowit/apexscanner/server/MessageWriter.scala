@@ -35,7 +35,13 @@ import com.typesafe.scalalogging.LazyLogging
   */
 class MessageWriter(out: OutputStream) extends MessageJsonSupport with LazyLogging {
     import MessageWriter._
-    def write(msg: ResponseMessage): Unit = {
+
+    // protect output stream from concurrent writes by multiple threads
+    private val lock = new Object
+    /**
+      * This method can be called from multiple threads so have to block to finish writing.
+      */
+    def write(msg: ResponseMessage): Unit = lock.synchronized {
         val jsonString = DROP_NULLS_PRINTER.pretty( msg.asJson )
         val payloadBytes = jsonString.getBytes(MessageWriter.Utf8Charset)
         // write header
