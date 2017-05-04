@@ -1,25 +1,50 @@
 <configuration>
-    <property name="DEV_HOME" value="/Users/andrey/temp" />
-    <appender name="FILE-AUDIT" class="ch.qos.logback.core.FileAppender">
-		<file>${DEV_HOME}/debug.log</file>
-        <encoder>
-          <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
-        </encoder>
+    <!--
+        configured via JVM properties
+        -Dlog.path=/path/to/file.log
+        -Dlog.level.root=error    #log all events of level INFO
+        -Dlog.level.neowit=debug  #log com.neowit.* events of level DEBUG
+        -Dlog.stdout.enable=true # enable log to STDOUT
+    -->
 
-	</appender>
+    <!--
+        in order to add new log level
+        1. add <define .../> and <logger .../> tags below
+        2. add relevant LogbackConfigPropertyDefiner in com.neowit.LogbackConfigPropertyDefiner.scala
+    -->
+
+    <!-- configuring logback from application.conf:  http://stackoverflow.com/a/27567950 -->
+    <define name="rootLogLevel" class="com.neowit.apexscanner.LogbackConfigPropertyDefinerRoot" />
+    <define name="neowitLogLevel" class="com.neowit.apexscanner.LogbackConfigPropertyDefinerNeowit" />
+    <!--<define name="stdoutLogLevel" class="com.neowit.apexscanner.LogbackConfigPropertyDefinerStdOut" /> -->
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <!-- encoders are assigned the type
-         ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <!-- only events of allowed level can be sent to STDOUT -->
+        <!--
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>${stdoutLogLevel:-error}</level>
+        </filter>
+        -->
+        <!-- control if/when log to STDOUT is allowed -->
+        <filter class="com.neowit.apexscanner.LogbackStdOutFilter" />
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <root level="warn">
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${log.path:-apexscanner.log}</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.neowit" level="${neowitLogLevel:-debug}"/>
+
+    <root level="${rootLogLevel:-info}">
         <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE" />
     </root>
-    <root level="debug">
-        <appender-ref ref="FILE-AUDIT" />
-    </root>
+
 </configuration>
