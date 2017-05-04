@@ -19,11 +19,14 @@
  *
  */
 
-package com.neowit.apexscanner.server.protocol.messages
+package com.neowit.apexscanner.server.handlers
+
+import com.neowit.apexscanner.server.protocol.LanguageServer
+import com.neowit.apexscanner.server.protocol.messages.NotificationMessage
 
 /**
   * Created by Andrey Gavrikov 
   */
-case class ClientCapabilities(workspace: Option[WorkspaceClientCapabilites], textDocument: Option[TextDocumentClientCapabilities]) {
-
+trait NotificationHandler {
+    def handle(server: LanguageServer, messageIn: NotificationMessage): Unit
 }

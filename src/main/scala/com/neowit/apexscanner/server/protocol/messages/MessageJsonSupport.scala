@@ -21,7 +21,9 @@
 
 package com.neowit.apexscanner.server.protocol.messages
 
-import io.circe._, io.circe.generic.semiauto._
+import com.neowit.apexscanner.server.protocol.messages.MessageParams._
+import io.circe._
+import io.circe.generic.semiauto._
 /**
   * Created by Andrey Gavrikov 
   */
@@ -39,4 +41,13 @@ trait MessageJsonSupport {
 
     implicit val ResponseErrorEncoder: Encoder[ResponseError] = deriveEncoder
     implicit val ResponseMessageEncoder: Encoder[ResponseMessage] = deriveEncoder
+
+
+    implicit val WorkspaceClientCapabilitiesDecoder: Decoder[WorkspaceClientCapabilities] = deriveDecoder
+    implicit val TextDocumentClientCapabilitiesDecoder: Decoder[TextDocumentClientCapabilities] = deriveDecoder
+    implicit val ClientCapabilitiesDecoder: Decoder[ClientCapabilities] = deriveDecoder
+    implicit val TextDocumentDecoder: Decoder[TextDocument] = deriveDecoder
+    implicit val TextDocumentIdentifierDecoder: Decoder[TextDocumentIdentifier] = deriveDecoder
+    implicit val InitializeParamsDecoder: Decoder[InitializeParams] = deriveDecoder
+    implicit val DidSaveParamsDecoder: Decoder[DidSaveParams] = deriveDecoder
 }

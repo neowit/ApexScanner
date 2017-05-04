@@ -20,30 +20,31 @@
  */
 
 package com.neowit.apexscanner.server.handlers
+
+
 import com.neowit.apexscanner.server.protocol.LanguageServer
-import com.neowit.apexscanner.server.protocol.messages.MessageParams.InitializeParams
+import com.neowit.apexscanner.server.protocol.messages.MessageParams.DidSaveParams
 import com.neowit.apexscanner.server.protocol.messages._
-import io.circe.syntax._
+
 
 /**
   * Created by Andrey Gavrikov 
   */
-class InitializeHandler extends MessageHandler with MessageJsonSupport {
-    override def handle(server: LanguageServer, messageIn: RequestMessage): Either[ResponseError, ResponseMessage] = {
-        messageIn.params  match {
-          case Some(json) =>
-              json.as[InitializeParams]  match {
-                  case Right(params) =>
-                      // initialise project
-                      server.initialiseProject(params)
-
-                      val serverCapabilities = ServerCapabilities()
-                      Right(ResponseMessage(messageIn.id, result = Option(Map("capabilities" -> serverCapabilities.asJson).asJson), error = None))
-                  case Left(err) =>
-                      Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Error: $err"))
+class DidSaveHandler extends NotificationHandler with MessageJsonSupport {
+    override def handle(server: LanguageServer, messageIn: NotificationMessage): Unit = {
+        messageIn.params match {
+          case Some(params) =>
+              params.as[DidSaveParams] match {
+                case Right(didSaveParams) =>
+                    didSaveParams.textDocument.getPath match {
+                      case Some(filePath) =>
+                      case None =>
+                            // failed to determine file path
+                    }
+                case Left(err) =>
               }
           case None =>
-              Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Missing params."))
         }
     }
 }
+

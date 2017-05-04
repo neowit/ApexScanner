@@ -21,7 +21,43 @@
 
 package com.neowit.apexscanner.server.protocol.messages
 
+import java.nio.file.{Path, Paths}
+
+import io.circe.Json
+
+import scala.util.Try
+
+
 /**
   * Created by Andrey Gavrikov 
   */
-trait MessageParams
+object MessageParams {
+    type DocumentUri = String
+    type LanguageId = String
+
+    /**
+      * part of cancelRequest notification
+      * @param id The request id to cancel.
+      */
+    case class CancelParams(id: Int)
+
+    /**
+      * part of initialize request
+      */
+    case class ClientCapabilities(workspace: Option[WorkspaceClientCapabilities], textDocument: Option[TextDocumentClientCapabilities])
+
+    trait MessageParams
+
+    case class InitializeParams(processId: Int, rootUri: String, trace: String,
+                                capabilities: ClientCapabilities, initializationOptions: Option[Json]) extends MessageParams
+
+    case class TextDocument(uri: DocumentUri, languageId: Option[LanguageId], version: Option[Int], text: Option[String]) {
+        def getPath: Option[Path] = {
+            Try(Paths.get(uri)).toOption
+        }
+    }
+
+    case class TextDocumentIdentifier(uri: DocumentUri)
+
+    case class DidSaveParams(textDocument: TextDocument)
+}

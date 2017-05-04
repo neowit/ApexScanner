@@ -24,11 +24,6 @@ package com.neowit.apexscanner.server.protocol.messages
 /**
   * Created by Andrey Gavrikov 
   */
-
-/**
-  * part of cancelRequest notification
-  * @param id The request id to cancel.
-  */
-case class CancelParams(id: Int) {
+class WorkspaceClientCapabilities {
 
 }

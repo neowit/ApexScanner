@@ -21,11 +21,12 @@
 
 package com.neowit.apexscanner.server.handlers
 
-import com.neowit.apexscanner.server.protocol.messages.{RequestMessage, ResponseMessage}
+import com.neowit.apexscanner.server.protocol.LanguageServer
+import com.neowit.apexscanner.server.protocol.messages.{RequestMessage, ResponseError, ResponseMessage}
 
 /**
   * Created by Andrey Gavrikov 
   */
 trait MessageHandler {
-    def handle(messageIn: RequestMessage): ResponseMessage
+    def handle(server: LanguageServer, messageIn: RequestMessage): Either[ResponseError, ResponseMessage]
 }
