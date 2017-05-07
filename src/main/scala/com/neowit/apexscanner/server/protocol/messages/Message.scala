@@ -25,5 +25,5 @@ package com.neowit.apexscanner.server.protocol.messages
   * Created by Andrey Gavrikov 
   */
 trait Message {
-    //val jsonrpc: String
+    val jsonrpc: String
 }

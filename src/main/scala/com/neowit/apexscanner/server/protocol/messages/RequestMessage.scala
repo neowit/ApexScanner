@@ -26,7 +26,7 @@ import io.circe.Json
 /**
   * Created by Andrey Gavrikov 
   */
-case class RequestMessage(id: Int, method: String, params: Option[Json]) extends Message
+case class RequestMessage(id: Int, method: String, params: Option[Json], jsonrpc: String) extends Message
 
 
 

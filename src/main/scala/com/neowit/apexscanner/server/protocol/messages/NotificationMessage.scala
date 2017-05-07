@@ -26,5 +26,5 @@ import io.circe.Json
 /**
   * Created by Andrey Gavrikov 
   */
-case class NotificationMessage(method: String, params: Option[Json]) extends Message
+case class NotificationMessage(method: String, params: Option[Json], jsonrpc: String = "2.0") extends Message
 
