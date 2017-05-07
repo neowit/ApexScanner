@@ -21,37 +21,57 @@
 
 package com.neowit.apexscanner.server.protocol
 
-import com.neowit.apexscanner.nodes.Range
+import com.neowit.apexscanner.nodes.{Position, Range}
+import com.neowit.apexscanner.scanner.actions.SyntaxError
 
 /**
   * Represents a diagnostic, such as a compiler error or warning.
   * Diagnostic objects are only valid in the scope of a resource.
   */
-trait Diagnostic {
+case class Diagnostic (
     /**
       * The range at which the message applies.
       */
-    val range: Range
+    range: Range,
 
     /**
       * The diagnostic's severity. Can be omitted. If omitted it is up to the
       * client to interpret diagnostics as error, warning, info or hint.
       */
-    val severity: DiagnosticSeverity
+    severity: DiagnosticSeverity,
 
     /**
       * The diagnostic's code. Can be omitted.
       */
-    val code: String
+    code: Option[String],
 
     /**
       * A human-readable string describing the source of this
       * diagnostic, e.g. 'typescript' or 'super lint'.
       */
-    val source: Option[String]
+    source: Option[String],
 
     /**
       * The diagnostic's message.
       */
-    val message: String
+    message: String
+)
+
+object Diagnostic {
+    def apply(syntaxError: SyntaxError): Diagnostic = {
+        val e = syntaxError
+        val line = e.line
+        val col = e.charPositionInLine
+
+        Diagnostic(
+            Range(
+                start = Position(line, col),
+                end = Position(line, col + e.offendingSymbol.toString.length)
+            ),
+            severity = DiagnosticSeverity.Error,
+            code = None,
+            source = Option("Apex Scanner"),
+            message = e.msg
+        )
+    }
 }

@@ -21,6 +21,8 @@
 
 package com.neowit.apexscanner.server.protocol.messages
 
+import com.neowit.apexscanner.nodes.{Position, Range}
+import com.neowit.apexscanner.server.protocol.{Diagnostic, DiagnosticSeverity, PublishDiagnosticsParams}
 import com.neowit.apexscanner.server.protocol.messages.MessageParams._
 import io.circe._
 import io.circe.generic.semiauto._
@@ -30,6 +32,7 @@ import io.circe.generic.semiauto._
 trait MessageJsonSupport {
     implicit val RequestMessageDecoder: Decoder[RequestMessage] = deriveDecoder
     implicit val NotificationMessageDecoder: Decoder[NotificationMessage] = deriveDecoder
+    implicit val NotificationMessageEncoder: Encoder[NotificationMessage] = deriveEncoder
 
     implicit val CompletionOptionsEncoder: Encoder[CompletionOptions] = deriveEncoder
     implicit val SignatureHelpOptionsEncoder: Encoder[SignatureHelpOptions] = deriveEncoder
@@ -50,4 +53,18 @@ trait MessageJsonSupport {
     implicit val TextDocumentIdentifierDecoder: Decoder[TextDocumentIdentifier] = deriveDecoder
     implicit val InitializeParamsDecoder: Decoder[InitializeParams] = deriveDecoder
     implicit val DidSaveParamsDecoder: Decoder[DidSaveParams] = deriveDecoder
+
+    implicit val PositionEncoder: Encoder[Position] = deriveEncoder
+    //implicit val PositionEncoder: Encoder[Position] =
+    //    Encoder.forProduct2("line", "col")(p => (p.line, p.col))
+
+    implicit val RangeEncoder: Encoder[Range] = deriveEncoder
+
+    implicit val DiagnosticSeverityEncoder: Encoder[DiagnosticSeverity] = deriveEncoder
+    //implicit val DiagnosticSeverityEncoder: Encoder[DiagnosticSeverity] =
+    //    Encoder.forProduct1("code")(s => s.code )
+
+    implicit val DiagnosticEncoder: Encoder[Diagnostic] = deriveEncoder
+    implicit val PublishDiagnosticsParamsEncoder: Encoder[PublishDiagnosticsParams] = deriveEncoder
+
 }
