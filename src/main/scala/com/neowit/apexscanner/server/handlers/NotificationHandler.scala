@@ -23,10 +23,20 @@ package com.neowit.apexscanner.server.handlers
 
 import com.neowit.apexscanner.server.protocol.LanguageServer
 import com.neowit.apexscanner.server.protocol.messages.NotificationMessage
+import com.typesafe.scalalogging.LazyLogging
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Created by Andrey Gavrikov 
   */
-trait NotificationHandler {
-    def handle(server: LanguageServer, messageIn: NotificationMessage): Unit
+trait NotificationHandler extends LazyLogging {
+    protected def handleImpl(server: LanguageServer, messageIn: NotificationMessage)(implicit ex: ExecutionContext): Future[Unit]
+
+    def handle(server: LanguageServer, messageIn: NotificationMessage)(implicit ex: ExecutionContext): Future[Unit] = {
+        handleImpl(server, messageIn).recover{
+            case e: Throwable =>
+                logger.error(e.toString)
+        }
+    }
 }

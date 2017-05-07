@@ -26,7 +26,10 @@ import java.net.{ServerSocket, Socket}
 import java.util.concurrent.{ExecutorService, Executors}
 
 import com.neowit.apexscanner.server.protocol.LanguageServer
+import com.neowit.apexscanner.server.protocol.messages.NotificationMessage
 import com.typesafe.scalalogging.LazyLogging
+
+import scala.concurrent.ExecutionContext
 
 
 /**
@@ -64,6 +67,9 @@ class SocketServer(port: Int, poolSize: Int) {
 }
 
 class SocketLanguageServer(socket: Socket) extends Runnable with LanguageServer with LazyLogging {
+    //TODO review method of obtaining ExecutionContext
+    implicit val ex: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+
     private val inStream: InputStream = socket.getInputStream
     private val outStream: OutputStream = socket.getOutputStream
     private val reader = new MessageReader(inStream)
@@ -75,15 +81,20 @@ class SocketLanguageServer(socket: Socket) extends Runnable with LanguageServer 
                 //logger.debug("Received:")
                 //logger.debug(message.toString)
 
-                process(message) match {
-                    case Some(response) =>
+                process(message).map {
+                    case Right(response) =>
                         writer.write(response)
-                    case None =>
+                    case Left(_) =>
                 }
 
             }
         }
         shutdown()
+    }
+
+
+    override def sendNotification(notification: NotificationMessage): Unit = {
+        writer.write(notification)
     }
 
     override def shutdown(): Unit = {

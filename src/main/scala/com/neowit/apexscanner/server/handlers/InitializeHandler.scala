@@ -25,25 +25,29 @@ import com.neowit.apexscanner.server.protocol.messages.MessageParams.InitializeP
 import com.neowit.apexscanner.server.protocol.messages._
 import io.circe.syntax._
 
+import scala.concurrent.{ExecutionContext, Future}
+
 /**
   * Created by Andrey Gavrikov 
   */
 class InitializeHandler extends MessageHandler with MessageJsonSupport {
-    override def handle(server: LanguageServer, messageIn: RequestMessage): Either[ResponseError, ResponseMessage] = {
-        messageIn.params  match {
-          case Some(json) =>
-              json.as[InitializeParams]  match {
-                  case Right(params) =>
-                      // initialise project
-                      server.initialiseProject(params)
+    override protected def handleImpl(server: LanguageServer, messageIn: RequestMessage)(implicit ex: ExecutionContext): Future[Either[ResponseError, ResponseMessage]] = {
+        val result =
+            messageIn.params  match {
+                case Some(json) =>
+                    json.as[InitializeParams]  match {
+                        case Right(params) =>
+                            // initialise project
+                            server.initialiseProject(params)
 
-                      val serverCapabilities = ServerCapabilities()
-                      Right(ResponseMessage(messageIn.id, result = Option(Map("capabilities" -> serverCapabilities.asJson).asJson), error = None))
-                  case Left(err) =>
-                      Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Error: $err"))
-              }
-          case None =>
-              Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Missing params."))
-        }
+                            val serverCapabilities = ServerCapabilities()
+                            Right(ResponseMessage(messageIn.id, result = Option(Map("capabilities" -> serverCapabilities.asJson).asJson), error = None))
+                        case Left(err) =>
+                            Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Error: $err"))
+                    }
+                case None =>
+                    Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Missing params."))
+            }
+        Future.successful(result)
     }
 }

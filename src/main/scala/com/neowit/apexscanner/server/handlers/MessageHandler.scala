@@ -22,11 +22,22 @@
 package com.neowit.apexscanner.server.handlers
 
 import com.neowit.apexscanner.server.protocol.LanguageServer
-import com.neowit.apexscanner.server.protocol.messages.{RequestMessage, ResponseError, ResponseMessage}
+import com.neowit.apexscanner.server.protocol.messages.{ErrorCodes, RequestMessage, ResponseError, ResponseMessage}
+import com.typesafe.scalalogging.LazyLogging
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Created by Andrey Gavrikov 
   */
-trait MessageHandler {
-    def handle(server: LanguageServer, messageIn: RequestMessage): Either[ResponseError, ResponseMessage]
+trait MessageHandler extends LazyLogging {
+    protected def handleImpl(server: LanguageServer, messageIn: RequestMessage)(implicit ex: ExecutionContext): Future[Either[ResponseError, ResponseMessage]]
+
+    def handle(server: LanguageServer, messageIn: RequestMessage)(implicit ex: ExecutionContext): Future[Either[ResponseError, ResponseMessage]] = {
+        handleImpl(server, messageIn).recover{
+            case e: Throwable =>
+                logger.error(e.toString)
+                Left(ResponseError(ErrorCodes.InternalError, e.getMessage))
+        }
+    }
 }

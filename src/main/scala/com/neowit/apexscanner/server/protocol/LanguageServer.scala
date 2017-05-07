@@ -27,16 +27,22 @@ import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.server.handlers.{DidSaveHandler, InitializeHandler}
 import com.neowit.apexscanner.server.protocol.messages.MessageParams.InitializeParams
 import com.neowit.apexscanner.server.protocol.messages._
+import com.typesafe.scalalogging.LazyLogging
 
+import scala.annotation.tailrec
 import scala.collection.mutable
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 /**
   * Created by Andrey Gavrikov 
   */
-trait LanguageServer {
+trait LanguageServer extends LazyLogging {
+
     private val _projectByPath = new mutable.HashMap[Path, Project]()
     def shutdown(): Unit
+
+    def sendNotification(notification: NotificationMessage): Unit
 
     def initialiseProject(params: InitializeParams): Unit = {
 
@@ -48,46 +54,76 @@ trait LanguageServer {
         }
     }
 
-    def process(message: Message): Option[ResponseMessage] = {
-        val response: Option[Either[ResponseError, ResponseMessage]] =
+    /**
+      * given the file path, try to determine its project from the list of initialized projects
+      * @param path path to a file inside project
+      * @return
+      */
+    @tailrec
+    final def getProject(path: Path): Option[Project] = {
+        if (null != path) {
+            _projectByPath.get(path) match {
+              case Some(_project) => Option(_project)
+              case None => getProject(path.getParent)
+            }
+        } else {
+            None
+        }
+    }
+
+    def process(message: Message)(implicit ex: ExecutionContext): Future[Either[Unit, ResponseMessage]] = {
+
+        val response: Option[Future[Either[ResponseError, ResponseMessage]]] =
             message match {
-                case m @ RequestMessage(id, "initialize", initializeParams) =>
+                case m @ RequestMessage(id, "initialize", initializeParams, _) =>
                     val handler = new InitializeHandler()
                     val msg = handler.handle(this, m)
                     Option(msg)
-                case RequestMessage(_, "shutdown", None) =>
+                case RequestMessage(_, "shutdown", None, _) =>
                     shutdown()
                     None
-                case NotificationMessage("$/cancelRequest", _) =>
+                case NotificationMessage("$/cancelRequest", _, _) =>
                     //A processed notification message must not send a response back. They work like events.
                     //TODO
                     None
-                case m @ NotificationMessage("initialized", _) =>
+                case m @ NotificationMessage("initialized", _, _) =>
                     //initialized is a notification and does not require a response
                     None
-                case m @ NotificationMessage("textDocument/didOpen", params) =>
+                case m @ NotificationMessage("textDocument/didOpen", params, _) =>
                     None
-                case m @ NotificationMessage("textDocument/didChange", params) =>
+                case m @ NotificationMessage("textDocument/didChange", params, _) =>
                     None
-                case m @ NotificationMessage("textDocument/didSave", params) =>
+                case m @ NotificationMessage("textDocument/didSave", params, _) =>
                     val handler = new DidSaveHandler()
                     handler.handle(this, m)
                     None
-                case NotificationMessage(_, _) =>
+                case NotificationMessage(_, _, _) =>
                     //A processed notification message must not send a response back. They work like events.
                     //TODO
                     None
                 case _ =>
                     val error = ResponseError(ErrorCodes.MethodNotFound, s"Message not supported: $message")
-                    Option(Left(error))
+                    Option(Future.successful(Left(error)))
             }
 
+        /*
         response  match {
           case Some(Left(error)) =>
               Option(ResponseMessage(id = 0, result = None, error = Option(error)))
           case Some(Right(msg)) => Option(msg)
           case None => None
         }
+        */
+        response  match {
+            case Some(futureResult) =>
+                futureResult.map{
+                    case Left(error) =>
+                        Right(ResponseMessage(id = 0, result = None, error = Option(error)))
+                    case Right(msg) => Right(msg)
+                }
+            case None => Future.successful(Left(()))
+        }
+
     }
 
 }
