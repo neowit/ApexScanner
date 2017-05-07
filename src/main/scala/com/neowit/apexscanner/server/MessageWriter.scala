@@ -26,8 +26,8 @@ import java.nio.charset.Charset
 
 import com.neowit.apexscanner.server.protocol.{ContentLengthHeader, MessageHeader}
 import io.circe.syntax._
-import io.circe.Printer
-import com.neowit.apexscanner.server.protocol.messages.{MessageJsonSupport, ResponseMessage}
+import io.circe.{Json, Printer}
+import com.neowit.apexscanner.server.protocol.messages.{MessageJsonSupport, NotificationMessage, ResponseMessage}
 import com.typesafe.scalalogging.LazyLogging
 
 /**
@@ -42,7 +42,13 @@ class MessageWriter(out: OutputStream) extends MessageJsonSupport with LazyLoggi
       * This method can be called from multiple threads so have to block to finish writing.
       */
     def write(msg: ResponseMessage): Unit = lock.synchronized {
-        val jsonString = DROP_NULLS_PRINTER.pretty( msg.asJson )
+        write(msg.asJson)
+    }
+    def write(notification: NotificationMessage): Unit = {
+        write(notification.asJson)
+    }
+    private def write(msg: Json): Unit = lock.synchronized {
+        val jsonString = DROP_NULLS_PRINTER.pretty( msg )
         val payloadBytes = jsonString.getBytes(MessageWriter.Utf8Charset)
         // write header
         writeHeader(ContentLengthHeader(payloadBytes.length))
@@ -52,7 +58,6 @@ class MessageWriter(out: OutputStream) extends MessageJsonSupport with LazyLoggi
         out.flush()
         logger.debug(jsonString)
     }
-
     private def writeHeader(header: MessageHeader): Unit = {
         logger.debug(header.toString + "\r\n")
         out.write(header.toString.getBytes(AsciiCharset))
