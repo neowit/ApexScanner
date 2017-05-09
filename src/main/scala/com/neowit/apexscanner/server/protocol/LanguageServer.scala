@@ -44,18 +44,6 @@ trait LanguageServer extends LazyLogging {
     def sendNotification(notification: NotificationMessage): Unit
 
     def initialiseProject(params: InitializeParams): Unit = {
-        /*
-        Try{
-            Paths.get(URI.create(params.rootUri))
-        }.toOption
-        match {
-          case Some(path) =>
-              val project = Project(path)
-              _projectByPath += path -> project
-          case None =>
-        }
-        */
-
         params.rootUri.path match {
             case Some(path) =>
                 val project = Project(path)
