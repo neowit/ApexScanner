@@ -60,7 +60,8 @@ case class Diagnostic (
 object Diagnostic {
     def apply(syntaxError: SyntaxError): Diagnostic = {
         val e = syntaxError
-        val line = e.line
+        // in LSP line number is zero-based
+        val line = if (e.line > 0) e.line - 1 else 0
         val col = e.charPositionInLine
 
         Diagnostic(
