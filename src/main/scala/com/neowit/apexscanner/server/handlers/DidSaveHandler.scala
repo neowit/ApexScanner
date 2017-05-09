@@ -50,21 +50,9 @@ class DidSaveHandler extends NotificationHandler with MessageJsonSupport with La
                             case Some(filePath) =>
                                 server.getProject(filePath) match {
                                     case Some(project) =>
-                                        /*
-                                        checkSyntax(project, filePath).onComplete {
-                                            case Success(res) =>
-                                                logger.debug("success" + res)
-                                            case Failure(e) =>
-                                                logger.debug("failure: " + e)
-                                        }
-                                        */
                                         checkSyntax(project, filePath).map{errorsByFile =>
                                             val notifications = generateNotifications(errorsByFile)
-                                            notifications.foreach{notificationParams =>
-                                                val diagnosticNotification =
-                                                    NotificationMessage("textDocument/publishDiagnostics", Option(notificationParams.asJson))
-                                                server.sendNotification(diagnosticNotification)
-                                            }
+                                            notifications.foreach(message => server.sendNotification(message))
                                         }
 
                                     case None =>
