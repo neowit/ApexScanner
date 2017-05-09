@@ -23,6 +23,7 @@ package com.neowit.apexscanner.server.protocol.messages
 
 import java.nio.file.Path
 
+import com.neowit.apexscanner.nodes.Position
 import com.neowit.apexscanner.server.protocol.DocumentUri
 import io.circe.Json
 
@@ -45,11 +46,6 @@ object MessageParams {
       */
     case class ClientCapabilities(workspace: Option[WorkspaceClientCapabilities], textDocument: Option[TextDocumentClientCapabilities])
 
-    trait MessageParams
-
-    case class InitializeParams(processId: Int, rootUri: DocumentUri, trace: String,
-                                capabilities: ClientCapabilities, initializationOptions: Option[Json]) extends MessageParams
-
     case class TextDocument(uri: DocumentUri, languageId: Option[LanguageId], version: Option[Int], text: Option[String]) {
         def getPath: Option[Path] = {
             //Try {
@@ -61,5 +57,13 @@ object MessageParams {
 
     case class TextDocumentIdentifier(uri: DocumentUri)
 
-    case class DidSaveParams(textDocument: TextDocument)
+
+    sealed trait MessageParams
+
+    case class InitializeParams(processId: Int, rootUri: DocumentUri, trace: String,
+                                capabilities: ClientCapabilities, initializationOptions: Option[Json]) extends MessageParams
+
+    case class DidSaveParams(textDocument: TextDocument) extends MessageParams
+
+    case class CompletionParams(position: Position, textDocument: TextDocument) extends MessageParams
 }

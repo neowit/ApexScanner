@@ -80,6 +80,10 @@ trait LanguageServer extends LazyLogging {
                 case RequestMessage(_, "shutdown", None, _) =>
                     shutdown()
                     None
+                case m @ RequestMessage(id, "textDocument/completion", params, _) =>
+                    val handler = new InitializeHandler()
+                    val msg = handler.handle(this, m)
+                    Option(msg)
                 case NotificationMessage("$/cancelRequest", _, _) =>
                     //A processed notification message must not send a response back. They work like events.
                     //TODO

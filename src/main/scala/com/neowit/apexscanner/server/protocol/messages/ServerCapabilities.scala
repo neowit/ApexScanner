@@ -37,8 +37,8 @@ case class ServerCapabilities(
      /**
        * The server provides completion support.
        */
-     //completionProvider: Option[CompletionOptions] = Option(CompletionOptions(resolveProvider = true, triggerCharacters = Seq("."))),
-     completionProvider: Option[CompletionOptions] = None,
+     completionProvider: Option[CompletionOptions] = Option(CompletionOptions(resolveProvider = false, triggerCharacters = Seq("."))),
+     //completionProvider: Option[CompletionOptions] = None,
      /**
        * The server provides signature help support.
        */
