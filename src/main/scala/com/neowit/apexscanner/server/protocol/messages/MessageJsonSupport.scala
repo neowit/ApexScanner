@@ -22,10 +22,11 @@
 package com.neowit.apexscanner.server.protocol.messages
 
 import com.neowit.apexscanner.nodes.{Position, Range}
-import com.neowit.apexscanner.server.protocol.{Diagnostic, DiagnosticSeverity, PublishDiagnosticsParams}
+import com.neowit.apexscanner.server.protocol.{Diagnostic, DiagnosticSeverity, DocumentUri, PublishDiagnosticsParams}
 import com.neowit.apexscanner.server.protocol.messages.MessageParams._
 import io.circe._
 import io.circe.generic.semiauto._
+import cats.syntax.either._
 /**
   * Created by Andrey Gavrikov 
   */
@@ -45,6 +46,15 @@ trait MessageJsonSupport {
     implicit val ResponseErrorEncoder: Encoder[ResponseError] = deriveEncoder
     implicit val ResponseMessageEncoder: Encoder[ResponseMessage] = deriveEncoder
 
+    /*
+    implicit val DocumentUriEncoder: Encoder[DocumentUri] = new Encoder[DocumentUri] {
+        final def apply(a: DocumentUri): Json = a.uri.asJson
+    }
+    */
+    implicit val DocumentUriEncoder: Encoder[DocumentUri] = Encoder.encodeString.contramap[DocumentUri](_.uri)
+    implicit val DocumentUriDecoder: Decoder[DocumentUri] = Decoder.decodeString.emap { str =>
+        Either.catchNonFatal(DocumentUri(str)).leftMap(t => "DocumentUri")
+    }
 
     implicit val WorkspaceClientCapabilitiesDecoder: Decoder[WorkspaceClientCapabilities] = deriveDecoder
     implicit val TextDocumentClientCapabilitiesDecoder: Decoder[TextDocumentClientCapabilities] = deriveDecoder
@@ -60,7 +70,7 @@ trait MessageJsonSupport {
 
     implicit val RangeEncoder: Encoder[Range] = deriveEncoder
 
-    implicit val DiagnosticSeverityEncoder: Encoder[DiagnosticSeverity] = deriveEncoder
+    implicit val DiagnosticSeverityEncoder: Encoder[DiagnosticSeverity] = Encoder.encodeInt.contramap[DiagnosticSeverity](_.code)
     //implicit val DiagnosticSeverityEncoder: Encoder[DiagnosticSeverity] =
     //    Encoder.forProduct1("code")(s => s.code )
 

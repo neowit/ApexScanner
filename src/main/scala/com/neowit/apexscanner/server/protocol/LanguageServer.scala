@@ -21,7 +21,7 @@
 
 package com.neowit.apexscanner.server.protocol
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.Path
 
 import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.server.handlers.{DidSaveHandler, InitializeHandler}
@@ -32,7 +32,6 @@ import com.typesafe.scalalogging.LazyLogging
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
 
 /**
   * Created by Andrey Gavrikov 
@@ -45,12 +44,23 @@ trait LanguageServer extends LazyLogging {
     def sendNotification(notification: NotificationMessage): Unit
 
     def initialiseProject(params: InitializeParams): Unit = {
-
-        Try(Paths.get(params.rootUri)).toOption match {
+        /*
+        Try{
+            Paths.get(URI.create(params.rootUri))
+        }.toOption
+        match {
           case Some(path) =>
               val project = Project(path)
               _projectByPath += path -> project
           case None =>
+        }
+        */
+
+        params.rootUri.path match {
+            case Some(path) =>
+                val project = Project(path)
+                _projectByPath += path -> project
+            case None =>
         }
     }
 

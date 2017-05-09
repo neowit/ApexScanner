@@ -21,18 +21,17 @@
 
 package com.neowit.apexscanner.server.protocol.messages
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.Path
 
+import com.neowit.apexscanner.server.protocol.DocumentUri
 import io.circe.Json
-
-import scala.util.Try
 
 
 /**
   * Created by Andrey Gavrikov 
   */
 object MessageParams {
-    type DocumentUri = String
+    //type DocumentUri = String
     type LanguageId = String
 
     /**
@@ -48,12 +47,15 @@ object MessageParams {
 
     trait MessageParams
 
-    case class InitializeParams(processId: Int, rootUri: String, trace: String,
+    case class InitializeParams(processId: Int, rootUri: DocumentUri, trace: String,
                                 capabilities: ClientCapabilities, initializationOptions: Option[Json]) extends MessageParams
 
     case class TextDocument(uri: DocumentUri, languageId: Option[LanguageId], version: Option[Int], text: Option[String]) {
         def getPath: Option[Path] = {
-            Try(Paths.get(uri)).toOption
+            //Try {
+            //    Paths.get(URI.create(uri))
+            //}.toOption
+            uri.path
         }
     }
 

@@ -21,17 +21,25 @@
 
 package com.neowit.apexscanner.server.protocol
 
+import java.net.URI
+import java.nio.file.{Path, Paths}
+
+import scala.util.Try
+
 /**
   * Created by Andrey Gavrikov 
   */
-case class PublishDiagnosticsParams (
-    /**
-      * The URI for which diagnostic information is reported.
-      */
-    uri: DocumentUri,
-    /**
-      * An array of diagnostic information items.
-      */
-    diagnostics: Array[Diagnostic]
-)
+case class DocumentUri(uri: String) {
 
+    val path: Option[Path] = {
+        Try{
+            Paths.get(URI.create(uri))
+        }.toOption
+    }
+}
+
+object DocumentUri {
+    def apply(file: Path): DocumentUri = {
+        DocumentUri(file.toUri.toASCIIString)
+    }
+}

@@ -27,7 +27,7 @@ import java.nio.file.{Files, Path}
 import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.scanner.FileScanResult
 import com.neowit.apexscanner.scanner.actions.{SyntaxChecker, SyntaxError}
-import com.neowit.apexscanner.server.protocol.{Diagnostic, LanguageServer, PublishDiagnosticsParams}
+import com.neowit.apexscanner.server.protocol.{Diagnostic, DocumentUri, LanguageServer, PublishDiagnosticsParams}
 import com.neowit.apexscanner.server.protocol.messages.MessageParams.DidSaveParams
 import com.neowit.apexscanner.server.protocol.messages._
 import com.typesafe.scalalogging.LazyLogging
@@ -106,10 +106,10 @@ class DidSaveHandler extends NotificationHandler with MessageJsonSupport with La
     }
 
     private def generateNotification(file: Path, errors: Seq[SyntaxError]): NotificationMessage = {
-        val url = file.toUri.getRawPath
-        val diagnostics = errors.map(syntaxError => Diagnostic( syntaxError ) )
+        //TODO consider removing take(1) below, to allow reporting more than 1 message per file
+        val diagnostics = errors.take(1).map(syntaxError => Diagnostic( syntaxError ) )
 
-        val params = PublishDiagnosticsParams(url, diagnostics.toArray)
+        val params = PublishDiagnosticsParams(DocumentUri(file), diagnostics.toArray)
         NotificationMessage("textDocument/publishDiagnostics", Option(params.asJson))
     }
 }
