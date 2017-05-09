@@ -75,8 +75,7 @@ class DidSaveHandler extends NotificationHandler with MessageJsonSupport with La
         def onFileCheckResult(scanResult: FileScanResult):Unit = {
             val file: Path = scanResult.sourceFile
             val errors = scanResult.errors
-            //even if errors we still need to return:
-            // file -> Seq.empty
+            //even if there were no errors we still need to return: file -> Seq.empty
             // otherwise client will not "know" that previously reported errors are now gone
             errorBuilder += file -> errors
         }
