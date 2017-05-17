@@ -22,7 +22,7 @@ package com.neowit.apexscanner.scanner
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.{FileVisitResult, Files, Path, SimpleFileVisitor}
 
-import com.neowit.apexscanner.antlr.{ApexcodeLexer, ApexcodeParser}
+import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, ApexcodeParser}
 import com.neowit.apexscanner.scanner.actions.SyntaxError
 import org.antlr.v4.runtime._
 
@@ -95,9 +95,9 @@ class Scanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath,
             val lexer = getLexer(file)
             val tokens = new CommonTokenStream(lexer)
             val parser = new ApexcodeParser(tokens)
-            //val errorBuilder = Seq.newBuilder[SyntaxError]
+            // do not dump parse errors into console
+            ApexParserUtils.removeConsoleErrorListener(parser)
             val errorListener = errorListenerFactory(file)
-            //parser.addErrorListener(new SyntaxCheckerErrorListener(file, errorBuilder))
             parser.addErrorListener(errorListener)
 
             // run actual scan
@@ -115,12 +115,7 @@ class Scanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath,
       * @return case insensitive ApexcodeLexer
       */
     def getLexer(file: Path): ApexcodeLexer = {
-        //val input = new ANTLRInputStream(new FileInputStream(file))
-        //val input = new CaseInsensitiveInputStream(new FileInputStream(file.toFile))
-        // since Antlr 4.7 ANTLRInputStream is deprecated
-        val input = CharStreams.fromPath(file)
-        val lexer = new ApexcodeLexer(input)
-        lexer
+        ApexParserUtils.getDefaultLexer(file)
     }
 }
 
