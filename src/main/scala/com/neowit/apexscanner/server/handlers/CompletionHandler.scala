@@ -40,6 +40,7 @@ class CompletionHandler extends MessageHandler with MessageJsonSupport {
                       //server.initialiseProject(params)
                       //val serverCapabilities = ServerCapabilities()
                       //Right(ResponseMessage(messageIn.id, result = Option(Map("capabilities" -> serverCapabilities.asJson).asJson), error = None))
+                      println(params)
                       ???
                   case Left(err) =>
                       Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Error: $err"))

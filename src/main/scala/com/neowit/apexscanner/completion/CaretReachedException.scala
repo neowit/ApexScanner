@@ -19,12 +19,20 @@
  *
  */
 
-package com.neowit.apexscanner.scanner.actions
+package com.neowit.apexscanner.completion
 
-import java.nio.file.Path
+import org.antlr.v4.runtime.{CommonTokenStream, Parser, RecognitionException, RuleContext}
 
+/**
+  * Created by Andrey Gavrikov 
+  */
+class CaretReachedException(val recognizer: Parser, val finalContext: RuleContext, val caretToken: CaretToken, val cause: Option[RecognitionException] = None )
+    extends RuntimeException {
 
-sealed trait BaseResult
+    def getInputStream: CommonTokenStream = cause match {
+        case Some(exception) => exception.getInputStream.asInstanceOf[CommonTokenStream]
+        case None =>
+            recognizer.getInputStream.asInstanceOf[CommonTokenStream]
+    }
+}
 
-case class SyntaxCheckResult(sourceFile: Path, errors: Seq[SyntaxError]) extends BaseResult
-case class ListCompletionsResult(sourceFile: Path, options: Seq[com.neowit.apexscanner.symbols.Symbol]) extends BaseResult

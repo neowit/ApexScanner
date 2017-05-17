@@ -19,12 +19,12 @@
  *
  */
 
-package com.neowit.apexscanner.scanner.actions
+package com.neowit.apexscanner.completion
 
 import java.nio.file.Path
 
-
-sealed trait BaseResult
-
-case class SyntaxCheckResult(sourceFile: Path, errors: Seq[SyntaxError]) extends BaseResult
-case class ListCompletionsResult(sourceFile: Path, options: Seq[com.neowit.apexscanner.symbols.Symbol]) extends BaseResult
+/**
+  * Created by Andrey Gavrikov 
+  */
+class CaretInFile(line:  Int, startIndex: Int, file: Path) extends Caret (line, startIndex){
+}
