@@ -213,8 +213,10 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
     override def visitBlockStatement(ctx: BlockStatementContext): AstNode = {
        if (null != ctx.localVariableDeclaration()) {
            visitChildren(LocalVariableNode(Range(ctx.localVariableDeclaration())), ctx.localVariableDeclaration())
-       } else {
+       } else if (null != ctx.statement()){
            visit(ctx.statement())
+       } else {
+           NullNode
        }
     }
 
