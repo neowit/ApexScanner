@@ -23,8 +23,10 @@ package com.neowit.apexscanner.completion
 
 import java.nio.file.Path
 
+import com.neowit.apexscanner.nodes.Position
+
 /**
   * Created by Andrey Gavrikov 
   */
-class CaretInFile(line:  Int, startIndex: Int, file: Path) extends Caret (line, startIndex){
-}
+class CaretInFile(override val position: Position, val file: Path) extends Caret (position)
+

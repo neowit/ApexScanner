@@ -21,12 +21,15 @@
 
 package com.neowit.apexscanner.completion
 
+import com.neowit.apexscanner.nodes.Position
 import org.antlr.v4.runtime.Token
 
 /**
   * Created by Andrey Gavrikov 
   */
-abstract class Caret(val line:  Int, val startIndex: Int) {
+abstract class Caret(val position: Position) {
+    val line: Int = position.line
+    val col: Int = position.col
     private var tokenType: String = ""
 
     def setType(path: String): Unit = {
@@ -38,7 +41,7 @@ abstract class Caret(val line:  Int, val startIndex: Int) {
     }
 
     def equals(node: Token): Boolean = {
-        line == node.getLine && startIndex == node.getCharPositionInLine
+        line == node.getLine && col == node.getCharPositionInLine
     }
 
     /**
@@ -46,13 +49,13 @@ abstract class Caret(val line:  Int, val startIndex: Int) {
       */
     def isAfter(token: Token): Boolean = {
         val tokenEnds = token.getCharPositionInLine + token.getText.length
-        token.getLine < line || line == token.getLine && tokenEnds < startIndex
+        token.getLine < line || line == token.getLine && tokenEnds < col
     }
     /**
       * check if caret is Before given Token
       */
     def isBefore(token: Token): Boolean = {
-        token.getLine > line || line == token.getLine && token.getCharPositionInLine > startIndex
+        token.getLine > line || line == token.getLine && token.getCharPositionInLine > col
     }
 
     /**
@@ -60,6 +63,6 @@ abstract class Caret(val line:  Int, val startIndex: Int) {
       */
     def isInside(token: Token): Boolean = {
         val tokenEnds = token.getCharPositionInLine + token.getText.length
-        line == token.getLine && token.getCharPositionInLine <= startIndex && tokenEnds >= startIndex
+        line == token.getLine && token.getCharPositionInLine <= col && tokenEnds >= col
     }
 }

@@ -44,6 +44,7 @@ object CaretToken {
 trait CaretToken extends org.antlr.v4.runtime.CommonToken with LazyLogging {
 
     private var originalToken: Option[Token] = None
+    var prevToken: Token = null
 
     def setOriginalToken(token: Token): Unit = {
         originalToken = Some(token)
@@ -58,7 +59,6 @@ trait CaretToken extends org.antlr.v4.runtime.CommonToken with LazyLogging {
             case None => - 1
         }
     }
-    var prevToken: Token = null
 
     private var caret: Option[Caret] = None
 
@@ -67,7 +67,7 @@ trait CaretToken extends org.antlr.v4.runtime.CommonToken with LazyLogging {
     }
 
     def getCaretPositionInLine:Int = caret match {
-        case Some(_caret) => _caret.startIndex
+        case Some(_caret) => _caret.col
         case None => -1
     }
 
