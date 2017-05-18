@@ -20,9 +20,14 @@
  */
 
 package com.neowit.apexscanner.nodes
-import com.neowit.apexscanner.ast.QualifiedName
+import java.nio.file.Path
 
-case class MethodNode(range: Range ) extends AstNode with HasApexDoc with IsTypeDefinition with ClassOrInterfaceBodyMember{
+import com.neowit.apexscanner.{Project, symbols}
+import com.neowit.apexscanner.ast.QualifiedName
+import com.neowit.apexscanner.symbols.SymbolKind
+
+case class MethodNode(range: Range) extends AstNode with HasApexDoc with IsTypeDefinition
+    with ClassOrInterfaceBodyMember { self =>
 
     def nameOpt: Option[String] =
         getChildInAst[MethodHeaderNode](MethodHeaderNodeType).flatMap(_.methodName)
@@ -60,6 +65,26 @@ case class MethodNode(range: Range ) extends AstNode with HasApexDoc with IsType
                 None
         }
     }
+    override def symbolName: String = qualifiedName.map(_.getLastComponent).getOrElse("")
+
+    override def symbolKind: SymbolKind = SymbolKind.Method
+
+    override def symbolLocation: Location = {
+        self.getFileNode  match {
+            case Some(fileNode) =>
+                new Location {
+
+                    override def project: Project = fileNode.project
+
+                    override def range: Range = self.range
+
+                    override def path: Path = fileNode.file
+                }
+            case None => LocationUndefined
+        }
+    }
+
+    override def parentSymbol: Option[symbols.Symbol] = Option(getClassOrInterfaceNode)
 }
 
 

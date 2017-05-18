@@ -22,11 +22,12 @@
 package com.neowit.apexscanner.nodes
 
 import com.neowit.apexscanner.ast.QualifiedName
+import com.neowit.apexscanner.symbols.Symbol
 
 /**
   * Created by Andrey Gavrikov 
   */
-trait ClassOrInterfaceBodyMember {
+trait ClassOrInterfaceBodyMember extends Symbol {
     def getClassOrInterfaceNode: ClassLike
     def getClassOrInterfaceName: Option[QualifiedName] = getClassOrInterfaceNode.qualifiedName
 

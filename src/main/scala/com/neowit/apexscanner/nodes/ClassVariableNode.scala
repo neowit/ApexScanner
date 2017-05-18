@@ -20,9 +20,13 @@
  */
 
 package com.neowit.apexscanner.nodes
-import com.neowit.apexscanner.ast.QualifiedName
+import java.nio.file.Path
 
-case class ClassVariableNode(range: Range) extends VariableLike with ClassOrInterfaceBodyMember {
+import com.neowit.apexscanner.ast.QualifiedName
+import com.neowit.apexscanner.{Project, symbols}
+import com.neowit.apexscanner.symbols.SymbolKind
+
+case class ClassVariableNode(range: Range) extends VariableLike with ClassOrInterfaceBodyMember {self =>
     override def nodeType: AstNodeType = ClassVariableNodeType
 
     override def getValueType: Option[ValueType] = {
@@ -48,6 +52,27 @@ case class ClassVariableNode(range: Range) extends VariableLike with ClassOrInte
           case n => throw new NotImplementedError("getClassOrInterfaceNode support for this element is not implemented: " + n)
         }
     }
+
+    override def symbolName: String = name.getOrElse("")
+
+    override def symbolKind: SymbolKind = SymbolKind.Field
+
+    override def symbolLocation: Location = {
+        self.getFileNode  match {
+            case Some(fileNode) =>
+                new Location {
+
+                    override def project: Project = fileNode.project
+
+                    override def range: Range = self.range
+
+                    override def path: Path = fileNode.file
+                }
+            case None => LocationUndefined
+        }
+    }
+
+    override def parentSymbol: Option[symbols.Symbol] = Option(getClassOrInterfaceNode)
 
     /**
       * used for debug purposes
