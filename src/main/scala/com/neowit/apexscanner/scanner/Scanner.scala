@@ -69,46 +69,44 @@ class Scanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath,
       * @param path file or folder with eligible apex files to check syntax
       * @return
       */
-    def scan(path: Path)(implicit ex: ExecutionContext): Future[Unit] = {
-        Future {
-            val fileListBuilder = List.newBuilder[Path]
+    def scan(path: Path)(implicit ex: ExecutionContext): Future[Unit] = Future {
+        val fileListBuilder = List.newBuilder[Path]
 
-            val apexFileVisitor = new SimpleFileVisitor[Path]() {
-                override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
-                    if (!attrs.isDirectory && !isIgnoredPath(file) ) {
-                        fileListBuilder += file
-                    }
-                    FileVisitResult.CONTINUE
+        val apexFileVisitor = new SimpleFileVisitor[Path]() {
+            override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
+                if (!attrs.isDirectory && !isIgnoredPath(file) ) {
+                    fileListBuilder += file
                 }
-
-                override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult = {
-                    if (isIgnoredPath(dir)) {
-                        FileVisitResult.SKIP_SUBTREE
-                    } else {
-                        super.preVisitDirectory(dir, attrs)
-                    }
-                }
+                FileVisitResult.CONTINUE
             }
 
-            Files.walkFileTree( path, apexFileVisitor)
-            val files = fileListBuilder.result()
-
-            files.foreach{ file =>
-                val lexer = getLexer(file)
-                val tokens = new CommonTokenStream(lexer)
-                val parser = new ApexcodeParser(tokens)
-                // do not dump parse errors into console
-                ApexParserUtils.removeConsoleErrorListener(parser)
-                val errorListener = errorListenerFactory(file)
-                parser.addErrorListener(errorListener)
-
-                // run actual scan
-                val compilationUnit:ParserRuleContext = parser.compilationUnit()
-
-                val errors = errorListener.result()
-                onEachResult(FileScanResult(file, errors, compilationUnit))
-
+            override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult = {
+                if (isIgnoredPath(dir)) {
+                    FileVisitResult.SKIP_SUBTREE
+                } else {
+                    super.preVisitDirectory(dir, attrs)
+                }
             }
+        }
+
+        Files.walkFileTree( path, apexFileVisitor)
+        val files = fileListBuilder.result()
+
+        files.foreach{ file =>
+            val lexer = getLexer(file)
+            val tokens = new CommonTokenStream(lexer)
+            val parser = new ApexcodeParser(tokens)
+            // do not dump parse errors into console
+            ApexParserUtils.removeConsoleErrorListener(parser)
+            val errorListener = errorListenerFactory(file)
+            parser.addErrorListener(errorListener)
+
+            // run actual scan
+            val compilationUnit:ParserRuleContext = parser.compilationUnit()
+
+            val errors = errorListener.result()
+            onEachResult(FileScanResult(file, errors, compilationUnit))
+
         }
     }
 
