@@ -26,6 +26,8 @@ import java.nio.file.Path
 import com.neowit.apexscanner.scanner._
 import org.antlr.v4.runtime.{BaseErrorListener, RecognitionException, Recognizer}
 
+import scala.concurrent.{ExecutionContext, Future}
+
 object SyntaxChecker {
     def errorListenerCreator(file: Path): ApexErrorListener = {
         new SyntaxCheckerErrorListener(file)
@@ -42,7 +44,7 @@ class SyntaxChecker {
       */
     def check(path: Path,
              isIgnoredPath: Path => Boolean,
-             onEachResult: FileScanResult => Unit): Seq[SyntaxCheckResult] = {
+             onEachResult: FileScanResult => Unit)(implicit ex: ExecutionContext): Future[Seq[SyntaxCheckResult]] = {
 
         val resultBuilder = Seq.newBuilder[SyntaxCheckResult]
 
@@ -54,8 +56,7 @@ class SyntaxChecker {
             onEachResult(result)
         }
         val scanner = new Scanner(isIgnoredPath, onFileCheckResult, errorListenerCreator)
-        scanner.scan(path)
-        resultBuilder.result()
+        scanner.scan(path).map(ignored => resultBuilder.result())
     }
 }
 

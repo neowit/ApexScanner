@@ -22,9 +22,8 @@
 package com.neowit.apexscanner.antlr
 
 import java.nio.file.Path
-import java.util.regex.Pattern
 
-import org.antlr.v4.runtime.{CharStreams, ConsoleErrorListener, Parser, Token}
+import org.antlr.v4.runtime.{CharStreams, ConsoleErrorListener, Parser}
 /**
   * Created by Andrey Gavrikov 
   */

@@ -50,7 +50,8 @@ object DebugVisitor {
 
         val path = FileSystems.getDefault.getPath(args(0))
         project = Project(path)
-        scanner.scan(path)
+        scanner.scan(path)(scala.concurrent.ExecutionContext.Implicits.global)
+        ()
     }
     def onEachFileScanResult(result: FileScanResult): Unit = {
         val visitor = new ASTBuilderVisitor(project, result.sourceFile)

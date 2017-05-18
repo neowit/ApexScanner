@@ -26,11 +26,13 @@ import java.nio.file.{FileSystems, Path}
 import com.neowit.apexscanner.{Project, TestConfigProvider}
 import com.neowit.apexscanner.ast.AstBuilder
 import com.neowit.apexscanner.nodes.AstNode
+import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 /**
   * Created by Andrey Gavrikov 
   */
-object ResolverTestUtils extends TestConfigProvider{
+object ResolverTestUtils extends TestConfigProvider with ScalaFutures with IntegrationPatience{
 
     /*
     def withPathProperty(pathKey: String)(codeBlock: (String, Path, AstNode, Project) => Any): Unit = {
@@ -63,7 +65,7 @@ object ResolverTestUtils extends TestConfigProvider{
 
         val project = existingProject.getOrElse(Project(path))
         val astBuilder = new AstBuilder(project)
-        astBuilder.build(path)
+        astBuilder.build(path).futureValue
 
         astBuilder.getAst(path) match {
             case None =>

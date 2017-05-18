@@ -5,8 +5,11 @@ import java.nio.file.{FileSystems, Files, Path}
 import com.neowit.apexscanner.TestConfigProvider
 import com.neowit.apexscanner.scanner.actions.SyntaxChecker
 import org.scalatest.FunSuite
+import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
-class SyntaxCheckerTest extends FunSuite with TestConfigProvider {
+import scala.concurrent.ExecutionContext.Implicits.global
+
+class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
 
     //private val matcher = FileSystems.getDefault.getPathMatcher("glob:*.cls")
     private val projectPath = getProperty("SyntaxCheckerTest.path")
@@ -51,7 +54,7 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider {
         }
 
         val start = System.currentTimeMillis
-        checker.check(path, isIgnoredPath, onFileCheckResult)
+        checker.check(path, isIgnoredPath, onFileCheckResult).futureValue
         val diff = System.currentTimeMillis - start
         println("==================================================")
         val fileNameSet = fileNameSetBuilder.result()

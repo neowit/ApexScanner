@@ -26,6 +26,8 @@ import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, ApexcodePar
 import com.neowit.apexscanner.scanner.actions.SyntaxError
 import org.antlr.v4.runtime._
 
+import scala.concurrent.{ExecutionContext, Future}
+
 case class FileScanResult(sourceFile: Path, errors: Seq[SyntaxError], parseContext: ParserRuleContext)
 
 object Scanner{
@@ -67,45 +69,46 @@ class Scanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath,
       * @param path file or folder with eligible apex files to check syntax
       * @return
       */
-    def scan(path: Path): Unit = {
+    def scan(path: Path)(implicit ex: ExecutionContext): Future[Unit] = {
+        Future {
+            val fileListBuilder = List.newBuilder[Path]
 
-        val fileListBuilder = List.newBuilder[Path]
-
-        val apexFileVisitor = new SimpleFileVisitor[Path]() {
-            override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
-                if (!attrs.isDirectory && !isIgnoredPath(file) ) {
-                    fileListBuilder += file
+            val apexFileVisitor = new SimpleFileVisitor[Path]() {
+                override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
+                    if (!attrs.isDirectory && !isIgnoredPath(file) ) {
+                        fileListBuilder += file
+                    }
+                    FileVisitResult.CONTINUE
                 }
-                FileVisitResult.CONTINUE
+
+                override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult = {
+                    if (isIgnoredPath(dir)) {
+                        FileVisitResult.SKIP_SUBTREE
+                    } else {
+                        super.preVisitDirectory(dir, attrs)
+                    }
+                }
             }
 
-            override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult = {
-                if (isIgnoredPath(dir)) {
-                    FileVisitResult.SKIP_SUBTREE
-                } else {
-                    super.preVisitDirectory(dir, attrs)
-                }
+            Files.walkFileTree( path, apexFileVisitor)
+            val files = fileListBuilder.result()
+
+            files.foreach{ file =>
+                val lexer = getLexer(file)
+                val tokens = new CommonTokenStream(lexer)
+                val parser = new ApexcodeParser(tokens)
+                // do not dump parse errors into console
+                ApexParserUtils.removeConsoleErrorListener(parser)
+                val errorListener = errorListenerFactory(file)
+                parser.addErrorListener(errorListener)
+
+                // run actual scan
+                val compilationUnit:ParserRuleContext = parser.compilationUnit()
+
+                val errors = errorListener.result()
+                onEachResult(FileScanResult(file, errors, compilationUnit))
+
             }
-        }
-
-        Files.walkFileTree( path, apexFileVisitor)
-        val files = fileListBuilder.result()
-
-        files.foreach{ file =>
-            val lexer = getLexer(file)
-            val tokens = new CommonTokenStream(lexer)
-            val parser = new ApexcodeParser(tokens)
-            // do not dump parse errors into console
-            ApexParserUtils.removeConsoleErrorListener(parser)
-            val errorListener = errorListenerFactory(file)
-            parser.addErrorListener(errorListener)
-
-            // run actual scan
-            val compilationUnit:ParserRuleContext = parser.compilationUnit()
-
-            val errors = errorListener.result()
-            onEachResult(FileScanResult(file, errors, compilationUnit))
-
         }
     }
 
