@@ -23,7 +23,7 @@ package com.neowit.apexscanner
 
 import java.nio.file.{FileSystems, Path}
 
-import com.neowit.apexscanner.ast.QualifiedName
+import com.neowit.apexscanner.ast.{AstBuilder, AstBuilderResult, QualifiedName}
 import com.neowit.apexscanner.nodes.{AstNode, HasQualifiedName}
 import com.neowit.apexscanner.stdlib.StandardLibrary
 import com.neowit.apexscanner.stdlib.impl.StdLibLocal
@@ -34,8 +34,8 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
   * Created by Andrey Gavrikov 
   */
-case class Project(path: Path) {
 case class Project(path: Path)(implicit ex: ExecutionContext) {
+    private val astBuilder: AstBuilder = new AstBuilder(this)
     private var _stdLib: Option[StandardLibrary] = None
 
     private val _containerByQName = new mutable.HashMap[QualifiedName, AstNode with HasQualifiedName]()
@@ -70,5 +70,16 @@ case class Project(path: Path)(implicit ex: ExecutionContext) {
     }
     def getByQualifiedName(qualifiedName: QualifiedName): Option[AstNode] = {
         _containerByQName.get(qualifiedName)
+    }
+
+    def getAst(path: Path): Future[Option[AstBuilderResult]] = {
+        astBuilder.getAst(path) match {
+          case Some(_ast) => Future.successful(Option(_ast))
+          case None =>
+              // looks like AST for given file has not been built yet, let's fix it
+              astBuilder.build(path).map { _ =>
+                  astBuilder.getAst(path)
+              }
+        }
     }
 }
