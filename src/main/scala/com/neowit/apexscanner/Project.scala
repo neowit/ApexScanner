@@ -29,11 +29,13 @@ import com.neowit.apexscanner.stdlib.StandardLibrary
 import com.neowit.apexscanner.stdlib.impl.StdLibLocal
 
 import scala.collection.mutable
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Created by Andrey Gavrikov 
   */
 case class Project(path: Path) {
+case class Project(path: Path)(implicit ex: ExecutionContext) {
     private var _stdLib: Option[StandardLibrary] = None
 
     private val _containerByQName = new mutable.HashMap[QualifiedName, AstNode with HasQualifiedName]()

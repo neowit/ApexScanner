@@ -24,27 +24,32 @@ package com.neowit.apexscanner.scanner.actions
 import java.nio.file.{Path, Paths}
 
 import com.neowit.apexscanner.Project
-import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeParser}
-import com.neowit.apexscanner.completion.{CaretInFile, CaretReachedException, CodeCompletionTokenSource, CompletionErrorStrategy}
+import com.neowit.apexscanner.completion._
 import com.typesafe.scalalogging.LazyLogging
-import org.antlr.v4.runtime._
+
+import scala.concurrent.{ExecutionContext, Future}
 /**
   * Created by Andrey Gavrikov 
   */
 object ListCompletions {
     def main(args: Array[String]): Unit = {
+        import scala.concurrent.ExecutionContext.Implicits.global
+
         val projectPath = Paths.get("/Users/andrey/eclipse.workspace/Sforce - SFDC Experiments/SForce (vim-force.com)")
         val path: Path = Paths.get("/Users/andrey/eclipse.workspace/Sforce - SFDC Experiments/SForce (vim-force.com)/src/classes/CompletionTester.cls")
         val completions = new ListCompletions(Project(projectPath))
-        val res = completions.list(path, 38, 16)
+        val res = completions.list(path, 38, 20)
         println(res)
     }
 
 }
 
-class ListCompletions(project: Project) extends LazyLogging {
+class ListCompletions(project: Project)(implicit ex: ExecutionContext) extends LazyLogging {
 
-    def list(file: Path, line: Int, column: Int): ListCompletionsResult = {
-        ???
+    def list(file: Path, line: Int, column: Int): Future[ListCompletionsResult] = {
+        val finder = new CompletionFinder(project)
+        finder.listCompletions(file, line, column).map{ignore =>
+            ???
+        }
     }
 }

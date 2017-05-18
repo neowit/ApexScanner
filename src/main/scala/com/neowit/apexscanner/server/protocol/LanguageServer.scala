@@ -37,6 +37,7 @@ import scala.concurrent.{ExecutionContext, Future}
   * Created by Andrey Gavrikov 
   */
 trait LanguageServer extends LazyLogging {
+    implicit val ex: ExecutionContext
 
     private val _projectByPath = new mutable.HashMap[Path, Project]()
     def shutdown(): Unit

@@ -35,10 +35,11 @@ case class AstBuilderResult(fileScanResult: FileScanResult, rootNode: AstNode)
 object AstBuilder {
 
     def main(args: Array[String]): Unit = {
+        import scala.concurrent.ExecutionContext.Implicits.global
 
         val path = FileSystems.getDefault.getPath(args(0))
         val builder = new AstBuilder(Project(path))
-        builder.build(path)(scala.concurrent.ExecutionContext.Implicits.global)
+        builder.build(path)
         ()
     }
 }

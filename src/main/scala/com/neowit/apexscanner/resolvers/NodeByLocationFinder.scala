@@ -51,12 +51,13 @@ class NodeByLocationFinder(location: Position) extends AstVisitor {
 
 object NodeByLocationFinder {
     def main(args: Array[String]): Unit = {
+        import scala.concurrent.ExecutionContext.Implicits.global
 
         //val path = FileSystems.getDefault.getPath(args(0))
         val path = FileSystems.getDefault.getPath ("/Users/andrey/development/scala/projects/ApexScanner/GrammarTests/TypeFinder.cls")
         val position = Position(18, 25)
         val astBuilder = new AstBuilder(Project(path))
-        astBuilder.build(path)(scala.concurrent.ExecutionContext.Implicits.global).map{ignore =>
+        astBuilder.build(path).map{ ignore =>
 
             astBuilder.getAst(path) match {
                 case None =>
@@ -69,9 +70,8 @@ object NodeByLocationFinder {
                     val rootNode = result.rootNode
                     testLocationFinder(rootNode, position)
             }
-
         }
-
+        ()
     }
 
     def testLocationFinder(rootNode: AstNode, location: Position): Unit = {

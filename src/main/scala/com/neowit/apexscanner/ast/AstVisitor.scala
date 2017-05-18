@@ -46,11 +46,13 @@ class DebugVisitor extends AstVisitor {
 object DebugVisitor {
     var project: Project = _
     def main(args: Array[String]): Unit = {
+        import scala.concurrent.ExecutionContext.Implicits.global
+
         val scanner = new Scanner(Scanner.defaultIsIgnoredPath, onEachFileScanResult, SyntaxChecker.errorListenerCreator)
 
         val path = FileSystems.getDefault.getPath(args(0))
         project = Project(path)
-        scanner.scan(path)(scala.concurrent.ExecutionContext.Implicits.global)
+        scanner.scan(path)
         ()
     }
     def onEachFileScanResult(result: FileScanResult): Unit = {
