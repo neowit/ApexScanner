@@ -21,6 +21,9 @@
 
 package com.neowit.apexscanner.nodes
 
+import java.nio.file.Path
+
+import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.symbols.Symbol
 
@@ -31,4 +34,20 @@ trait ClassOrInterfaceBodyMember extends Symbol {
     def getClassOrInterfaceNode: ClassLike
     def getClassOrInterfaceName: Option[QualifiedName] = getClassOrInterfaceNode.qualifiedName
 
+    protected def getSelf: AstNode
+
+    override def symbolLocation: Location = {
+        getSelf.getFileNode  match {
+            case Some(fileNode) =>
+                new Location {
+
+                    override def project: Project = fileNode.project
+
+                    override def range: Range = getSelf.range
+
+                    override def path: Path = fileNode.file
+                }
+            case None => LocationUndefined
+        }
+    }
 }

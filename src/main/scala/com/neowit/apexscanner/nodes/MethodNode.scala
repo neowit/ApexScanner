@@ -20,9 +20,8 @@
  */
 
 package com.neowit.apexscanner.nodes
-import java.nio.file.Path
 
-import com.neowit.apexscanner.{Project, symbols}
+import com.neowit.apexscanner.symbols
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.symbols.SymbolKind
 
@@ -65,24 +64,14 @@ case class MethodNode(range: Range) extends AstNode with HasApexDoc with IsTypeD
                 None
         }
     }
+
+    override protected def getSelf: AstNode = this
+
     override def symbolName: String = qualifiedName.map(_.getLastComponent).getOrElse("")
 
     override def symbolKind: SymbolKind = SymbolKind.Method
 
-    override def symbolLocation: Location = {
-        self.getFileNode  match {
-            case Some(fileNode) =>
-                new Location {
 
-                    override def project: Project = fileNode.project
-
-                    override def range: Range = self.range
-
-                    override def path: Path = fileNode.file
-                }
-            case None => LocationUndefined
-        }
-    }
 
     override def parentSymbol: Option[symbols.Symbol] = Option(getClassOrInterfaceNode)
 }
