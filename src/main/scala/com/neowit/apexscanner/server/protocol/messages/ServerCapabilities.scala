@@ -33,7 +33,7 @@ case class ServerCapabilities(
      /**
        * The server provides hover support.
        */
-     hoverProvider: Boolean = true,
+     hoverProvider: Boolean = false,
      /**
        * The server provides completion support.
        */

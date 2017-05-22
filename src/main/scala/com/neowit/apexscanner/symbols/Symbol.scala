@@ -36,5 +36,7 @@ trait Symbol {
     def symbolKind: SymbolKind
     def symbolLocation: Location
     def parentSymbol: Option[Symbol]
+    def documentation: Option[String] = None
 
+    override def toString: String = symbolKind.getDebugInfo + ": " + symbolName + " => @ " + symbolLocation.getDebugInfo
 }

@@ -30,38 +30,49 @@ package com.neowit.apexscanner.symbols
   */
 trait SymbolKind {
     val code: Int
+    def getDebugInfo: String
 }
 object SymbolKind {
     object File extends SymbolKind {
         override val code: Int = 1
+        override def getDebugInfo: String = "File"
     }
     object Trigger extends SymbolKind {
         // this is not mistake, LSP does not support a ntion of Trigger
         override val code: Int = File.code
+        override def getDebugInfo: String = "Trigger"
     }
     object Class extends SymbolKind {
         override val code: Int = 5
+        override def getDebugInfo: String = "Class"
     }
     object Method extends SymbolKind {
         override val code: Int = 6
+        override def getDebugInfo: String = "Method"
     }
     object Property extends SymbolKind {
         override val code: Int = 7
+        override def getDebugInfo: String = "Property"
     }
     object Field extends SymbolKind {
         override val code: Int = 8
+        override def getDebugInfo: String = "Field"
     }
     object Constructor extends SymbolKind {
         override val code: Int = 9
+        override def getDebugInfo: String = "Constructor"
     }
     object Enum extends SymbolKind {
         override val code: Int = 10
+        override def getDebugInfo: String = "Enum"
     }
     object Interface extends SymbolKind {
         override val code: Int = 11
+        override def getDebugInfo: String = "Interface"
     }
     object Variable extends SymbolKind {
         override val code: Int = 13
+        override def getDebugInfo: String = "Variable"
     }
 
 }

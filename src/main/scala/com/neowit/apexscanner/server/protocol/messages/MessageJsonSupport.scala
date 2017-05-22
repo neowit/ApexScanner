@@ -21,12 +21,13 @@
 
 package com.neowit.apexscanner.server.protocol.messages
 
-import com.neowit.apexscanner.nodes.{Position, Range}
+import com.neowit.apexscanner.nodes.{Location, Position, Range}
 import com.neowit.apexscanner.server.protocol.{Diagnostic, DiagnosticSeverity, DocumentUri, PublishDiagnosticsParams}
 import com.neowit.apexscanner.server.protocol.messages.MessageParams._
 import io.circe._
 import io.circe.generic.semiauto._
 import cats.syntax.either._
+import com.neowit.apexscanner.symbols.SymbolKind
 /**
   * Created by Andrey Gavrikov 
   */
@@ -65,8 +66,13 @@ trait MessageJsonSupport {
     implicit val DidSaveParamsDecoder: Decoder[DidSaveParams] = deriveDecoder
     implicit val CompletionParamsDecoder: Decoder[CompletionParams] = deriveDecoder
 
-    implicit val PositionEncoder: Encoder[Position] = deriveEncoder
-    implicit val PositionDecoder: Decoder[Position] = deriveDecoder
+    implicit val PositionDecoder: Decoder[Position] =
+        Decoder.forProduct2("line", "character")(Position.apply)
+    implicit val PositionEncoder: Encoder[Position] =
+        Encoder.forProduct2("line", "character")(p => (p.line, p.col))
+
+    //implicit val PositionEncoder: Encoder[Position] = deriveEncoder
+    //implicit val PositionDecoder: Decoder[Position] = deriveDecoder
     //implicit val PositionEncoder: Encoder[Position] =
     //    Encoder.forProduct2("line", "col")(p => (p.line, p.col))
 
@@ -79,4 +85,10 @@ trait MessageJsonSupport {
     implicit val DiagnosticEncoder: Encoder[Diagnostic] = deriveEncoder
     implicit val PublishDiagnosticsParamsEncoder: Encoder[PublishDiagnosticsParams] = deriveEncoder
 
+    implicit val SymbolKindEncoder: Encoder[SymbolKind] = Encoder.encodeInt.contramap[SymbolKind](_.code)
+    implicit val LocationEncoder: Encoder[Location] =
+        Encoder.forProduct2("uri", "range")(l =>
+            (DocumentUri(l.path), l.range)
+        )
+    implicit val CompletionItemEncoder: Encoder[CompletionItem] = deriveEncoder
 }
