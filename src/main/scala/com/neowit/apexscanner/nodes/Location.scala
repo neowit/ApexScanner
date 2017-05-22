@@ -34,6 +34,8 @@ trait Location {
     def path: Path
 
     def range: Range
+
+    def getDebugInfo: String = path.getName(path.getNameCount -1).toString + " => " + range.getDebugInfo
 }
 
 case object LocationUndefined extends Location {

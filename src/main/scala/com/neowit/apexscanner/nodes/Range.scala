@@ -31,7 +31,7 @@ object Position {
 }
 
 case class Range(start: Position, end: Position) {
-    def detDebugInfo: String = {
+    def getDebugInfo: String = {
         val text =
             if (start != end) {
                 s"${start.line}, ${start.col} - ${end.line}, ${end.col}"

@@ -33,6 +33,8 @@ trait AstNode {
     def range:Range
     def nodeType: AstNodeType
 
+    def isSymbol: Boolean = isInstanceOf[com.neowit.apexscanner.symbols.Symbol]
+
     /**
       * override this method in SOQL and SOSL nodes
       * @return
@@ -150,7 +152,7 @@ trait AstNode {
       */
     def getDebugInfo: String = {
         val shift = List.fill(getLevelsDeep)("\t").mkString("")
-        "\n" + shift + range.detDebugInfo + " " + nodeType + " => "
+        "\n" + shift + range.getDebugInfo + " " + nodeType + " => "
     }
     // used in getDebugInfo for visual shift of child level compared to parent
     private var levelsDeep: Int = -1

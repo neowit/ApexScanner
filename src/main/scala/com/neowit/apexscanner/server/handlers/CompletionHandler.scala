@@ -21,33 +21,49 @@
 
 package com.neowit.apexscanner.server.handlers
 
+import com.neowit.apexscanner.scanner.actions.ListCompletions
 import com.neowit.apexscanner.server.protocol.LanguageServer
 import com.neowit.apexscanner.server.protocol.messages.MessageParams.CompletionParams
 import com.neowit.apexscanner.server.protocol.messages._
+import com.typesafe.scalalogging.LazyLogging
 
 import scala.concurrent.{ExecutionContext, Future}
+import io.circe.syntax._
 
 /**
   * Created by Andrey Gavrikov 
   */
-class CompletionHandler extends MessageHandler with MessageJsonSupport {
+class CompletionHandler() extends MessageHandler with MessageJsonSupport with LazyLogging {
     override protected def handleImpl(server: LanguageServer, messageIn: RequestMessage)(implicit ex: ExecutionContext): Future[Either[ResponseError, ResponseMessage]] = {
-        val result =
         messageIn.params match {
           case Some(json) =>
               json.as[CompletionParams]  match {
                   case Right(params) =>
-                      //server.initialiseProject(params)
-                      //val serverCapabilities = ServerCapabilities()
-                      //Right(ResponseMessage(messageIn.id, result = Option(Map("capabilities" -> serverCapabilities.asJson).asJson), error = None))
-                      println(params)
-                      ???
+                      logger.debug(params.toString)
+                      params.textDocument.getPath match {
+                        case Some(file) =>
+                            server.getProject(file) match {
+                              case Some(project) =>
+                                  val completions = new ListCompletions(project)
+                                  val position = params.position
+                                  // Line and Column in LSP are zero based
+                                  // while ANTLR uses: Line starting with 1, column starting with 0
+                                  completions.list(file, position.line +1, position.col).map{res =>
+                                      val completionItems = res.options.map(CompletionItem(_))
+                                      Right(ResponseMessage(messageIn.id, Option(completionItems.asJson), error = None))
+                                  }
+
+                              case None =>
+                                  Future.successful(Left(ResponseError(ErrorCodes.InvalidParams, "Project not found by path: " + file.toString)))
+                            }
+                        case None =>
+                              Future.successful(Left(ResponseError(ErrorCodes.InvalidParams, "Document path not specified")))
+                      }
                   case Left(err) =>
-                      Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Error: $err"))
+                      Future.successful(Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Error: $err")))
               }
           case None =>
-              Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Missing params."))
+              Future.successful(Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Missing params.")))
         }
-        Future.successful(result)
     }
 }

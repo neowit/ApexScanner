@@ -25,8 +25,7 @@ import com.neowit.apexscanner.symbols
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.symbols.SymbolKind
 
-case class MethodNode(range: Range) extends AstNode with HasApexDoc with IsTypeDefinition
-    with ClassOrInterfaceBodyMember { self =>
+case class MethodNode(range: Range) extends AstNode with HasApexDoc with IsTypeDefinition with ClassOrInterfaceBodyMember { self =>
 
     def nameOpt: Option[String] =
         getChildInAst[MethodHeaderNode](MethodHeaderNodeType).flatMap(_.methodName)
@@ -44,6 +43,8 @@ case class MethodNode(range: Range) extends AstNode with HasApexDoc with IsTypeD
     }
 
     lazy val isAbstract: Boolean = getChildInAst[MethodBodyNode](MethodBodyNodeType).nonEmpty
+
+    override def isSymbol: Boolean = true
 
     override def getValueType: Option[ValueType] = {
         getChildInAst[MethodHeaderNode](MethodHeaderNodeType).flatMap(_.dataType)

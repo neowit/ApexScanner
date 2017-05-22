@@ -79,6 +79,9 @@ class CodeCompletionTokenSource( source: TokenSource, caret: Caret) extends Toke
                     }
                 }
                 */
+                if (token.getLine == caret.line && token.getCharPositionInLine + 1 == caret.col) {
+                    return token
+                }
                 val t = CaretToken(token)
                 t.setCaret(caret)
                 t.prevToken = prevToken
