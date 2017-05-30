@@ -80,10 +80,9 @@ class DidSaveHandler extends NotificationHandler with MessageJsonSupport with La
             errorBuilder += file -> errors
         }
         val checker = new SyntaxChecker()
-        Future{
-            checker.check(file, file => !DidSaveHandler.isSupportedPath(file), onFileCheckResult)
-            errorBuilder.result()
-        }
+        checker.check(file, file => !DidSaveHandler.isSupportedPath(file), onFileCheckResult)
+            .map(_ => errorBuilder.result())
+
     }
 
     private def generateNotifications(errorsByFile: Map[Path, Seq[SyntaxError]]): Iterable[NotificationMessage] = {
