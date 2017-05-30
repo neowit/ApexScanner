@@ -7,7 +7,9 @@ import com.neowit.apexscanner.scanner.actions.SyntaxChecker
 import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
+import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
 
 class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
 
@@ -54,11 +56,12 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
         }
 
         val start = System.currentTimeMillis
-        checker.check(path, isIgnoredPath, onFileCheckResult).futureValue
+        val res = checker.check(path, isIgnoredPath, onFileCheckResult)
+        Await.result(res, Duration.Inf)
         val diff = System.currentTimeMillis - start
         println("==================================================")
         val fileNameSet = fileNameSetBuilder.result()
-        println(s"Total ${fileNameSet.size} unique file names tested (actual number of tested files is much higher)")
+        println(s"Total ${fileNameSet.size} unique file names tested (actual number of tested files may be much higher)")
         println("# Time taken: " + diff / 1000.0 +  "s")
     }
 }
