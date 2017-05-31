@@ -19,13 +19,17 @@
  *
  */
 
-package com.neowit.apexscanner.completion
+package com.neowit.apexscanner
 
-import com.neowit.apexscanner.VirtualDocument
-import com.neowit.apexscanner.nodes.Position
+import java.io.InputStream
+import java.nio.file.Path
+
 
 /**
   * Created by Andrey Gavrikov 
   */
-class CaretInFile(override val position: Position, val document: VirtualDocument) extends Caret (position)
-
+trait VirtualDocument {
+    def file: Path
+    def inputStream: InputStream
+    def getTextContent: Option[String]
+}

@@ -23,7 +23,7 @@ package com.neowit.apexscanner.scanner.actions
 
 import java.nio.file.{Path, Paths}
 
-import com.neowit.apexscanner.Project
+import com.neowit.apexscanner.{FileBasedDocument, Project, VirtualDocument}
 import com.neowit.apexscanner.completion._
 import com.neowit.apexscanner.nodes.Position
 import com.typesafe.scalalogging.LazyLogging
@@ -40,9 +40,10 @@ object ListCompletions extends LazyLogging {
         val projectPath = Paths.get("/Users/andrey/eclipse.workspace/Sforce - SFDC Experiments/SForce (vim-force.com)")
         val path: Path = Paths.get("/Users/andrey/eclipse.workspace/Sforce - SFDC Experiments/SForce (vim-force.com)/src/classes/CompletionTester.cls")
         val completions = new ListCompletions(Project(projectPath))
-        //val res = completions.list(path, 38, 12) //con.;// FallThoughNode
-        //val res = completions.list(path, 39, 20) //con.acc() + ; // ExpressionStatementNode
-        val res = completions.list(path, 40, 15) //con.acc; // ExpressionDotExpression
+        val line = 11
+        val res = completions.list(FileBasedDocument(path), line, 12) //con.;// FallThoughNode
+        //val res = completions.list(FileBasedDocument(path), line + 1, 20) //con.acc() + ; // ExpressionStatementNode
+        //val res = completions.list(FileBasedDocument(path), line +2, 15) //con.acc; // ExpressionDotExpression
         Await.result(res, Duration.Inf)
         logger.debug( res.toString )
         ()
@@ -52,13 +53,13 @@ object ListCompletions extends LazyLogging {
 
 class ListCompletions(project: Project)(implicit ex: ExecutionContext) extends LazyLogging {
 
-    def list(file: Path, position: Position): Future[ListCompletionsResult] = {
-        list(file, position.line, position.col)
+    def list(document: VirtualDocument, position: Position): Future[ListCompletionsResult] = {
+        list(document, position.line, position.col)
     }
-    def list(file: Path, line: Int, column: Int): Future[ListCompletionsResult] = {
+    def list(document: VirtualDocument, line: Int, column: Int): Future[ListCompletionsResult] = {
         val finder = new CompletionFinder(project)
-        finder.listCompletions(file, line, column).map{symbols =>
-            ListCompletionsResult(file, symbols)
+        finder.listCompletions(document, line, column).map{symbols =>
+            ListCompletionsResult(document.file, symbols)
         }
     }
 

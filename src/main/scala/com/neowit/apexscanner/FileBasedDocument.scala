@@ -19,13 +19,24 @@
  *
  */
 
-package com.neowit.apexscanner.completion
+package com.neowit.apexscanner
 
-import com.neowit.apexscanner.VirtualDocument
-import com.neowit.apexscanner.nodes.Position
+import java.io._
+import java.nio.charset.StandardCharsets
+import java.nio.file.Path
+
+import scala.util.Try
 
 /**
   * Created by Andrey Gavrikov 
   */
-class CaretInFile(override val position: Position, val document: VirtualDocument) extends Caret (position)
+case class FileBasedDocument(file: Path) extends VirtualDocument {
+    override def inputStream: InputStream = new FileInputStream(file.toFile)
 
+    override def getTextContent: Option[String] = {
+        Try{
+            val source = scala.io.Source.fromFile(file.toFile)(StandardCharsets.UTF_8)
+            source.getLines().mkString("\\n")
+        }.toOption
+    }
+}

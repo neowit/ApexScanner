@@ -39,6 +39,7 @@ case class Project(path: Path)(implicit ex: ExecutionContext) {
     private var _stdLib: Option[StandardLibrary] = None
 
     private val _containerByQName = new mutable.HashMap[QualifiedName, AstNode with HasQualifiedName]()
+    private val _fileContentByPath = new mutable.HashMap[Path, VirtualDocument]()
 
     def getStandardLibrary: StandardLibrary = {
         _stdLib match {
@@ -58,6 +59,17 @@ case class Project(path: Path)(implicit ex: ExecutionContext) {
         new StdLibLocal(path)
     }
 
+    def saveFileContent(document: VirtualDocument): Future[Unit] = {
+        _fileContentByPath += document.file -> document
+        Future.successful(())
+    }
+    def getFileContent(file: Path): Option[VirtualDocument] = {
+        _fileContentByPath.get(file)
+    }
+    def clearFileContent(file: Path): Future[Unit] = {
+        _fileContentByPath -= file
+        Future.successful(())
+    }
     /**
       * add given class/interface/trigger to global map of top level containers
       * @param node usually class/interface/trigger

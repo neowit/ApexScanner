@@ -22,6 +22,7 @@ package com.neowit.apexscanner.scanner
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.{FileVisitResult, Files, Path, SimpleFileVisitor}
 
+import com.neowit.apexscanner.FileBasedDocument
 import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, ApexcodeParser}
 import com.neowit.apexscanner.scanner.actions.SyntaxError
 import org.antlr.v4.runtime._
@@ -116,8 +117,7 @@ class Scanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath,
       * @return case insensitive ApexcodeLexer
       */
     def getLexer(file: Path): ApexcodeLexer = {
-        ApexParserUtils.getDefaultLexer(file)
+        ApexParserUtils.getDefaultLexer(FileBasedDocument(file))
     }
 }
-
 

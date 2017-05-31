@@ -21,17 +21,14 @@
 
 package com.neowit.apexscanner.completion
 
-import java.nio.file.Path
-
-import com.neowit.apexscanner.Project
+import com.neowit.apexscanner.{Project, VirtualDocument}
 import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeParser}
 import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.resolvers.{AscendingDefinitionFinder, NodeByLocationFinder}
 import com.typesafe.scalalogging.LazyLogging
-import org.antlr.v4.runtime.CommonTokenStream
+import org.antlr.v4.runtime.{CommonTokenStream, Token}
 
 import scala.concurrent.{ExecutionContext, Future}
-
 import com.neowit.apexscanner.symbols._
 
 /**
@@ -40,7 +37,7 @@ import com.neowit.apexscanner.symbols._
 class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends LazyLogging {
 
     private def findCaretToken(caret: CaretInFile): Option[CaretReachedException] = {
-        val lexer = ApexParserUtils.getDefaultLexer(caret.file)
+        val lexer = ApexParserUtils.getDefaultLexer(caret.document)
         val tokenSource = new CodeCompletionTokenSource(lexer, caret)
         val tokens: CommonTokenStream = new CommonTokenStream(tokenSource)
         val parser = new ApexcodeParser(tokens)
@@ -64,7 +61,7 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
         }
     }
 
-    def listCompletions(file: Path, line: Int, column: Int): Future[Seq[Symbol]] = {
+    def listCompletions(file: VirtualDocument, line: Int, column: Int): Future[Seq[Symbol]] = {
         val caret = new CaretInFile(Position(line, column), file)
         findCaretToken(caret) match {
             case Some(caretReachedException) =>
@@ -88,9 +85,11 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
 
     // find scope
     private def findContextOrScope(caretEx: CaretReachedException, caret: CaretInFile): Future[Option[AstNode]] = {
-        project.getAst(caret.file).map{
+        project.getAst(caret.document.file).map{
             case Some(_res) =>
-                val locationFinder = new NodeByLocationFinder(caret.position)
+                val scopeToken = findSuitableScopeToken(caretEx, caret)
+                val position = Position(scopeToken.getLine, scopeToken.getCharPositionInLine + 1)
+                val locationFinder = new NodeByLocationFinder(position)
                 val rootNode = _res.rootNode
                 locationFinder.findInside(rootNode) match {
                     case finalNode @ Some(_) =>
@@ -100,8 +99,41 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                 }
 
             case _ =>
-                logger.debug("Failed to build AST for file: " + caret.file)
+                logger.debug("Failed to build AST for file: " + caret.document)
                 None
+        }
+    }
+
+    /**
+      * TODO
+      * find token which can be used to find current context definition caret token often gets associated
+      * with the NEXT token after Caret instead of Previous one
+      * this method is trying to identify if caret token has gone too far and if we need to use the
+      * token which goes BEFORE caret, if that token is a word or "."
+      * @param caretEx caret area details
+      * @param caret caret definition
+      * @return
+      */
+    private def findSuitableScopeToken(caretEx: CaretReachedException, caret: CaretInFile): Token = {
+        if (ApexParserUtils.isWordToken(caretEx.caretToken)) {
+            // use caret position as is
+            caretEx.caretToken
+        } else {
+            // move back and try to find more suitable token to use as a caret definition base
+            val inputStream = caretEx.getInputStream
+            val caretTokenIndex = caretEx.caretToken.getTokenIndex
+            if (ApexParserUtils.isDotToken(inputStream.get(caretTokenIndex-1)) && caretTokenIndex > 2) {
+                // check if token before dot is a word token
+                if (ApexParserUtils.isWordToken(inputStream.get(caretTokenIndex-2))) {
+                    inputStream.get(caretTokenIndex-2)
+                } else {
+                    // TODO implement support for other options
+                    caretEx.caretToken
+                }
+            } else {
+                // TODO implement support for other options
+                caretEx.caretToken
+            }
         }
     }
 

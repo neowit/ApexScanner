@@ -27,7 +27,7 @@ import org.antlr.v4.runtime._
 /**
   * Created by Andrey Gavrikov 
   */
-class CompletionErrorStrategy extends DefaultErrorStrategy{
+class CompletionErrorStrategy extends DefaultErrorStrategy {
     override def reportError(recognizer: Parser, e: RecognitionException): Unit = {
         if (e != null && e.getOffendingToken != null &&
             e.getOffendingToken.getType == CaretToken.CARET_TOKEN_TYPE) {

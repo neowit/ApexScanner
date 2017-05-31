@@ -19,13 +19,17 @@
  *
  */
 
-package com.neowit.apexscanner.completion
+package com.neowit.apexscanner
 
-import com.neowit.apexscanner.VirtualDocument
-import com.neowit.apexscanner.nodes.Position
+import java.io.{ByteArrayInputStream, InputStream}
+import java.nio.charset.StandardCharsets
+import java.nio.file.Path
 
 /**
   * Created by Andrey Gavrikov 
   */
-class CaretInFile(override val position: Position, val document: VirtualDocument) extends Caret (position)
+case class TextBasedDocument (text: String, file: Path) extends VirtualDocument {
+    override def inputStream: InputStream = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))
 
+    override def getTextContent: Option[String] = Option(text)
+}

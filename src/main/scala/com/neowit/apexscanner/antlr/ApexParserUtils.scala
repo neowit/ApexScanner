@@ -38,14 +38,15 @@ object ApexParserUtils {
     }
     /**
       * default case insensitive ApexCode lexer
-      * @param file - file to parse
+      * @param document - file to parse
       * @return case insensitive ApexcodeLexer
       */
-    def getDefaultLexer(file: Path): ApexcodeLexer = {
+    def getDefaultLexer(document: VirtualDocument): ApexcodeLexer = {
         //val input = new ANTLRInputStream(new FileInputStream(file))
         //val input = new CaseInsensitiveInputStream(new FileInputStream(file.toFile))
         // since Antlr 4.7 ANTLRInputStream is deprecated
-        val input = CharStreams.fromPath(file)
+        //val input = CharStreams.fromPath(file)
+        val input = CharStreams.fromStream(document.inputStream, StandardCharsets.UTF_8)
         val lexer = new ApexcodeLexer(input)
         lexer
     }
