@@ -115,6 +115,7 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
       * @return
       */
     private def findSuitableScopeToken(caretEx: CaretReachedException, caret: CaretInFile): Token = {
+        /*
         if (ApexParserUtils.isWordToken(caretEx.caretToken)) {
             // use caret position as is
             caretEx.caretToken
@@ -135,6 +136,8 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                 caretEx.caretToken
             }
         }
+        */
+        ???
     }
 
     private def findTypeDefinition(node: AstNode): Option[IsTypeDefinition] = {

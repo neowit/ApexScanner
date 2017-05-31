@@ -21,8 +21,9 @@
 
 package com.neowit.apexscanner.antlr
 
-import java.nio.file.Path
+import java.nio.charset.StandardCharsets
 
+import com.neowit.apexscanner.VirtualDocument
 import org.antlr.v4.runtime.{CharStreams, ConsoleErrorListener, Parser}
 /**
   * Created by Andrey Gavrikov 
