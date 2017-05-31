@@ -157,26 +157,11 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
               // get next to last node (i.e. 'second' from example above)
               parent.children.reverse.drop(1).headOption match {
                 case Some(prevNodeInDotExpression) =>
-                    val defFinder = new AscendingDefinitionFinder()
-                    val definitions = defFinder.findDefinition(prevNodeInDotExpression, prevNodeInDotExpression)
-                    definitions match {
-                        case Nil =>
-                            // definition not found in current file
-                            // try other places
-                            ???
-                        case head :: Nil =>
-                            // exactly 1 node found, looks promissing
-                            head match {
-                                case n:IsTypeDefinition =>
-                                    Option(n)
-                                case _ => None
-                            }
-                        case nodes =>
-                            nodes.find(_.isInstanceOf[IsTypeDefinition]).map(_.asInstanceOf[IsTypeDefinition])
-                    }
-
+                    findDefinitionAscending(prevNodeInDotExpression)
                 case None => None
               }
+          case Some(parent @ ExpressionStatementNode(range)) =>
+              findDefinitionAscending(node)
           case _ =>
                 ???
         }
@@ -195,6 +180,25 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                     Seq.empty
               }
           case None => Seq.empty
+        }
+    }
+    private def findDefinitionAscending(node: AstNode): Option[IsTypeDefinition] = {
+        val defFinder = new AscendingDefinitionFinder()
+        val definitions = defFinder.findDefinition(node, node)
+        definitions match {
+            case Nil =>
+                // definition not found in current file
+                // try other places
+                ???
+            case head :: Nil =>
+                // exactly 1 node found, looks promising
+                head match {
+                    case n:IsTypeDefinition =>
+                        Option(n)
+                    case _ => None
+                }
+            case nodes =>
+                nodes.find(_.isInstanceOf[IsTypeDefinition]).map(_.asInstanceOf[IsTypeDefinition])
         }
     }
 }
