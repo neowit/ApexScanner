@@ -46,10 +46,13 @@ class DidSaveHandler extends NotificationHandler with MessageJsonSupport with La
             case Some(params) =>
                 params.as[DidSaveParams] match {
                     case Right(didSaveParams) =>
-                        didSaveParams.textDocument.getPath match {
+                        didSaveParams.textDocument.uri.path match {
                             case Some(filePath) =>
                                 server.getProject(filePath) match {
                                     case Some(project) =>
+                                        // file is now saved, so no need to store its cached content version
+                                        project.clearFileContent(filePath)
+                                        // run syntax check
                                         checkSyntax(project, filePath).map{errorsByFile =>
                                             val notifications = generateNotifications(errorsByFile)
                                             notifications.foreach(message => server.sendNotification(message))

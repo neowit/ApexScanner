@@ -24,7 +24,7 @@ package com.neowit.apexscanner.server.protocol
 import java.nio.file.Path
 
 import com.neowit.apexscanner.Project
-import com.neowit.apexscanner.server.handlers.{CompletionHandler, DidSaveHandler, InitializeHandler}
+import com.neowit.apexscanner.server.handlers.{CompletionHandler, DidChangeHandler, DidSaveHandler, InitializeHandler}
 import com.neowit.apexscanner.server.protocol.messages.MessageParams.InitializeParams
 import com.neowit.apexscanner.server.protocol.messages._
 import com.typesafe.scalalogging.LazyLogging
@@ -95,6 +95,8 @@ trait LanguageServer extends LazyLogging {
                 case m @ NotificationMessage("textDocument/didOpen", params, _) =>
                     None
                 case m @ NotificationMessage("textDocument/didChange", params, _) =>
+                    val handler = new DidChangeHandler()
+                    handler.handle(this, m)
                     None
                 case m @ NotificationMessage("textDocument/didSave", params, _) =>
                     val handler = new DidSaveHandler()

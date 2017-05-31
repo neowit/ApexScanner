@@ -91,4 +91,8 @@ trait MessageJsonSupport {
             (DocumentUri(l.path), l.range)
         )
     implicit val CompletionItemEncoder: Encoder[CompletionItem] = deriveEncoder
+
+    implicit val TextDocumentContentChangeEventDecoder: Decoder[TextDocumentContentChangeEvent] = deriveDecoder
+    implicit val VersionedTextDocumentIdentifierDecoder: Decoder[VersionedTextDocumentIdentifier] = deriveDecoder
+    implicit val DidChangeTextDocumentParamsDecoder: Decoder[DidChangeTextDocumentParams] = deriveDecoder
 }

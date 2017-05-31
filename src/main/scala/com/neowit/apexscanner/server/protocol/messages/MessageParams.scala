@@ -21,7 +21,6 @@
 
 package com.neowit.apexscanner.server.protocol.messages
 
-import java.nio.file.Path
 
 import com.neowit.apexscanner.nodes.Position
 import com.neowit.apexscanner.server.protocol.DocumentUri
@@ -46,16 +45,11 @@ object MessageParams {
       */
     case class ClientCapabilities(workspace: Option[WorkspaceClientCapabilities], textDocument: Option[TextDocumentClientCapabilities])
 
-    case class TextDocument(uri: DocumentUri, languageId: Option[LanguageId], version: Option[Int], text: Option[String]) {
-        def getPath: Option[Path] = {
-            //Try {
-            //    Paths.get(URI.create(uri))
-            //}.toOption
-            uri.path
-        }
-    }
+    case class TextDocument(uri: DocumentUri, languageId: Option[LanguageId], version: Option[Int], text: Option[String])
+
 
     case class TextDocumentIdentifier(uri: DocumentUri)
+    case class VersionedTextDocumentIdentifier(uri: DocumentUri, version: Int)
 
 
     sealed trait MessageParams
@@ -66,4 +60,36 @@ object MessageParams {
     case class DidSaveParams(textDocument: TextDocument) extends MessageParams
 
     case class CompletionParams(position: Position, textDocument: TextDocument) extends MessageParams
+
+
+    case class DidChangeTextDocumentParams (
+         /**
+           * The document that did change. The version number points
+           * to the version after all provided content changes have
+           * been applied.
+           */
+         textDocument: VersionedTextDocumentIdentifier,
+
+         /**
+           * The actual content changes.
+           */
+         contentChanges: Seq[TextDocumentContentChangeEvent]
+                                           ) extends MessageParams
+
+    case class TextDocumentContentChangeEvent (
+          /**
+            * The range of the document that changed.
+            */
+          //range: Option[Range],
+
+          /**
+            * The length of the range that got replaced.
+            */
+          rangeLength: Option[Int],
+
+          /**
+            * The new text of the range/document.
+            */
+          text: String
+                                              )
 }
