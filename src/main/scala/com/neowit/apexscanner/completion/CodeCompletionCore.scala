@@ -105,7 +105,7 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
         tokenStream.seek(this.tokenStartIndex)
         this.tokens.clear()
         var offset = 1
-        var stop = true
+        var stop = false
         while (!stop) {
             val token = tokenStream.LT(offset)
             offset += 1
