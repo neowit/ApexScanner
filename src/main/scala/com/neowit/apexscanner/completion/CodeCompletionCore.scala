@@ -27,8 +27,8 @@ object CodeCompletionCore {
     // Tokens include a list of tokens that directly follow them (see also the "following" member in the FollowSetWithPath class).
     // Rules come with paths of rule indexes at which they where found.
     class CandidatesCollection {
-        val tokens: mutable.HashMap[number, Array[number]] = new mutable.HashMap[number, Array[number]]()
-        val rules: mutable.HashMap[number, Array[number]] = new mutable.HashMap[number, Array[number]]()
+        val tokens: mutable.HashMap[number, ArrayBuffer[number]] = new mutable.HashMap[number, ArrayBuffer[number]]()
+        val rules: mutable.HashMap[number, ArrayBuffer[number]] = new mutable.HashMap[number, ArrayBuffer[number]]()
     }
 
     // A record for a follow set along with the path at which this set was found.
@@ -38,15 +38,15 @@ object CodeCompletionCore {
     // a fixed sequence in the grammar.
     class FollowSetWithPath {
         var intervals: IntervalSet = new IntervalSet()
-        var path: Array[number] = Array.empty
-        var following: Array[number] = Array.empty
+        var path: ArrayBuffer[number] = ArrayBuffer.empty
+        var following: ArrayBuffer[number] = ArrayBuffer.empty
     }
 
     // A list of follow sets (for a given state number) + all of them combined for quick hit tests.
     // This data is static in nature (because the used ATN states are part of a static struct: the ATN).
     // Hence it can be shared between all C3 instances, however it depends on the actual parser class (type).
     class FollowSetsHolder {
-        var sets: Array[FollowSetWithPath] = Array.empty
+        var sets: ArrayBuffer[FollowSetWithPath] = ArrayBuffer.empty
         var combined: IntervalSet = new IntervalSet()
     }
     type FollowSetsPerState = mutable.HashMap[number, FollowSetsHolder]
@@ -71,8 +71,8 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
     var showRuleStack: Boolean = false;              // Also depends on showDebugOutput. Enables call stack printing for each rule recursion.
 
     // Tailoring of the result.
-    val ignoredTokens: mutable.HashSet[number] = mutable.HashSet.empty
-    val preferredRules: mutable.HashSet[number] = mutable.HashSet.empty      // Rules which replace any candidate token they contain.
+    var ignoredTokens: Set[number] = Set.empty
+    var preferredRules: Set[number] = Set.empty      // Rules which replace any candidate token they contain.
     // This allows to return descriptive rules (e.g. className, instead of ID/identifier).
 
 
@@ -80,7 +80,7 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
     private val atn: ATN = parser.getATN
     private val vocabulary: Vocabulary = parser.getVocabulary
     private val ruleNames: Array[String] = parser.getRuleNames
-    private var tokens: Array[number] = Array.empty
+    private val tokens: ArrayBuffer[number] = ArrayBuffer.empty
 
     private var tokenStartIndex: number = 0
 
@@ -103,13 +103,13 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
 
         val currentIndex = tokenStream.index
         tokenStream.seek(this.tokenStartIndex)
-        this.tokens = Array.empty
+        this.tokens.clear()
         var offset = 1
         var stop = true
         while (!stop) {
             val token = tokenStream.LT(offset)
             offset += 1
-            this.tokens = this.tokens :+ token.getType
+            this.tokens += token.getType
 
             stop = token.getTokenIndex >= caretTokenIndex || token.getType == Token.EOF
 
@@ -187,7 +187,7 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
                         } else {
                             // Found an entry for this rule. Same path? If so don't add a new (duplicate) entry.
                             //if (path.every((v, j) => v === rule[ 1 ][j ] ) ) {
-                            if (path.toArray.sameElements(rule._2)) {
+                            if (path == rule._2) {
                                 addNew = false
                                 keepGoing = false
                             }
@@ -196,7 +196,7 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
                 }
 
                 if (addNew) {
-                    this.candidates.rules += ruleStack(i) -> path.toArray
+                    this.candidates.rules += ruleStack(i) -> path
                     if (this.showDebugOutput)
                     logger.debug("=====> collected: ", this.ruleNames(i))
                     }
@@ -212,7 +212,7 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
       * This method follows the given transition and collects all symbols within the same rule that directly follow it
       * without intermediate transitions to other rules and only if there is a single symbol for a transition.
       */
-    private def getFollowingTokens(transition: Transition): Array[number] = {
+    private def getFollowingTokens(transition: Transition): ArrayBuffer[number] = {
         val result: ArrayBuffer[number] = ArrayBuffer.empty
 
         //var seen: Array[ATNState] = Array.empty
@@ -221,7 +221,9 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
         while (pipeline.nonEmpty) {
             val state = pipeline.last
             //let state = pipeline.pop();
-            pipeline.remove(pipeline.size -1)
+            if (pipeline.nonEmpty) {
+                pipeline.remove(pipeline.size - 1)
+            }
 
             //for (let transition of state!.getTransitions()) {
             for (transition <- state.getTransitions ) {
@@ -242,21 +244,21 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
             }
         }
 
-        result.toArray
+        result
     }
 
 
     /**
       * Entry point for the recursive follow set collection function.
       */
-    private def determineFollowSets(start: ATNState, stop: ATNState): Array[FollowSetWithPath] = {
+    private def determineFollowSets(start: ATNState, stop: ATNState): ArrayBuffer[FollowSetWithPath] = {
         val result: ArrayBuffer[FollowSetWithPath] = ArrayBuffer.empty
         val seen: mutable.HashSet[ATNState] = mutable.HashSet.empty
         val ruleStack: ArrayBuffer[number] = ArrayBuffer.empty
 
         this.collectFollowSets(start, stop, followSets = result, seen = seen, ruleStack = ruleStack)
 
-        result.toArray
+        result
     }
 
     /**
@@ -275,7 +277,7 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
             val set = new FollowSetWithPath()
             set.intervals = IntervalSet.of(Token.EPSILON)
             //set.path = ruleStack.slice();
-            set.path = ruleStack.toArray.clone()
+            set.path = ruleStack.clone()
             //followSets.push(set);
             followSets += set
             return
@@ -287,10 +289,12 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
                     //continue;
                 } else {
                     //ruleStack.push(ruleTransition.target.ruleIndex);
-                    ruleStack :+ ruleTransition.target.ruleIndex
+                    ruleStack += ruleTransition.target.ruleIndex
                     this.collectFollowSets(transition.target, stopState, followSets, seen, ruleStack)
                     //ruleStack.pop();
-                    ruleStack.remove(ruleStack.size -1)
+                    if (ruleStack.nonEmpty) {
+                        ruleStack.remove(ruleStack.size -1)
+                    }
 
                 }
 
@@ -304,7 +308,7 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
                 val set = new FollowSetWithPath()
                 set.intervals = IntervalSet.of(Token.MIN_USER_TOKEN_TYPE, this.atn.maxTokenType)
                 //set.path = ruleStack.slice();
-                set.path = ruleStack.toArray.clone()
+                set.path = ruleStack.clone()
                 //followSets.push(set);
                 followSets += set
             } else {
@@ -316,7 +320,7 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
                     val set = new FollowSetWithPath()
                     set.intervals = label
                     //set.path = ruleStack.slice();
-                    set.path = ruleStack.toArray.clone()
+                    set.path = ruleStack.clone()
                     set.following = this.getFollowingTokens(transition)
                     //followSets.push(set);
                     followSets += set
@@ -346,7 +350,7 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
         //    multiple times.
         //var setsPerState = CodeCompletionCore.followSetsByATN.get(this.parser.constructor.name);
         //TODO check if this.parser.constructor.name is correctly translated
-        var setsPerState = CodeCompletionCore.followSetsByATN(this.parser.getClass.getName)
+        var setsPerState = CodeCompletionCore.followSetsByATN.getOrElse(this.parser.getClass.getName, null)
         if (null == setsPerState) {
             setsPerState = new FollowSetsPerState()
             //CodeCompletionCore.followSetsByATN.set(this.parser.constructor.name, setsPerState);
@@ -354,7 +358,7 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
             CodeCompletionCore.followSetsByATN += (this.parser.getClass.getName -> setsPerState)
         }
 
-        var followSets = setsPerState(startState.stateNumber)
+        var followSets = setsPerState.getOrElse(startState.stateNumber, null)
         if (null == followSets) {
             followSets = new FollowSetsHolder()
             setsPerState += (startState.stateNumber -> followSets)
@@ -389,17 +393,18 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
                     //fullPath.push(...set.path);
                     fullPath ++= set.path
                     if (!this.translateToRuleIndex(fullPath)) {
-                        for (symbol <- set.intervals.toArray)
-                        if (!this.ignoredTokens.contains(symbol)) {
-                            if (this.showDebugOutput)
-                                logger.debug("=====> collected: ", this.vocabulary.getDisplayName(symbol))
-                            if (!this.candidates.tokens.contains(symbol))
-                                this.candidates.tokens += (symbol -> set.following) // Following is empty if there is more than one entry in the set.
-                            else {
-                                // More than one following list for the same symbol.
-                                //if (this.candidates.tokens.get(symbol) != set.following)
-                                if (!this.candidates.tokens(symbol).sameElements(set.following))
-                                    this.candidates.tokens += (symbol ->  Array.empty)
+                        for (symbol <- set.intervals.toArray) {
+                            if (!this.ignoredTokens.contains(symbol)) {
+                                if (this.showDebugOutput)
+                                    logger.debug("=====> collected: ", this.vocabulary.getDisplayName(symbol))
+                                if (!this.candidates.tokens.contains(symbol))
+                                    this.candidates.tokens += (symbol -> set.following) // Following is empty if there is more than one entry in the set.
+                                else {
+                                    // More than one following list for the same symbol.
+                                    //if (this.candidates.tokens.get(symbol) != set.following)
+                                    if (this.candidates.tokens(symbol) != set.following)
+                                        this.candidates.tokens += (symbol ->  ArrayBuffer.empty)
+                                }
                             }
                         }
                     }
@@ -407,7 +412,9 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
             }
 
             //callStack.pop();
-            callStack.remove(callStack.size - 1)
+            if (callStack.nonEmpty) {
+                callStack.remove(callStack.size - 1)
+            }
             return result
 
         } else {
@@ -416,7 +423,9 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
             // Otherwise stop here.
             if (!followSets.combined.contains(Token.EPSILON) && !followSets.combined.contains(currentSymbol)) {
                 //callStack.pop();
-                callStack.remove(callStack.size - 1)
+                if (callStack.nonEmpty) {
+                    callStack.remove(callStack.size - 1)
+                }
                 return result
             }
         }
@@ -585,7 +594,9 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
         }
 
         //callStack.pop();
-        callStack.remove(callStack.size - 1)
+        if (callStack.nonEmpty) {
+            callStack.remove(callStack.size - 1)
+        }
         result
     }
 
