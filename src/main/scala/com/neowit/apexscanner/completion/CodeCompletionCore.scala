@@ -442,6 +442,7 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
         //statePipeline.push({ state: startState, tokenIndex: tokenIndex });
         statePipeline += PipelineEntry( state = startState, tokenIndex= tokenIndex)
 
+        var skipToNextLoop = false
         //while (statePipeline.length > 0) {
         while (statePipeline.nonEmpty) {
             //currentEntry = statePipeline.pop()!;
@@ -494,6 +495,7 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
                             }
                         }
                         //continue;
+                        skipToNextLoop = true
 
                 case ATNState.STAR_LOOP_ENTRY =>
                 // In left recursive rules we can end up doing the same processing twice for each level of invocation, which
@@ -517,79 +519,84 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
                         }
                     }
                     //continue;
+                    skipToNextLoop = true
                 }
                 //break;
 
+                case _ =>
                 //default:
                 //    break;
             }
+            if (!skipToNextLoop) {
+                val transitions = currentEntry.state.getTransitions
+                //for (let i = transitions.length - 1; i >= 0; --i) {
+                for (i <- (transitions.length - 1) to 0 by -1 ) {
 
-            val transitions = currentEntry.state.getTransitions
-            //for (let i = transitions.length - 1; i >= 0; --i) {
-            for (i <- (transitions.length - 1) to 0 by -1 ) {
+                    val transition = transitions(i)
+                    if (transition.getSerializationType == Transition.RULE) {
+                        val endStatus = this.processRule(transition.target, currentEntry.tokenIndex, callStack, indentation)
+                        //statePipeline.push(...endStatus);
+                        statePipeline ++= endStatus
 
-                val transition = transitions(i)
-                if (transition.getSerializationType == Transition.RULE) {
-                    val endStatus = this.processRule(transition.target, currentEntry.tokenIndex, callStack, indentation)
-                    //statePipeline.push(...endStatus);
-                    statePipeline ++= endStatus
+                        // See description above for this flag.
+                        if (isLeftRecursive && transition.target.ruleIndex == callStack(callStack.length - 1)){
+                            forceLoopEnd = true
+                        }
 
-                    // See description above for this flag.
-                    if (isLeftRecursive && transition.target.ruleIndex == callStack(callStack.length - 1)){
-                        forceLoopEnd = true
-                    }
-
-                } else if (transition.getSerializationType == Transition.PREDICATE) {
-                    if (this.checkPredicate(transition.asInstanceOf[PredicateTransition]))
+                    } else if (transition.getSerializationType == Transition.PREDICATE) {
+                        if (this.checkPredicate(transition.asInstanceOf[PredicateTransition]))
+                        //statePipeline.push({ state: transition.target, tokenIndex: currentEntry.tokenIndex });
+                            statePipeline += PipelineEntry( state = transition.target, tokenIndex= currentEntry.tokenIndex)
+                    } else if (transition.isEpsilon) {
                         //statePipeline.push({ state: transition.target, tokenIndex: currentEntry.tokenIndex });
                         statePipeline += PipelineEntry( state = transition.target, tokenIndex= currentEntry.tokenIndex)
-                } else if (transition.isEpsilon) {
-                    //statePipeline.push({ state: transition.target, tokenIndex: currentEntry.tokenIndex });
-                    statePipeline += PipelineEntry( state = transition.target, tokenIndex= currentEntry.tokenIndex)
-                } else if (transition.getSerializationType == Transition.WILDCARD) {
-                    if (atCaret) {
-                        if (!this.translateToRuleIndex(callStack)) {
-                            for (token <- IntervalSet.of(Token.MIN_USER_TOKEN_TYPE, this.atn.maxTokenType).toArray ) {
-                                if (!this.ignoredTokens.contains(token))
-                                    this.candidates.tokens += (token -> Array.empty[number])
-                            }
-                        }
-                    } else {
-                        //statePipeline.push({ state: transition.target, tokenIndex: currentEntry.tokenIndex + 1 });
-                        statePipeline += PipelineEntry( state = transition.target, tokenIndex= currentEntry.tokenIndex + 1)
-                    }
-                } else {
-                    var set = transition.label
-                    if (null != set && set.size > 0) {
-                        if (transition.getSerializationType == Transition.NOT_SET) {
-                            set = set.complement(IntervalSet.of(Token.MIN_USER_TOKEN_TYPE, this.atn.maxTokenType))
-                        }
+                    } else if (transition.getSerializationType == Transition.WILDCARD) {
                         if (atCaret) {
                             if (!this.translateToRuleIndex(callStack)) {
-                                val list = set.toArray
-                                val addFollowing = list.size == 1
-                                for ( symbol <- list)
-                                    if (!this.ignoredTokens.contains(symbol)) {
-                                        if (this.showDebugOutput)
-                                            logger.debug("=====> collected: ", this.vocabulary.getDisplayName(symbol))
-
-                                        if (addFollowing)
-                                            this.candidates.tokens += (symbol -> this.getFollowingTokens(transition))
-                                        else
-                                            this.candidates.tokens += (symbol -> Array.empty[number])
-                                    }
+                                for (token <- IntervalSet.of(Token.MIN_USER_TOKEN_TYPE, this.atn.maxTokenType).toArray ) {
+                                    if (!this.ignoredTokens.contains(token))
+                                        this.candidates.tokens += (token -> ArrayBuffer.empty[number])
+                                }
                             }
                         } else {
-                            if (set.contains(currentSymbol)) {
-                                if (this.showDebugOutput)
-                                    logger.debug("=====> consumed: ", this.vocabulary.getDisplayName(currentSymbol))
+                            //statePipeline.push({ state: transition.target, tokenIndex: currentEntry.tokenIndex + 1 });
+                            statePipeline += PipelineEntry( state = transition.target, tokenIndex= currentEntry.tokenIndex + 1)
+                        }
+                    } else {
+                        var set = transition.label
+                        if (null != set && set.size > 0) {
+                            if (transition.getSerializationType == Transition.NOT_SET) {
+                                set = set.complement(IntervalSet.of(Token.MIN_USER_TOKEN_TYPE, this.atn.maxTokenType))
+                            }
+                            if (atCaret) {
+                                if (!this.translateToRuleIndex(callStack)) {
+                                    val list = set.toArray
+                                    val addFollowing = list.size == 1
+                                    for ( symbol <- list)
+                                        if (!this.ignoredTokens.contains(symbol)) {
+                                            if (this.showDebugOutput)
+                                                logger.debug("=====> collected: ", this.vocabulary.getDisplayName(symbol))
 
-                                //statePipeline.push({ state: transition.target, tokenIndex: currentEntry.tokenIndex + 1 });
-                                statePipeline += PipelineEntry( state = transition.target, tokenIndex= currentEntry.tokenIndex + 1)
+                                            if (addFollowing)
+                                                this.candidates.tokens += (symbol -> this.getFollowingTokens(transition))
+                                            else
+                                                this.candidates.tokens += (symbol -> ArrayBuffer.empty[number])
+                                        }
+                                }
+                            } else {
+                                if (set.contains(currentSymbol)) {
+                                    if (this.showDebugOutput) {
+                                        logger.debug("=====> consumed: " + this.vocabulary.getDisplayName(currentSymbol))
+                                    }
+
+                                    //statePipeline.push({ state: transition.target, tokenIndex: currentEntry.tokenIndex + 1 });
+                                    statePipeline += PipelineEntry( state = transition.target, tokenIndex= currentEntry.tokenIndex + 1)
+                                }
                             }
                         }
                     }
                 }
+
             }
         }
 
