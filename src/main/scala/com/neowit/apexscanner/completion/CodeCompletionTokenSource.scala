@@ -21,6 +21,7 @@
 
 package com.neowit.apexscanner.completion
 
+import com.neowit.apexscanner.antlr.ApexParserUtils
 import org.antlr.v4.runtime._
 
 /**
@@ -79,8 +80,15 @@ class CodeCompletionTokenSource( source: TokenSource, caret: Caret) extends Toke
                     }
                 }
                 */
+                /*
                 if (token.getLine == caret.line && token.getCharPositionInLine + 1 == caret.col) {
                     return token
+                }
+                */
+                if (token.getLine == caret.line && token.getCharPositionInLine + 1 == caret.col && token.getStopIndex >= token.getStartIndex) {
+                    if (!ApexParserUtils.isWordToken(token)) {
+                        return token
+                    }
                 }
                 val t = CaretToken(token)
                 t.setCaret(caret)

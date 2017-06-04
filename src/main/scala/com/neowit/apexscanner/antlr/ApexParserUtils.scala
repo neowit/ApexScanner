@@ -22,13 +22,26 @@
 package com.neowit.apexscanner.antlr
 
 import java.nio.charset.StandardCharsets
+import java.util.regex.Pattern
 
 import com.neowit.apexscanner.VirtualDocument
-import org.antlr.v4.runtime.{CharStreams, ConsoleErrorListener, Parser}
+import org.antlr.v4.runtime.{CharStreams, ConsoleErrorListener, Parser, Token}
 /**
   * Created by Andrey Gavrikov 
   */
 object ApexParserUtils {
+    private val WORD_PATTERN_STR = "^[\\$A-Za-z_][A-Za-z0-9_]*$"
+    private val WORD_PATTERN: Pattern = Pattern.compile(WORD_PATTERN_STR)
+
+    def isWordToken(token: Token): Boolean = {
+        isWordPattern(token.getText)
+    }
+    def isWordPattern(text: String): Boolean = {
+        WORD_PATTERN.matcher(text).matches
+    }
+    def isDotToken(token: Token): Boolean = {
+        "." == token.getText
+    }
     /**
       * in most cases there is no need to dump syntax errors into console
       * @param parser - ApexcodeParser from which to remove console error listener

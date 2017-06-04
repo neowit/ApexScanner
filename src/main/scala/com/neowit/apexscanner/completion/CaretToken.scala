@@ -106,5 +106,6 @@ trait CaretToken extends org.antlr.v4.runtime.CommonToken with LazyLogging {
         }
     }
 
+    override def getTokenIndex: Int = prevToken.getTokenIndex + 1
 }
 

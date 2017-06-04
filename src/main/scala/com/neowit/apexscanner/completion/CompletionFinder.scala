@@ -22,7 +22,7 @@
 package com.neowit.apexscanner.completion
 
 import com.neowit.apexscanner.{Project, VirtualDocument}
-import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeParser}
+import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, ApexcodeParser}
 import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.resolvers.{AscendingDefinitionFinder, NodeByLocationFinder}
 import com.typesafe.scalalogging.LazyLogging
@@ -45,6 +45,7 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
         ApexParserUtils.removeConsoleErrorListener(parser)
         parser.setBuildParseTree(true)
         parser.setErrorHandler(new CompletionErrorStrategy())
+        //parser.getInterpreter.setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION)
         try {
             // run actual scan, trying to identify caret position
             parser.compilationUnit()
@@ -53,12 +54,38 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
             case ex: CaretReachedException =>
                 //println("found caret?")
                 logger.debug("caret token: " + ex.caretToken.getText)
+                logger.debug("caret token index: " + ex.caretToken.getTokenIndex)
+                collectCandidates(ex, caret)
                 Option(ex)
             //return (CompletionUtils.breakExpressionToATokens(ex), Some(ex))
             case e:Throwable =>
                 logger.debug(e.getMessage)
                 None
         }
+    }
+
+    def collectCandidates(ex: CaretReachedException, caret: CaretInFile): Unit = {
+        val lexer = ApexParserUtils.getDefaultLexer(caret.document)
+        val tokens: CommonTokenStream = new CommonTokenStream(lexer)
+        val parser = new ApexcodeParser(tokens)
+        // do not dump parse errors into console
+        ApexParserUtils.removeConsoleErrorListener(parser)
+        parser.compilationUnit()
+
+        val core = new CodeCompletionCore(parser)
+        core.ignoredTokens = Set(
+            ApexcodeLexer.APEXDOC_COMMENT,
+            ApexcodeLexer.COMMENT,
+            ApexcodeLexer.LINE_COMMENT
+        )
+        core.showResult = true
+        //core.showDebugOutput = true
+        //core.showRuleStack = true
+        //core.debugOutputWithTransitions = true
+
+        val tokenIndex = ex.caretToken.getTokenIndex
+        val res = core.collectCandidates(tokenIndex)
+        logger.debug(res.toString)
     }
 
     def listCompletions(file: VirtualDocument, line: Int, column: Int): Future[Seq[Symbol]] = {
@@ -115,7 +142,6 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
       * @return
       */
     private def findSuitableScopeToken(caretEx: CaretReachedException, caret: CaretInFile): Token = {
-        /*
         if (ApexParserUtils.isWordToken(caretEx.caretToken)) {
             // use caret position as is
             caretEx.caretToken
@@ -136,9 +162,9 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                 caretEx.caretToken
             }
         }
-        */
         ???
     }
+
 
     private def findTypeDefinition(node: AstNode): Option[IsTypeDefinition] = {
         node match {
