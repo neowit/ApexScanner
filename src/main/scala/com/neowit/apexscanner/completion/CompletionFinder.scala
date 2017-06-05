@@ -22,7 +22,7 @@
 package com.neowit.apexscanner.completion
 
 import com.neowit.apexscanner.{Project, VirtualDocument}
-import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, ApexcodeParser}
+import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, ApexcodeParser, CodeCompletionCore}
 import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.resolvers.{AscendingDefinitionFinder, NodeByLocationFinder}
 import com.typesafe.scalalogging.LazyLogging
