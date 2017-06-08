@@ -224,6 +224,22 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
         visitChildren(ExpressionStatementNode(Range(ctx)), ctx)
     }
 
+    /*
+    override def visitMethodCallExpr(ctx: MethodCallExprContext): AstNode = {
+        val context = ctx.methodCall()
+        val methodNameTerminal =
+            if (null != context.Identifier()) context.Identifier()
+            else if (null != context.SUPER()) context.SUPER()
+            else if (null != context.THIS()) context.THIS()
+            else null
+        if (null != methodNameTerminal) {
+            visitChildren(MethodCallNode(methodNameTerminal.getText, Range(ctx)), ctx)
+        } else {
+            NullNode
+        }
+    }
+    */
+
     override def visitMethodCallExpr(ctx: MethodCallExprContext): AstNode = {
         visitChildren(MethodCallNode(ctx.func.getText, Range(ctx)), ctx)
     }
