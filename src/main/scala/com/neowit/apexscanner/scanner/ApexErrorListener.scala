@@ -27,9 +27,15 @@ import org.antlr.v4.runtime.ANTLRErrorListener
 /**
   * Created by Andrey Gavrikov
   */
-trait ApexErrorListener extends ANTLRErrorListener{
+trait ApexErrorListener extends ANTLRErrorListener {
     /**
       * @return list of syntax error accumulated while scanning source(s)
       */
     def result(): Seq[SyntaxError]
+
+    /**
+      * clear accumulated errors
+      * @return
+      */
+    def clear(): Unit
 }

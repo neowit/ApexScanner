@@ -65,7 +65,7 @@ case class SyntaxError(offendingSymbol: scala.Any,
                        charPositionInLine: Int,
                        msg: String)
 
-private class SyntaxCheckerErrorListener(file: Path) extends BaseErrorListener with ApexErrorListener{
+private class SyntaxCheckerErrorListener(file: Path) extends BaseErrorListener with ApexErrorListener {
     private val errorBuilder = Seq.newBuilder[SyntaxError]
     override def syntaxError(recognizer: Recognizer[_, _],
                              offendingSymbol: scala.Any,
@@ -78,4 +78,12 @@ private class SyntaxCheckerErrorListener(file: Path) extends BaseErrorListener w
         //assert(false, "\n" + file.toString + s"\n=> ($line, $charPositionInLine): " + msg)
     }
     def result(): Seq[SyntaxError] = errorBuilder.result()
+
+    /**
+      * clear accumulated errors
+      * @return
+      */
+    def clear(): Unit = {
+        errorBuilder.clear()
+    }
 }

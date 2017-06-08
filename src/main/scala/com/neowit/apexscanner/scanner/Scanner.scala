@@ -26,8 +26,11 @@ import com.neowit.apexscanner.FileBasedDocument
 import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, ApexcodeParser}
 import com.neowit.apexscanner.scanner.actions.SyntaxError
 import org.antlr.v4.runtime._
+import org.antlr.v4.runtime.atn.PredictionMode
+import org.antlr.v4.runtime.misc.ParseCancellationException
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
 case class FileScanResult(sourceFile: Path, errors: Seq[SyntaxError], parseContext: ParserRuleContext)
 
@@ -70,7 +73,7 @@ class Scanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath,
       * @param path file or folder with eligible apex files to check syntax
       * @return
       */
-    def scan(path: Path)(implicit ex: ExecutionContext): Future[Unit] = Future {
+    def scan(path: Path, predictionMode: PredictionMode = PredictionMode.SLL)(implicit ex: ExecutionContext): Future[Unit] = Future {
         val fileListBuilder = List.newBuilder[Path]
 
         val apexFileVisitor = new SimpleFileVisitor[Path]() {
@@ -95,15 +98,30 @@ class Scanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath,
 
         files.foreach{ file =>
             val lexer = getLexer(file)
-            val tokens = new CommonTokenStream(lexer)
-            val parser = new ApexcodeParser(tokens)
-            // do not dump parse errors into console
-            ApexParserUtils.removeConsoleErrorListener(parser)
+            val tokenStream = new CommonTokenStream(lexer)
+            val parser = new ApexcodeParser(tokenStream)
+            // do not dump parse errors into console (or any other default listeners)
+            parser.removeErrorListeners()
             val errorListener = errorListenerFactory(file)
             parser.addErrorListener(errorListener)
+            parser.setErrorHandler(new BailErrorStrategy)
+            parser.getInterpreter.setPredictionMode(predictionMode)
 
             // run actual scan
-            val compilationUnit:ParserRuleContext = parser.compilationUnit()
+            val compilationUnit:ParserRuleContext =
+                Try(parser.compilationUnit()) match {
+                    case Success(tree) => tree
+                    case Failure(e:ParseCancellationException) if PredictionMode.LL != predictionMode =>
+                        // repeat scan with PredictionMode.LL
+                        tokenStream.seek(0)
+                        errorListener.clear()
+                        parser.reset()
+                        parser.setErrorHandler(new DefaultErrorStrategy)
+                        parser.getInterpreter.setPredictionMode(PredictionMode.LL)
+                        val tree = parser.compilationUnit()
+                        tree
+                    case Failure(e) => throw e
+                }
 
             val errors = errorListener.result()
             onEachResult(FileScanResult(file, errors, compilationUnit))
