@@ -88,6 +88,11 @@ class AscendingDefinitionFinder() {
                         // assume variable
                         val matchFunc = variableMatchFunc(targetName)
                         findDefinitionInternal(target, targetName, startNode, matchFunc, Seq.empty)
+                    case t:DataTypeNodeGeneric =>
+                        val targetName = t.qualifiedNameNode.qualifiedName
+                        // assume variable
+                        val matchFunc = variableMatchFunc(targetName)
+                        findDefinitionInternal(target, targetName, startNode, matchFunc, Seq.empty)
                     case t:FallThroughNode =>
                         //TODO - given an expression (e.g. method parameter) - resolve its final type
                         // maybe FallThroughNode is not the best type here
