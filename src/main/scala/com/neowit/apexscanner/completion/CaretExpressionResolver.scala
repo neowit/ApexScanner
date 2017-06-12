@@ -23,13 +23,12 @@ package com.neowit.apexscanner.completion
 
 import com.neowit.apexscanner.{Project, VirtualDocument}
 import com.neowit.apexscanner.antlr.ApexParserUtils
-import com.neowit.apexscanner.nodes.{AstNode, FallThroughNode, IsTypeDefinition, Position}
-import com.neowit.apexscanner.resolvers.{AscendingDefinitionFinder, NodeByLocationFinder}
+import com.neowit.apexscanner.nodes.{AstNode, IsTypeDefinition, Position}
+import com.neowit.apexscanner.resolvers.{AscendingDefinitionFinder, NodeByLocationFinder, NodeBySymbolTextFinder}
 import com.typesafe.scalalogging.LazyLogging
 import org.antlr.v4.runtime.{CommonTokenStream, Token}
 
-import scala.collection.mutable
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 
 sealed trait CaretSituation
 case object ClassMember extends CaretSituation
@@ -41,7 +40,7 @@ case class CaretScope(scopeToken: Option[Token], typeDefinition: Option[IsTypeDe
 class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  extends LazyLogging {
 
     def resolveCaretScope(caret: CaretInFile, caretReachedException: CaretReachedException, tokens: CommonTokenStream): Future[Option[CaretScope]] = {
-        val defByTokenIndex = new mutable.HashMap[Int, IsTypeDefinition]()
+        //val defByTokenIndex = new mutable.HashMap[Int, IsTypeDefinition]()
         // get parent of final context
         // then follow token stream from start till caret resolving all items
         val start = caretReachedException.finalContext.parent.getSourceInterval.a
@@ -50,43 +49,35 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
             var i = 1
             var token = tokens.LT(i)
             val document = caret.document
-            var lastWordTokenIndex = -1
-            val tokensToResolve = List.newBuilder[Token]
+            //val tokensToResolveBuilder = List.newBuilder[Token]
             while (caret.isAfter(token)) {
-                if (ApexParserUtils.isWordToken(token)) {
-                    lastWordTokenIndex = token.getTokenIndex
-                    //tokensToResolve += token
-                    // resolve
-                    val resFuture =
-                        findAstNode(document, token).map{
-                            case Some(astNode: FallThroughNode) =>
-                            // do nothing
-                            case Some(astNode) =>
-
-                                findTypeDefinition(astNode) match {
-                                    case Some(typeDef) =>
-                                        defByTokenIndex += token.getTokenIndex -> typeDef
-                                    case None =>
-                                }
-                            case None => // looks like AST does not go this far
-                                ???
-                        }
-                    //Await.result(resFuture, concurrent.duration.Duration.Inf)
-                }
                 i += 1
                 token = tokens.LT(i)
-
             }
-            // at this point we have cached definitions of tokens right before the caret
+            val caretTokenIndex = token.getTokenIndex
+            // at this point we have cached tokens right before the caret
             // now we can step back and find what caret means
             // TODO
-            if ("." == tokens.LT(i-1).getText) {
+            if ("." == token.getText || "." == tokens.LT(caretTokenIndex - 1).getText) {
                 // caret is part Expr.Expr, so it must be member of token before .
-                defByTokenIndex.get(lastWordTokenIndex) match {
-                    case Some(tokenDef) =>
-                        Option(CaretScope(Option(tokens.get(lastWordTokenIndex)), Option(tokenDef), ClassMember))
-                    case None =>
-                        None
+                findPrecedingWordToken(caretTokenIndex - 1, tokens) match {
+                  case Some(scopeToken) =>
+                      findAstScopeNode(document, scopeToken).map{
+                          case Some(astScopeNode) =>
+                              // this node is either around or is the node in front of caret
+                              // resolve
+                              findTypeDefinition(astScopeNode, scopeToken, Set.empty) match {
+                                  case Some(typeDef) =>
+                                      //defByTokenIndex += token.getTokenIndex -> typeDef
+                                      Option(CaretScope(Option(scopeToken), Option(typeDef), ClassMember))
+                                  case None =>
+                                      None
+                              }
+                          case None => // looks like AST does not go this far
+                              None
+                      }
+                  case None =>
+                        Future.successful(None)
                 }
             } else {
                 ???
@@ -95,8 +86,49 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
             Future.successful(None)
         }
     }
+    private def findPrecedingWordToken(caretTokenIndex: Int, tokens: CommonTokenStream): Option[Token] = {
+        var i = caretTokenIndex - 1
+        while (i >=0) {
+            val token = tokens.get(i)
 
-    private def findAstNode(document: VirtualDocument, token: Token): Future[Option[AstNode]] = {
+            if (Token.DEFAULT_CHANNEL == token.getChannel && ApexParserUtils.isWordToken(token)) {
+                return Option(token)
+            }
+            i -= 1
+        }
+        None
+    }
+
+    private def findTypeDefinition(startNode: AstNode, tokenToResolve: Token, processedParents: Set[AstNode]): Option[IsTypeDefinition] = {
+        startNode match {
+            case _:IsTypeDefinition =>
+                Option(startNode.asInstanceOf[IsTypeDefinition])
+            case _ =>
+                findDefinitionAscending(startNode) match {
+                    case typeDefOpt @ Some(typeDef) =>
+                        typeDefOpt
+                    case None =>
+                        // looks like token is not part of available AST
+                        // fall back to search by token text
+                        val rootNode = startNode
+                        val finder = new NodeBySymbolTextFinder(tokenToResolve.getText)
+                        finder.findInside(rootNode, processedParents) match {
+                            case Some(node) =>
+                                findTypeDefinition(node, tokenToResolve, processedParents + startNode)
+                            case None =>
+                                startNode.getParentInAst(skipFallThroughNodes = true) match {
+                                    case Some(parent) =>
+                                        findTypeDefinition(parent, tokenToResolve, processedParents + startNode)
+                                    case None =>
+                                        None
+                                }
+                        }
+                }
+        }
+
+    }
+
+    private def findAstScopeNode(document: VirtualDocument, token: Token): Future[Option[AstNode]] = {
 
         project.getAst(document.file).map{
             case Some(_res) =>
@@ -107,24 +139,13 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
                     case finalNode @ Some(_) =>
                         //finalNode is a node in (or right before) Caret position
                         finalNode
-                    case None => None
+                    case None =>
+                        None
                 }
 
             case _ =>
                 logger.debug("Failed to build AST for file: " + document.file)
                 None
-        }
-    }
-
-    private def findTypeDefinition(node: AstNode): Option[IsTypeDefinition] = {
-
-        findDefinitionAscending(node) match {
-          case typeDefOpt @ Some(typeDef) =>
-              typeDefOpt
-          case None =>
-              // definition not found in current file
-              // try other places
-                ???
         }
     }
 
@@ -134,6 +155,7 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
         definitions match {
             case Nil =>
                 // definition not found in current file
+                //TODO
                 None
             case head :: Nil =>
                 // exactly 1 node found, looks promising

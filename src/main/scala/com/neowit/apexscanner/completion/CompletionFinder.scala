@@ -24,9 +24,8 @@ package com.neowit.apexscanner.completion
 import com.neowit.apexscanner.{Project, VirtualDocument}
 import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, ApexcodeParser, CodeCompletionCore}
 import com.neowit.apexscanner.nodes._
-import com.neowit.apexscanner.resolvers.{AscendingDefinitionFinder, NodeByLocationFinder}
 import com.typesafe.scalalogging.LazyLogging
-import org.antlr.v4.runtime.{CommonTokenStream, Token}
+import org.antlr.v4.runtime.CommonTokenStream
 
 import scala.concurrent.{ExecutionContext, Future}
 import com.neowit.apexscanner.symbols._
@@ -35,8 +34,29 @@ import com.neowit.apexscanner.symbols._
   * Created by Andrey Gavrikov 
   */
 class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends LazyLogging {
+    case class FindCaretTokenResult(ex: CaretReachedException, tokens: CommonTokenStream )
 
-    private def findCaretToken(caret: CaretInFile): Option[CaretReachedException] = {
+    def listCompletions(file: VirtualDocument, line: Int, column: Int): Future[Seq[Symbol]] = {
+        val caret = new CaretInFile(Position(line, column), file)
+        findCaretToken(caret) match {
+            case Some(findCaretTokenResult) =>
+                val caretReachedException = findCaretTokenResult.ex
+                val tokens = findCaretTokenResult.tokens
+                //caretReachedException.finalContext
+                //now when we found token corresponding caret position try to understand context
+                val resolver = new CaretExpressionResolver(project)
+                resolver.resolveCaretScope(caret, caretReachedException, tokens).map{
+                    case Some(CaretScope(scopeTokenOpt, Some(typeDefinition), ClassMember)) =>
+                        println(typeDefinition)
+                        ???
+                    case _ =>
+                        ???
+                }
+            case None =>
+                Future.successful(Seq.empty)
+        }
+    }
+    private def findCaretToken(caret: CaretInFile): Option[FindCaretTokenResult] = {
         val lexer = ApexParserUtils.getDefaultLexer(caret.document)
         val tokenSource = new CodeCompletionTokenSource(lexer, caret)
         val tokens: CommonTokenStream = new CommonTokenStream(tokenSource)
@@ -55,9 +75,9 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                 //println("found caret?")
                 logger.debug("caret token: " + ex.caretToken.getText)
                 logger.debug("caret token index: " + ex.caretToken.getTokenIndex)
-                resolveCaretExpression(caret, ex, tokens)
+                //resolveCaretExpression(caret, ex, tokens)
                 //collectCandidates(ex, caret)
-                Option(ex)
+                Option(FindCaretTokenResult(ex, tokens))
             //return (CompletionUtils.breakExpressionToATokens(ex), Some(ex))
             case e:Throwable =>
                 logger.debug(e.getMessage)
@@ -65,12 +85,17 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
         }
     }
 
+    /*
     // this is just a test
-    def resolveCaretExpression(caret: CaretInFile, caretReachedException: CaretReachedException, tokens: CommonTokenStream): Unit = {
+    def resolveCaretExpression(caret: CaretInFile, caretReachedException: CaretReachedException, tokens: CommonTokenStream): Future[Unit] = {
         val resolver = new CaretExpressionResolver(project)
-        resolver.resolveCaretScope(caret, caretReachedException, tokens)
+        resolver.resolveCaretScope(caret, caretReachedException, tokens).map{
+            case Some(caretScope) =>
+            case None =>
+        }
         ???
     }
+    */
 
     def collectCandidates(ex: CaretReachedException, caret: CaretInFile): Unit = {
         val lexer = ApexParserUtils.getDefaultLexer(caret.document)
@@ -96,6 +121,7 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
         logger.debug(res.toString)
     }
 
+    /*
     def listCompletions(file: VirtualDocument, line: Int, column: Int): Future[Seq[Symbol]] = {
         val caret = new CaretInFile(Position(line, column), file)
         findCaretToken(caret) match {
@@ -138,6 +164,7 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                 None
         }
     }
+    */
 
     /**
       * TODO
@@ -149,6 +176,7 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
       * @param caret caret definition
       * @return
       */
+    /*
     private def findSuitableScopeToken(caretEx: CaretReachedException, caret: CaretInFile): Token = {
         if (ApexParserUtils.isWordToken(caretEx.caretToken)) {
             // use caret position as is
@@ -238,4 +266,5 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                 nodes.find(_.isInstanceOf[IsTypeDefinition]).map(_.asInstanceOf[IsTypeDefinition])
         }
     }
+    */
 }
