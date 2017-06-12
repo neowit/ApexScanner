@@ -41,11 +41,11 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
         val tokenSource = new CodeCompletionTokenSource(lexer, caret)
         val tokens: CommonTokenStream = new CommonTokenStream(tokenSource)
         val parser = new ApexcodeParser(tokens)
-        // do not dump parse errors into console
-        ApexParserUtils.removeConsoleErrorListener(parser)
+        // do not dump parse errors into console (or any other default listeners)
+        parser.removeErrorListeners()
         parser.setBuildParseTree(true)
         parser.setErrorHandler(new CompletionErrorStrategy())
-        //parser.getInterpreter.setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION)
+        //parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
         try {
             // run actual scan, trying to identify caret position
             parser.compilationUnit()
@@ -55,13 +55,21 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                 //println("found caret?")
                 logger.debug("caret token: " + ex.caretToken.getText)
                 logger.debug("caret token index: " + ex.caretToken.getTokenIndex)
-                collectCandidates(ex, caret)
+                resolveCaretExpression(caret, ex, tokens)
+                //collectCandidates(ex, caret)
                 Option(ex)
             //return (CompletionUtils.breakExpressionToATokens(ex), Some(ex))
             case e:Throwable =>
                 logger.debug(e.getMessage)
                 None
         }
+    }
+
+    // this is just a test
+    def resolveCaretExpression(caret: CaretInFile, caretReachedException: CaretReachedException, tokens: CommonTokenStream): Unit = {
+        val resolver = new CaretExpressionResolver(project)
+        resolver.resolveCaretScope(caret, caretReachedException, tokens)
+        ???
     }
 
     def collectCandidates(ex: CaretReachedException, caret: CaretInFile): Unit = {
