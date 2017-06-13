@@ -248,6 +248,10 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
         visitChildren(ExpressionListNode(Range(ctx)), ctx)
     }
 
+    override def visitClassBodyMemberRef(ctx: ClassBodyMemberRefContext): AstNode = {
+        visitChildren(ctx.expression())
+    }
+
     override def visitExprDotExpression(ctx: ExprDotExpressionContext): AstNode = {
         visitChildren(ExpressionDotExpressionNode(Range(ctx)), ctx)
     }
