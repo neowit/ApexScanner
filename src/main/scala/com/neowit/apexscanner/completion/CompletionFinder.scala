@@ -54,13 +54,14 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                         println(typeDefinition)
                         ???
                     case _ =>
+                        collectCandidates(caret, caretToken, parser)
                         ???
                 }
             case None =>
                 Future.successful(Seq.empty)
         }
     }
-    
+
     private def findCaretToken(caret: CaretInFile): Option[FindCaretTokenResult] = {
         val lexer = ApexParserUtils.getDefaultLexer(caret.document)
         val tokens = new CommonTokenStream(lexer)
@@ -84,33 +85,45 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
             token = tokens.get(i)
         }
         if (caret.isInside(token) || caret.isBefore(token)) {
-            Option(FindCaretTokenResult(token, tokens))
+            Option(FindCaretTokenResult(token, parser))
         } else {
             None
         }
     }
 
-
-    def collectCandidates(ex: CaretReachedException, caret: CaretInFile): Unit = {
+    def collectCandidates(caret: CaretInFile, caretToken: Token, parser: ApexcodeParser): Unit = {
+        /*
         val lexer = ApexParserUtils.getDefaultLexer(caret.document)
         val tokens: CommonTokenStream = new CommonTokenStream(lexer)
         val parser = new ApexcodeParser(tokens)
         // do not dump parse errors into console
         ApexParserUtils.removeConsoleErrorListener(parser)
         parser.compilationUnit()
+        */
 
         val core = new CodeCompletionCore(parser)
         core.ignoredTokens = Set(
             ApexcodeLexer.APEXDOC_COMMENT,
             ApexcodeLexer.COMMENT,
-            ApexcodeLexer.LINE_COMMENT
+            ApexcodeLexer.LINE_COMMENT,
+            ApexcodeLexer.BooleanLiteral,
+            ApexcodeLexer.StringLiteral,
+            ApexcodeLexer.IntegerLiteral,
+            ApexcodeLexer.FloatingPointLiteral,
+            ApexcodeLexer.SoqlLiteral,
+            ApexcodeLexer.SoslLiteral,
+            ApexcodeLexer.NULL
+
+        )
+        core.preferredRules = Set(
+            ApexcodeParser.RULE_classBodyMemberRef
         )
         core.showResult = true
         //core.showDebugOutput = true
         //core.showRuleStack = true
         //core.debugOutputWithTransitions = true
 
-        val tokenIndex = ex.caretToken.getTokenIndex
+        val tokenIndex = caretToken.getTokenIndex
         val res = core.collectCandidates(tokenIndex)
         logger.debug(res.toString)
     }
