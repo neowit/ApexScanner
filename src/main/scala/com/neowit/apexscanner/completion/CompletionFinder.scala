@@ -23,6 +23,7 @@ package com.neowit.apexscanner.completion
 
 import com.neowit.apexscanner.{Project, VirtualDocument}
 import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, ApexcodeParser, CodeCompletionCore}
+import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes._
 import com.typesafe.scalalogging.LazyLogging
 import org.antlr.v4.runtime.{BailErrorStrategy, CommonTokenStream, Token}
@@ -52,7 +53,10 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                 resolver.resolveCaretScope(caret, caretToken, tokens).map{
                     case Some(CaretScope(scopeTokenOpt, Some(typeDefinition), ClassMember)) =>
                         println(typeDefinition)
-                        ???
+                        typeDefinition.getValueType match {
+                          case Some(valueType) => getValueTypeMembers(valueType)
+                          case None => Seq.empty
+                        }
                     case _ =>
                         collectCandidates(caret, caretToken, parser)
                         ???
@@ -128,5 +132,24 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
         logger.debug(res.toString)
     }
 
+    private def getValueTypeMembers(valueType: ValueType): Seq[Symbol] = {
+        valueType match {
+            case ValueTypeComplex(qualifiedName, typeArguments) => ???
+            case ValueTypeSimple(qualifiedName) => getSymbolsOf(qualifiedName)
+            case ValueTypeClass(qualifiedName) => getSymbolsOf(qualifiedName) //TODO - is this ever used ?
+            case ValueTypeInterface(qualifiedName) => ???
+            case ValueTypeTrigger(qualifiedName) => ???
+            case ValueTypeEnum(qualifiedName) => ???
+            case ValueTypeVoid => ???
+            case ValueTypeAny => ???
+            case ValueTypeArray(qualifiedNameNode) => ???
+        }
+    }
+    private def getSymbolsOf(qualifiedName: QualifiedName): Seq[Symbol] = {
+        project.getByQualifiedName(qualifiedName) match {
+            case Some(node) => node.findChildrenInAst(_.isSymbol).map(_.asInstanceOf[ClassOrInterfaceBodyMember])
+            case None => Seq.empty
+        }
 
+    }
 }
