@@ -68,11 +68,11 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
         // do not dump parse errors into console (or any other default listeners)
         parser.removeErrorListeners()
         parser.setErrorHandler(new BailErrorStrategy)
-        parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
+        //parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
+        parser.getInterpreter.setPredictionMode(PredictionMode.LL)
         try {
             // run actual scan, trying to identify caret position
             parser.compilationUnit()
-            None
         } catch {
             case e:Throwable =>
                 logger.debug(e.getMessage)
