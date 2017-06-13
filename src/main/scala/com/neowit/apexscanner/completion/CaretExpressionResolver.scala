@@ -26,7 +26,7 @@ import com.neowit.apexscanner.antlr.ApexParserUtils
 import com.neowit.apexscanner.nodes.{AstNode, IsTypeDefinition, Position}
 import com.neowit.apexscanner.resolvers.{AscendingDefinitionFinder, NodeByLocationFinder, NodeBySymbolTextFinder}
 import com.typesafe.scalalogging.LazyLogging
-import org.antlr.v4.runtime.{CommonTokenStream, Token}
+import org.antlr.v4.runtime.{Token, TokenStream}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -39,13 +39,13 @@ case class CaretScope(scopeToken: Option[Token], typeDefinition: Option[IsTypeDe
   */
 class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  extends LazyLogging {
 
-    def resolveCaretScope(caret: CaretInFile, caretToken: Token, tokens: CommonTokenStream): Future[Option[CaretScope]] = {
+    def resolveCaretScope(caret: CaretInFile, caretToken: Token, tokens: TokenStream): Future[Option[CaretScope]] = {
         // now we can step back and find what caret means
         if (isNextToDot(caretToken, tokens)) {
             val document = caret.document
             // caret is part Expr.Expr, so it must be member of token before .
             val caretTokenIndex = caretToken.getTokenIndex
-            findPrecedingWordToken(caretTokenIndex - 1, tokens) match {
+            findPrecedingWordToken(caretTokenIndex, tokens) match {
                 case Some(scopeToken) =>
                     findAstScopeNode(document, scopeToken).map{
                         case Some(astScopeNode) =>
@@ -66,25 +66,59 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
             }
         } else {
             // TODO
-            ???
+            Future.successful(None)
         }
     }
-    private def isNextToDot(caretToken: Token, tokens: CommonTokenStream): Boolean = {
-        "." == caretToken.getText ||
-            "." == tokens.get( caretToken.getTokenIndex ).getText ||
-            "." == tokens.get( caretToken.getTokenIndex - 1 ).getText
+    // check if we are inside expression like
+    // something.<caret>
+    // something.som<caret>
+    private def isNextToDot(caretToken: Token, tokens: TokenStream): Boolean = {
+        getTokenBeforeCaret(caretToken.getTokenIndex, tokens) match {
+          case Some(token) if "." == token.getText => true
+          case _ => false
+        }
+
     }
-    private def findPrecedingWordToken(caretTokenIndex: Int, tokens: CommonTokenStream): Option[Token] = {
-        var i = caretTokenIndex - 1
+
+    private def getTokenBeforeCaret(caretTokenIndex: Int, tokens: TokenStream): Option[Token] = {
+        val i = caretTokenIndex - 1
+        if (i > 0) {
+            if (ApexParserUtils.isWordToken(tokens.get(i))) {
+                // this looks like:
+                //  obj.othe<caret>
+                // we should skip "othe" and move further left
+                getPrevTokenOnChannel(i, tokens, t => true)
+            } else {
+                Option(tokens.get(i))
+            }
+        } else {
+            None
+        }
+
+    }
+    private def getPrevTokenOnChannel(startTokenIndex: Int, tokens: TokenStream, predicate: Token => Boolean): Option[Token] = {
+        var i = startTokenIndex - 1
         while (i >=0) {
             val token = tokens.get(i)
 
-            if (Token.DEFAULT_CHANNEL == token.getChannel && ApexParserUtils.isWordToken(token)) {
+            if (Token.DEFAULT_CHANNEL == token.getChannel && predicate(token)) {
                 return Option(token)
             }
             i -= 1
         }
         None
+    }
+    private def findPrecedingWordToken(caretTokenIndex: Int, tokens: TokenStream): Option[Token] = {
+        getTokenBeforeCaret(caretTokenIndex, tokens) match {
+          case Some(token) =>
+              if (ApexParserUtils.isWordToken(token)) {
+                  Option(token)
+              } else {
+                  getPrevTokenOnChannel(token.getTokenIndex, tokens, t => ApexParserUtils.isWordToken(t))
+              }
+          case _ =>
+                None
+        }
     }
 
     private def findTypeDefinition(startNode: AstNode, tokenToResolve: Token, processedParents: Set[AstNode]): Option[IsTypeDefinition] = {

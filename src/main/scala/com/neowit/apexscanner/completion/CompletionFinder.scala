@@ -36,7 +36,7 @@ import org.antlr.v4.runtime.atn.PredictionMode
   */
 class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends LazyLogging {
     //case class FindCaretTokenResult(ex: CaretReachedException, tokens: CommonTokenStream )
-    case class FindCaretTokenResult(caretToken: Token, tokens: CommonTokenStream )
+    case class FindCaretTokenResult(caretToken: Token, parser: ApexcodeParser )
 
     def listCompletions(file: VirtualDocument, line: Int, column: Int): Future[Seq[Symbol]] = {
         val caret = new CaretInFile(Position(line, column), file)
@@ -44,7 +44,8 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
             case Some(findCaretTokenResult) =>
                 //val caretReachedException = findCaretTokenResult.ex
                 val caretToken = findCaretTokenResult.caretToken
-                val tokens = findCaretTokenResult.tokens
+                val parser = findCaretTokenResult.parser
+                val tokens = parser.getTokenStream
                 //caretReachedException.finalContext
                 //now when we found token corresponding caret position try to understand context
                 val resolver = new CaretExpressionResolver(project)

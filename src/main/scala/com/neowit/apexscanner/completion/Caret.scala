@@ -48,7 +48,7 @@ abstract class Caret(val position: Position) {
       * check if caret is After given Token
       */
     def isAfter(token: Token): Boolean = {
-        val tokenEnds = token.getCharPositionInLine + token.getText.length
+        val tokenEnds = token.getCharPositionInLine + token.getText.length -1
         token.getLine < line || line == token.getLine && tokenEnds < col
     }
     /**
