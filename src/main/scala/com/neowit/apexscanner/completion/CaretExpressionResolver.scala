@@ -30,61 +30,49 @@ import org.antlr.v4.runtime.{CommonTokenStream, Token}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-sealed trait CaretSituation
-case object ClassMember extends CaretSituation
+sealed trait CaretContext
+case object ClassMember extends CaretContext
 
-case class CaretScope(scopeToken: Option[Token], typeDefinition: Option[IsTypeDefinition], situation: CaretSituation)
+case class CaretScope(scopeToken: Option[Token], typeDefinition: Option[IsTypeDefinition], situation: CaretContext)
 /**
   * Created by Andrey Gavrikov 
   */
 class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  extends LazyLogging {
 
-    def resolveCaretScope(caret: CaretInFile, caretReachedException: CaretReachedException, tokens: CommonTokenStream): Future[Option[CaretScope]] = {
-        //val defByTokenIndex = new mutable.HashMap[Int, IsTypeDefinition]()
-        // get parent of final context
-        // then follow token stream from start till caret resolving all items
-        val start = caretReachedException.finalContext.parent.getSourceInterval.a
-        if (start > 0) {
-            tokens.seek(start)
-            var i = 1
-            var token = tokens.LT(i)
+    def resolveCaretScope(caret: CaretInFile, caretToken: Token, tokens: CommonTokenStream): Future[Option[CaretScope]] = {
+        // now we can step back and find what caret means
+        if (isNextToDot(caretToken, tokens)) {
             val document = caret.document
-            //val tokensToResolveBuilder = List.newBuilder[Token]
-            while (caret.isAfter(token)) {
-                i += 1
-                token = tokens.LT(i)
-            }
-            val caretTokenIndex = token.getTokenIndex
-            // at this point we have cached tokens right before the caret
-            // now we can step back and find what caret means
-            // TODO
-            if ("." == token.getText || "." == tokens.LT(caretTokenIndex - 1).getText) {
-                // caret is part Expr.Expr, so it must be member of token before .
-                findPrecedingWordToken(caretTokenIndex - 1, tokens) match {
-                  case Some(scopeToken) =>
-                      findAstScopeNode(document, scopeToken).map{
-                          case Some(astScopeNode) =>
-                              // this node is either around or is the node in front of caret
-                              // resolve
-                              findTypeDefinition(astScopeNode, scopeToken, Set.empty) match {
-                                  case Some(typeDef) =>
-                                      //defByTokenIndex += token.getTokenIndex -> typeDef
-                                      Option(CaretScope(Option(scopeToken), Option(typeDef), ClassMember))
-                                  case None =>
-                                      None
-                              }
-                          case None => // looks like AST does not go this far
-                              None
-                      }
-                  case None =>
-                        Future.successful(None)
-                }
-            } else {
-                ???
+            // caret is part Expr.Expr, so it must be member of token before .
+            val caretTokenIndex = caretToken.getTokenIndex
+            findPrecedingWordToken(caretTokenIndex - 1, tokens) match {
+                case Some(scopeToken) =>
+                    findAstScopeNode(document, scopeToken).map{
+                        case Some(astScopeNode) =>
+                            // this node is either around or is the node in front of caret
+                            // resolve
+                            findTypeDefinition(astScopeNode, scopeToken, Set.empty) match {
+                                case Some(typeDef) =>
+                                    //defByTokenIndex += token.getTokenIndex -> typeDef
+                                    Option(CaretScope(Option(scopeToken), Option(typeDef), ClassMember))
+                                case None =>
+                                    None
+                            }
+                        case None => // looks like AST does not go this far
+                            None
+                    }
+                case None =>
+                    Future.successful(None)
             }
         } else {
-            Future.successful(None)
+            // TODO
+            ???
         }
+    }
+    private def isNextToDot(caretToken: Token, tokens: CommonTokenStream): Boolean = {
+        "." == caretToken.getText ||
+            "." == tokens.get( caretToken.getTokenIndex ).getText ||
+            "." == tokens.get( caretToken.getTokenIndex - 1 ).getText
     }
     private def findPrecedingWordToken(caretTokenIndex: Int, tokens: CommonTokenStream): Option[Token] = {
         var i = caretTokenIndex - 1

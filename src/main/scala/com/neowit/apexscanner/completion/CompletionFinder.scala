@@ -25,27 +25,30 @@ import com.neowit.apexscanner.{Project, VirtualDocument}
 import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, ApexcodeParser, CodeCompletionCore}
 import com.neowit.apexscanner.nodes._
 import com.typesafe.scalalogging.LazyLogging
-import org.antlr.v4.runtime.CommonTokenStream
+import org.antlr.v4.runtime.{BailErrorStrategy, CommonTokenStream, Token}
 
 import scala.concurrent.{ExecutionContext, Future}
 import com.neowit.apexscanner.symbols._
+import org.antlr.v4.runtime.atn.PredictionMode
 
 /**
   * Created by Andrey Gavrikov 
   */
 class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends LazyLogging {
-    case class FindCaretTokenResult(ex: CaretReachedException, tokens: CommonTokenStream )
+    //case class FindCaretTokenResult(ex: CaretReachedException, tokens: CommonTokenStream )
+    case class FindCaretTokenResult(caretToken: Token, tokens: CommonTokenStream )
 
     def listCompletions(file: VirtualDocument, line: Int, column: Int): Future[Seq[Symbol]] = {
         val caret = new CaretInFile(Position(line, column), file)
         findCaretToken(caret) match {
             case Some(findCaretTokenResult) =>
-                val caretReachedException = findCaretTokenResult.ex
+                //val caretReachedException = findCaretTokenResult.ex
+                val caretToken = findCaretTokenResult.caretToken
                 val tokens = findCaretTokenResult.tokens
                 //caretReachedException.finalContext
                 //now when we found token corresponding caret position try to understand context
                 val resolver = new CaretExpressionResolver(project)
-                resolver.resolveCaretScope(caret, caretReachedException, tokens).map{
+                resolver.resolveCaretScope(caret, caretToken, tokens).map{
                     case Some(CaretScope(scopeTokenOpt, Some(typeDefinition), ClassMember)) =>
                         println(typeDefinition)
                         ???
@@ -56,7 +59,37 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                 Future.successful(Seq.empty)
         }
     }
+    
     private def findCaretToken(caret: CaretInFile): Option[FindCaretTokenResult] = {
+        val lexer = ApexParserUtils.getDefaultLexer(caret.document)
+        val tokens = new CommonTokenStream(lexer)
+        val parser = new ApexcodeParser(tokens)
+        // do not dump parse errors into console (or any other default listeners)
+        parser.removeErrorListeners()
+        parser.setErrorHandler(new BailErrorStrategy)
+        parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
+        try {
+            // run actual scan, trying to identify caret position
+            parser.compilationUnit()
+            None
+        } catch {
+            case e:Throwable =>
+                logger.debug(e.getMessage)
+        }
+        var i = 0
+        var token: Token = tokens.get(i)
+        while (caret.isAfter(token)) {
+            i += 1
+            token = tokens.get(i)
+        }
+        if (caret.isInside(token) || caret.isBefore(token)) {
+            Option(FindCaretTokenResult(token, tokens))
+        } else {
+            None
+        }
+    }
+    /*
+    private def findCaretToken2(caret: CaretInFile): Option[FindCaretTokenResult] = {
         val lexer = ApexParserUtils.getDefaultLexer(caret.document)
         val tokenSource = new CodeCompletionTokenSource(lexer, caret)
         val tokens: CommonTokenStream = new CommonTokenStream(tokenSource)
@@ -75,15 +108,15 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                 //println("found caret?")
                 logger.debug("caret token: " + ex.caretToken.getText)
                 logger.debug("caret token index: " + ex.caretToken.getTokenIndex)
-                //resolveCaretExpression(caret, ex, tokens)
-                //collectCandidates(ex, caret)
-                Option(FindCaretTokenResult(ex, tokens))
+                //Option(FindCaretTokenResult(ex, tokens))
+                None
             //return (CompletionUtils.breakExpressionToATokens(ex), Some(ex))
             case e:Throwable =>
                 logger.debug(e.getMessage)
                 None
         }
     }
+    */
 
     /*
     // this is just a test

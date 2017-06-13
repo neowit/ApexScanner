@@ -40,11 +40,11 @@ object ListCompletions extends LazyLogging {
         val projectPath = Paths.get("/Users/andrey/eclipse.workspace/Sforce - SFDC Experiments/SForce (vim-force.com)")
         val path: Path = Paths.get("/Users/andrey/eclipse.workspace/Sforce - SFDC Experiments/SForce (vim-force.com)/src/classes/CompletionTester.cls")
         val completions = new ListCompletions(Project(projectPath))
-        val line = 11
+        val line = 12
         //val res = completions.list(FileBasedDocument(path), line, 12) //con.;// FallThoughNode
         //val res = completions.list(FileBasedDocument(path), line + 1, 20) //con.acc() + ; // ExpressionStatementNode
-        val res = completions.list(FileBasedDocument(path), line +2, 15) //con.acc; // ExpressionDotExpression
-        //val res = completions.list(FileBasedDocument(path), line +3, 27) //((Opportunity)obj). // Expression -> ExpressionDotExpression
+        //val res = completions.list(FileBasedDocument(path), line +2, 15) //con.acc; // ExpressionDotExpression
+        val res = completions.list(FileBasedDocument(path), line +3, 27) //((Opportunity)obj). // Expression -> ExpressionDotExpression
         Await.result(res, Duration.Inf)
         logger.debug( res.toString )
         ()
