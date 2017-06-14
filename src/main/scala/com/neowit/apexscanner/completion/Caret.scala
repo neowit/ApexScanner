@@ -23,6 +23,7 @@ package com.neowit.apexscanner.completion
 
 import com.neowit.apexscanner.nodes.Position
 import org.antlr.v4.runtime.Token
+import com.neowit.apexscanner.nodes.Range
 
 /**
   * Created by Andrey Gavrikov 
@@ -51,11 +52,21 @@ abstract class Caret(val position: Position) {
         val tokenEnds = token.getCharPositionInLine + token.getText.length -1
         token.getLine < line || line == token.getLine && tokenEnds < col
     }
+    def isAfter(range: Range): Boolean = {
+        val position = range.end
+        val tokenEnds = position.col
+        position.line < line || line == position.line && tokenEnds < col
+    }
     /**
       * check if caret is Before given Token
       */
     def isBefore(token: Token): Boolean = {
         token.getLine > line || line == token.getLine && token.getCharPositionInLine > col
+    }
+    def isBefore(range: Range): Boolean = {
+        val position = range.end
+        val tokenEnds = position.col
+        position.line > line || line == position.line && tokenEnds > col
     }
 
     /**
@@ -64,5 +75,9 @@ abstract class Caret(val position: Position) {
     def isInside(token: Token): Boolean = {
         val tokenEnds = token.getCharPositionInLine + token.getText.length
         line == token.getLine && token.getCharPositionInLine <= col && tokenEnds >= col
+    }
+    def isInside(range: Range): Boolean = {
+        val tokenEnds = range.end.col
+        line <= range.start.line && range.start.col <= col && tokenEnds >= col
     }
 }

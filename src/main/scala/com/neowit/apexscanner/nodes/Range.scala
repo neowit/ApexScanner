@@ -24,7 +24,15 @@ package com.neowit.apexscanner.nodes
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.RuleNode
 
-case class Position(line: Int, col: Int)
+case class Position(line: Int, col: Int) {
+    def isBefore(p: Position): Boolean = {
+        isBefore(p.line, p.col)
+    }
+    def isBefore(otherLine: Int, otherCol: Int): Boolean = {
+        line < otherLine ||
+        line == otherLine && col < otherCol
+    }
+}
 object Position {
     val INVALID_LOCATION = Position(-1, -1)
     val FALLTHROUGH_LOCATION = Position(-2, -2)
