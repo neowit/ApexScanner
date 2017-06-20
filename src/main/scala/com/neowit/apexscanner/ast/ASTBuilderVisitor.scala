@@ -279,6 +279,13 @@ class ASTBuilderVisitor(project: Project, fileOpt: Option[Path]) extends Apexcod
         }
     }
 
+    override def visitCreatorExpression(ctx: CreatorExpressionContext): AstNode = {
+        visitChildren(CreatorNode(Range(ctx)), ctx)
+    }
+
+    override def visitTypeCastExpr(ctx: TypeCastExprContext): AstNode = {
+        visitChildren(TypeCastNode(Range(ctx)), ctx)
+    }
 
     ///////////////// literals ///////////////////////////////
     override def visitIntLiteral(ctx: IntLiteralContext): AstNode = {
