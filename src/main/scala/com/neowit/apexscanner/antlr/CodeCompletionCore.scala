@@ -145,7 +145,7 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
                 for (token <- rule._2) {
                     path += this.ruleNames(token) + " "
                 }
-                logger.debug(this.ruleNames(rule._1) + ", path: ", path)
+                logger.debug(this.ruleNames(rule._1) + ", path: " + path)
             }
 
             val sortedTokens: mutable.HashSet[String] = mutable.HashSet.empty
