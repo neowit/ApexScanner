@@ -30,7 +30,7 @@ import com.neowit.apexscanner.nodes._
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.{RuleNode, TerminalNode}
 
-class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisitor[AstNode] {
+class ASTBuilderVisitor(project: Project, fileOpt: Option[Path]) extends ApexcodeBaseVisitor[AstNode] {
     private val _classLikeListBuilder = List.newBuilder[ClassLike]
     def getClassLikeNodes: List[ClassLike] = _classLikeListBuilder.result()
 
@@ -66,7 +66,12 @@ class ASTBuilderVisitor(project: Project, file: Path) extends ApexcodeBaseVisito
       * @param ctx the parse tree
       */
     override def visitCompilationUnit(ctx: CompilationUnitContext): AstNode = {
-        visitChildren(FileNode(project, file, Range(ctx)), ctx)
+        fileOpt match {
+            case Some(file) =>
+                visitChildren(FileNode(project, file, Range(ctx)), ctx)
+            case None =>
+                throw new IllegalArgumentException("fileOpt parameter of ASTBuilderVisitor must be defined when using visitor with CompilationUnitContext ")
+        }
     }
 
     override def visitTerminal(node: TerminalNode): AstNode = {
