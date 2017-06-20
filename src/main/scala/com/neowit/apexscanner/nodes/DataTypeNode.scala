@@ -20,10 +20,15 @@
  */
 
 package com.neowit.apexscanner.nodes
+import com.neowit.apexscanner.ast.QualifiedName
 
-trait DataTypeNode extends AstNode {
+trait DataTypeNode extends AstNode with IsTypeDefinition {
     override def nodeType: AstNodeType = DataTypeNodeType
     def getDataType: ValueType
+
+    override def getValueType: Option[ValueType] = Option(getDataType)
+    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+    override def qualifiedName: Option[QualifiedName] = Option(getDataType.qualifiedName)
 }
 /**
   * Created by Andrey Gavrikov 
