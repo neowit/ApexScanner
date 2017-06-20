@@ -37,7 +37,7 @@ class DescendingDefinitionFinder {
       * - class method
       * - enum
       */
-    def findDefinition(target: AstNode, containerNode: AstNode with IsTypeDefinition): Seq[AstNode] = {
+    def findDefinition(target: AstNode, containerNode: AstNode): Seq[AstNode] = {
         val targetNameOpt =
             target match {
                 case _target:HasQualifiedName =>
@@ -64,22 +64,25 @@ class DescendingDefinitionFinder {
                 containerNodeChildOpt match {
                     case Some(foundInAst) => Seq(foundInAst)
                     case None =>
-                        // check if target is inside container valueType node
-                        // e.g. if container is variable definition with value type = Class
-                        containerNode.getValueType match {
-                            case Some(typeDef) =>
-                                containerNode.getProject match {
-                                    case Some(project) =>
-
-                                        project.getByQualifiedName(QualifiedName.getFullyQualifiedValueTypeName(containerNode)) match {
-                                            case Some(_container: IsTypeDefinition) =>
-                                                findDefinition(target, _container)
-                                            case _ => Seq.empty
+                        containerNode match {
+                            case _containerNode: IsTypeDefinition =>
+                                // check if target is inside container valueType node
+                                // e.g. if container is variable definition with value type = Class
+                                _containerNode.getValueType match {
+                                    case Some(typeDef) =>
+                                        containerNode.getProject match {
+                                            case Some(project) =>
+                                                project.getByQualifiedName(QualifiedName.getFullyQualifiedValueTypeName(_containerNode)) match {
+                                                    case Some(_container: IsTypeDefinition) =>
+                                                        findDefinition(target, _container)
+                                                    case _ => Seq.empty
+                                                }
+                                            case None => Seq.empty
                                         }
+
                                     case None => Seq.empty
                                 }
-
-                            case None => Seq.empty
+                            case _ => Seq.empty
                         }
                 }
             case None => Seq.empty
