@@ -43,7 +43,7 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
     def resolveCaretScope(caret: CaretInFile, caretToken: Token, tokens: TokenStream): Future[Option[CaretScope]] = {
 
         val document = caret.document
-        findAstScopeNode(document, caretToken).flatMap {
+        findAstParentNode(document, caretToken).flatMap {
           case Some(astScopeNode) =>
               // find list of tokens before caret which are not in AST
               val lastAstNode = getNearestPrecedingAstNode(caret, astScopeNode)
@@ -120,7 +120,12 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
         None
     }
 
-    private def findAstScopeNode(document: VirtualDocument, token: Token): Future[Option[AstNode]] = {
+    /**
+      *
+      * @param token a token to look for in the document
+      * @return AST Node inside which given token resides
+      */
+    private def findAstParentNode(document: VirtualDocument, token: Token): Future[Option[AstNode]] = {
 
         project.getAst(document.file).map{
             case Some(_res) =>
@@ -128,9 +133,9 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
                 val locationFinder = new NodeByLocationFinder(position)
                 val rootNode = _res.rootNode
                 locationFinder.findInside(rootNode) match {
-                    case finalNode @ Some(_) =>
+                    case finalNodeOpt @ Some(_) =>
                         //finalNode is a node in (or right before) Caret position
-                        finalNode
+                        finalNodeOpt
                     case None =>
                         None
                 }
@@ -150,7 +155,7 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
             val caretTokenIndex = caretToken.getTokenIndex
             findPrecedingWordToken(caretTokenIndex, tokens) match {
                 case Some(scopeToken) =>
-                    findAstScopeNode(document, scopeToken).map{
+                    findAstParentNode(document, scopeToken).map{
                         case Some(astScopeNode) =>
                             // this node is either around or is the node in front of caret
                             // resolve
