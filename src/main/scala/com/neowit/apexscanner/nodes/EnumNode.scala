@@ -24,7 +24,7 @@ package com.neowit.apexscanner.nodes
 import com.neowit.apexscanner.symbols.SymbolKind
 
 case class EnumNode(range: Range ) extends ClassLike {
-    override def nodeType: AstNodeType = InterfaceNodeType
+    override def nodeType: AstNodeType = EnumNodeType
 
     override def symbolKind: SymbolKind = SymbolKind.Enum
 
