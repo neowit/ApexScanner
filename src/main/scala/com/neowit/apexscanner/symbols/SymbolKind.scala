@@ -38,8 +38,7 @@ object SymbolKind {
         override def getDebugInfo: String = "File"
     }
     object Trigger extends SymbolKind {
-        // this is not mistake, LSP does not support a ntion of Trigger
-        override val code: Int = File.code
+        override val code: Int = File.code // this is not mistake, LSP does not support a notion of Trigger
         override def getDebugInfo: String = "Trigger"
     }
     object Class extends SymbolKind {
