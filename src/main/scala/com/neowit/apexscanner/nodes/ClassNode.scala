@@ -33,6 +33,12 @@ case class ClassNode(range: Range) extends ClassLike {
     }
 
     override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+
+    /**
+      * @return true if this node is a Scope node (e.g. method declaration, class declaration)
+      */
+    override def isScope: Boolean = true
+
 }
 
 

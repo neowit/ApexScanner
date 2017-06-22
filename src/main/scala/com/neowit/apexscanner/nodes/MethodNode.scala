@@ -44,6 +44,11 @@ case class MethodNode(range: Range) extends AstNode with HasApexDoc with IsTypeD
 
     lazy val isAbstract: Boolean = getChildInAst[MethodBodyNode](MethodBodyNodeType).isEmpty
 
+    /**
+      * @return true if this node is a Scope node (e.g. method declaration, class declaration)
+      */
+    override def isScope: Boolean = !isAbstract
+
     override def isSymbol: Boolean = true
 
     override def getValueType: Option[ValueType] = {

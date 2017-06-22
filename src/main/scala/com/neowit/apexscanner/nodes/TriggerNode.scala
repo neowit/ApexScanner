@@ -49,4 +49,9 @@ case class TriggerNode(range: Range ) extends ClassLike {
     override def getSuperClassOrInterface: Option[ClassLike] = None
 
     override def implements: Seq[ImplementsInterfaceNode] = Seq.empty
+
+    /**
+      * @return true if this node is a Scope node (e.g. method declaration, class declaration)
+      */
+    override def isScope: Boolean = true
 }

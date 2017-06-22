@@ -36,6 +36,24 @@ trait AstNode {
     def isSymbol: Boolean = isInstanceOf[com.neowit.apexscanner.symbols.Symbol]
 
     /**
+      * @return true if this node is a Scope node (e.g. method declaration, class declaration)
+      */
+    def isScope: Boolean = false
+
+    /**
+      * find nearest scope node in ast tree
+      * @return
+      */
+    def getScopeNode: Option[AstNode] = {
+        if (isScope) {
+            Option(this)
+        } else {
+            getParentScopeNode
+        }
+    }
+    def getParentScopeNode: Option[AstNode] = {
+        findParentInAst(_.isScope)
+    }
       * override this method in SOQL and SOSL nodes
       * @return
       */
