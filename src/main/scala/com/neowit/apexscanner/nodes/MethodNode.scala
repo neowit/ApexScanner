@@ -42,7 +42,7 @@ case class MethodNode(range: Range) extends AstNode with HasApexDoc with IsTypeD
         getChildrenInAst[MethodParameterNode](MethodParameterNodeType, recursively = true).flatMap(_.getType)
     }
 
-    lazy val isAbstract: Boolean = getChildInAst[MethodBodyNode](MethodBodyNodeType).nonEmpty
+    lazy val isAbstract: Boolean = getChildInAst[MethodBodyNode](MethodBodyNodeType).isEmpty
 
     override def isSymbol: Boolean = true
 
