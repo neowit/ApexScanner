@@ -57,18 +57,8 @@ class ContextResolver(project: Project, lastAstNode: AstNode) {
                 findTokenTypeDefinition(primary.Identifier().getSymbol, lastAstNode)
             }
         } else {
-            astNode match {
-                case n: FallThroughNode =>
-                    // find first meaningful node
-                    n.findChildInAst(_.nodeType != FallThroughNodeType) match {
-                        case Some(n: TypeCastNode) => // single token
-                            Option(n)
-                        case x =>
-                            println(x)
-                            ???
-                    }
-                case n => ???
-            }
+            // must be something more complex than primary expression
+            None
         }
     }
     private def resolveCreator(context: CreatorExpressionContext): Option[IsTypeDefinition] = {

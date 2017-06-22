@@ -22,6 +22,7 @@
 package com.neowit.apexscanner.nodes
 
 import com.neowit.apexscanner.Project
+import com.neowit.apexscanner.symbols._
 
 import scala.annotation.tailrec
 
@@ -54,6 +55,31 @@ trait AstNode {
     def getParentScopeNode: Option[AstNode] = {
         findParentInAst(_.isScope)
     }
+
+    /**
+      * this is only useful for isScope == true AST Nodes
+      * return all symbols of given kind in scope of current AST Node
+      * @param kind
+      * @return
+      */
+    def getSymbolsOfKind(kind: SymbolKind): Seq[Symbol] = {
+        if (isScope) {
+            // must be implemented in each Scope type AST Node
+            throw new NotImplementedError(this.nodeType.toString)
+        } else {
+            Seq.empty
+        }
+    }
+
+    /**
+      * get symbols lf all specified kind-s
+      * @param kinds sequence of required SymbolKind types
+      * @return
+      */
+    def getSymbolsOfKinds(kinds: Seq[SymbolKind]): Seq[Symbol] = {
+        kinds.flatMap(getSymbolsOfKind)
+    }
+    /**
       * override this method in SOQL and SOSL nodes
       * @return
       */
@@ -81,7 +107,7 @@ trait AstNode {
       * @return
       */
     def findParentInAst(filter: (AstNode) => Boolean): Option[AstNode] = {
-        getParentInAst(true) match {
+        getParentInAst(skipFallThroughNodes = true) match {
             case Some(parentMember) =>
                 if (filter(parentMember)) Some(parentMember) else parentMember.findParentInAst(filter)
             case None => None

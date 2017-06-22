@@ -21,7 +21,7 @@
 
 package com.neowit.apexscanner.nodes
 
-import com.neowit.apexscanner.symbols.SymbolKind
+import com.neowit.apexscanner.symbols._
 
 case class ClassNode(range: Range) extends ClassLike {
     override def nodeType: AstNodeType = ClassNodeType
@@ -39,6 +39,27 @@ case class ClassNode(range: Range) extends ClassLike {
       */
     override def isScope: Boolean = true
 
+    /**
+      * this is only useful for isScope == true AST Nodes
+      * return all symbols of given kind in scope of current AST Node
+      * @param kind type of symbol in scope of this node
+      * @return
+      */
+    override def getSymbolsOfKind(kind: SymbolKind): Seq[Symbol] = {
+        val symbols: Seq[Symbol] =
+            kind match {
+                case SymbolKind.Method => findChildrenInAst(_.nodeType == MethodNodeType).map(_.asInstanceOf[Symbol])
+                case SymbolKind.Variable => findChildrenInAst(_.nodeType == ClassVariableNodeType).map(_.asInstanceOf[Symbol])
+                case SymbolKind.Enum => findChildrenInAst(_.nodeType == EnumNodeType).map(_.asInstanceOf[Symbol])
+                case _ => Seq.empty
+            }
+        val parentSymbols: Seq[Symbol] = getParentScopeNode match {
+            case Some(parentScopeNode) => parentScopeNode.getSymbolsOfKind(kind)
+            case _ => Seq.empty
+        }
+
+        symbols ++ parentSymbols
+    }
 }
 
 

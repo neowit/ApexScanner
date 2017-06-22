@@ -21,7 +21,13 @@
 
 package com.neowit.apexscanner.nodes
 
-sealed trait AstNodeType
+import com.neowit.apexscanner.symbols.SymbolKind
+
+sealed trait AstNodeType {
+    def getSymbolKind: SymbolKind = {
+        AstNodeType.getSymbolKindByNodeType(this)
+    }
+}
 
 case object AnnotationNodeType extends AstNodeType
 case object AnnotationParameterNodeType extends AstNodeType
@@ -55,3 +61,15 @@ case object TriggerNodeType extends AstNodeType
 case object TypeArgumentsNodeType extends AstNodeType
 case object TypeCastNodeType extends AstNodeType
 
+
+object AstNodeType {
+
+    def getSymbolKindByNodeType(astNodeType: AstNodeType): SymbolKind = {
+        astNodeType match {
+            case MethodNodeType => SymbolKind.Method
+            case ClassVariableNodeType => SymbolKind.Variable
+            case EnumNodeType => SymbolKind.Enum
+            case _ => ???
+        }
+    }
+}
