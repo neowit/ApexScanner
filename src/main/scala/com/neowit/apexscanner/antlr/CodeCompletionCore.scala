@@ -34,12 +34,14 @@ import scala.collection.mutable.ArrayBuffer
   */
 
 object CodeCompletionCore {
+    type TokenList = ArrayBuffer[number]
+    type RuleList = ArrayBuffer[number]
+
     // All the candidates which have been found. Tokens and rules are separated (both use a numeric value).
-    // Tokens include a list of tokens that directly follow them (see also the "following" member in the FollowSetWithPath class).
-    // Rules come with paths of rule indexes at which they where found.
+    // Token entries include a list of tokens that directly follow them (see also the "following" member in the FollowSetWithPath class).
     class CandidatesCollection {
-        val tokens: mutable.HashMap[number, ArrayBuffer[number]] = new mutable.HashMap[number, ArrayBuffer[number]]()
-        val rules: mutable.HashMap[number, ArrayBuffer[number]] = new mutable.HashMap[number, ArrayBuffer[number]]()
+        val tokens: mutable.HashMap[number, TokenList] = new mutable.HashMap[number, TokenList]()
+        val rules: mutable.HashMap[number, RuleList] = new mutable.HashMap[number, RuleList]()
     }
 
     // A record for a follow set along with the path at which this set was found.
@@ -49,8 +51,8 @@ object CodeCompletionCore {
     // a fixed sequence in the grammar.
     class FollowSetWithPath {
         var intervals: IntervalSet = new IntervalSet()
-        var path: ArrayBuffer[number] = ArrayBuffer.empty
-        var following: ArrayBuffer[number] = ArrayBuffer.empty
+        var path: RuleList = ArrayBuffer.empty
+        var following: TokenList = ArrayBuffer.empty
     }
 
     // A list of follow sets (for a given state number) + all of them combined for quick hit tests.
@@ -61,8 +63,8 @@ object CodeCompletionCore {
         var combined: IntervalSet = new IntervalSet()
     }
     type FollowSetsPerState = mutable.HashMap[number, FollowSetsHolder]
-    // ATN + input stream position info after a rule was processed.
-    type RuleEndStatus = ArrayBuffer[PipelineEntry]
+    // Token stream position info after a rule was processed.
+    type RuleEndStatus = mutable.HashSet[number]
 
     type number = Int
 
@@ -91,11 +93,14 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
     private val atn: ATN = parser.getATN
     private val vocabulary: Vocabulary = parser.getVocabulary
     private val ruleNames: Array[String] = parser.getRuleNames
-    private val tokens: ArrayBuffer[number] = ArrayBuffer.empty
+    private val tokens: TokenList = ArrayBuffer.empty
 
     private var tokenStartIndex: number = 0
 
     private var statesProcessed: number = 0
+    // A mapping of rule index + token stream position to end token positions.
+    // A rule which has been visited before with the same input position will always produce the same output positions.
+    private val shortcutMap: mutable.HashMap[number, mutable.HashMap[number, RuleEndStatus]] = new mutable.HashMap()
     private val candidates: CandidatesCollection = new CandidatesCollection() // The collected candidates (rules and tokens).
 
     /**
@@ -105,6 +110,7 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
       * speed up the retrieval process but might miss some candidates (if they are outside of the given context).
       */
     def collectCandidates(caretTokenIndex: number, context: Option[ParserRuleContext] = None): CandidatesCollection = {
+        this.shortcutMap.clear()
         this.candidates.rules.clear()
         this.candidates.tokens.clear()
         this.statesProcessed = 0
@@ -156,7 +162,7 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
                 sortedTokens.add(value)
             }
 
-            logger.debug("\n\nCollected tokens:")
+            logger.debug("\n\nCollected tokens:\n")
             for (symbol <- sortedTokens) {
                 logger.debug(symbol)
             }
@@ -173,7 +179,11 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
         transition.getPredicate.eval(this.parser, new ParserRuleContext())
     }
 
-    private def translateToRuleIndex(ruleStack: ArrayBuffer[number]): Boolean = {
+    /**
+      * Walks the rule chain upwards to see if that matches any of the preferred rules.
+      * If found, that rule is added to the collection candidates and true is returned.
+      */
+    private def translateToRuleIndex(ruleStack: RuleList): Boolean = {
         if (this.preferredRules.isEmpty) {
             return false
 
@@ -343,15 +353,30 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
 
 
     /**
-      * Walks the ATN for a single rule only. It returns the states that continue the walk in the calling rule.
+      * Walks the ATN for a single rule only. It returns the token stream position for each path that could be matched in this rule.
       * The result can be empty in case we hit only non-epsilon transitions that didn't match the current input or if we
       * hit the caret position.
       */
     private def processRule(startState: ATNState, tokenIndex: number, callStack: ArrayBuffer[number], indentation: StringBuffer): RuleEndStatus = {
-        val result: RuleEndStatus = ArrayBuffer.empty
 
         // Start with rule specific handling before going into the ATN walk.
 
+        // Check first if we've taken this path with the same input before.
+        val positionMap = new mutable.HashMap[number, RuleEndStatus]()
+        this.shortcutMap.get(startState.ruleIndex) match {
+            case Some(_positionMap) =>
+                if (_positionMap.contains(tokenIndex)) {
+                    if (this.showDebugOutput) {
+                        logger.debug("=====> shortcut")
+                    }
+                    return _positionMap(tokenIndex)
+                }
+
+            case None =>
+                this.shortcutMap += startState.ruleIndex -> positionMap;
+        }
+
+        val result: RuleEndStatus = mutable.HashSet.empty
         // For rule start states we determine and cache the follow set, which gives us 3 advantages:
         // 1) We can quickly check if a symbol would be matched when we follow that rule. We can so check in advance
         //    and can save us all the intermediate steps if there is no match.
@@ -406,8 +431,9 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
                     if (!this.translateToRuleIndex(fullPath)) {
                         for (symbol <- set.intervals.toArray) {
                             if (!this.ignoredTokens.contains(symbol)) {
-                                if (this.showDebugOutput)
+                                if (this.showDebugOutput){
                                     logger.debug("=====> collected: ", this.vocabulary.getDisplayName(symbol))
+                                }
                                 if (!this.candidates.tokens.contains(symbol))
                                     this.candidates.tokens += (symbol -> set.following) // Following is empty if there is more than one entry in the set.
                                 else {
@@ -440,9 +466,6 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
                 return result
             }
         }
-
-        val isLeftRecursive = startState.asInstanceOf[RuleStartState].isLeftRecursiveRule
-        var forceLoopEnd = false
 
         // The current state execution pipeline contains all yet-to-be-processed ATN states in this rule.
         // For each such state we store the token index + a list of rules that lead to it.
@@ -477,62 +500,10 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
 
                 // Found the end of this rule. Determine the following states and return to the caller.
                 case ATNState.RULE_STOP =>
-                        // Multiple paths can lead to the stop state. We only need to add the same outgoing transition again
-                        // when we arrive with different token input positions.
-
-                        // Find the transitions that lead us back to the correct next state (which must correspond to the
-                        // top of the rule stack, after we removed the current rule from it).
-                        val returnIndex = callStack(callStack.length - 2)
-
-                        val transitions = currentEntry.state.getTransitions
-                        val transitionCount = transitions.length
-                        //for (let i = transitionCount - 1; i >= 0; --i) {
-                        for ( i <- (transitionCount - 1) to 0 by -1 ) {
-                            val transition = transitions(i)
-                            if (transition.target.ruleIndex == returnIndex) {
-                                // Don't add more than once.
-                                var canAdd = true
-                                for ( state <- result) {
-                                    if (state.state == transition.target && state.tokenIndex == currentEntry.tokenIndex) {
-                                        canAdd = false
-                                        //break;
-                                    }
-                                }
-                                if (canAdd) {
-                                    //result.push({ state: transition.target, tokenIndex: currentEntry.tokenIndex });
-                                    result += PipelineEntry( state = transition.target, tokenIndex = currentEntry.tokenIndex)
-
-                                }
-                            }
-                        }
-                        //continue;
-                        skipToNextLoop = true
-
-                case ATNState.STAR_LOOP_ENTRY =>
-                // In left recursive rules we can end up doing the same processing twice for each level of invocation, which
-                // quickly sums up to an unbearable amount (doubling the steps on each invocation). We can avoid this by
-                // not following the transition to the star block start state from the star block entry state (but instead
-                // go directly to the loop end state) if we are in a left recursive rule and arrived here from ourselve.
-                //
-                // This is a similar approach like the stack unrolling you can see in the parser (see pushNewRecursionContext
-                // and unrollRecursionContexts).
-                if (forceLoopEnd) {
-                    var keepGoing = true
-                    for (transition <- currentEntry.state.getTransitions) {
-                        // Find the loop end and only continue with that.
-                        if (keepGoing) {
-                            if (transition.target.getStateType == ATNState.LOOP_END) {
-                                //statePipeline.push({ state: transition.target, tokenIndex: currentEntry.tokenIndex })
-                                statePipeline += PipelineEntry( state = transition.target, tokenIndex= currentEntry.tokenIndex)
-                                //break;
-                                keepGoing = false
-                            }
-                        }
-                    }
+                    // Record the token index we are at, to report it to the caller.
+                    result.add(currentEntry.tokenIndex)
                     //continue;
                     skipToNextLoop = true
-                }
-                //break;
 
                 case _ =>
                 //default:
@@ -541,39 +512,43 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
             if (!skipToNextLoop) {
                 val transitions = currentEntry.state.getTransitions
                 //for (let i = transitions.length - 1; i >= 0; --i) {
-                for (i <- (transitions.length - 1) to 0 by -1 ) {
-
-                    val transition = transitions(i)
-                    if (transition.getSerializationType == Transition.RULE) {
-                        val endStatus = this.processRule(transition.target, currentEntry.tokenIndex, callStack, indentation)
-                        //statePipeline.push(...endStatus);
-                        statePipeline ++= endStatus
-
-                        // See description above for this flag.
-                        if (isLeftRecursive && transition.target.ruleIndex == callStack(callStack.length - 1)){
-                            forceLoopEnd = true
-                        }
-
-                    } else if (transition.getSerializationType == Transition.PREDICATE) {
-                        if (this.checkPredicate(transition.asInstanceOf[PredicateTransition]))
-                        //statePipeline.push({ state: transition.target, tokenIndex: currentEntry.tokenIndex });
-                            statePipeline += PipelineEntry( state = transition.target, tokenIndex= currentEntry.tokenIndex)
-                    } else if (transition.isEpsilon) {
-                        //statePipeline.push({ state: transition.target, tokenIndex: currentEntry.tokenIndex });
-                        statePipeline += PipelineEntry( state = transition.target, tokenIndex= currentEntry.tokenIndex)
-                    } else if (transition.getSerializationType == Transition.WILDCARD) {
-                        if (atCaret) {
-                            if (!this.translateToRuleIndex(callStack)) {
-                                for (token <- IntervalSet.of(Token.MIN_USER_TOKEN_TYPE, this.atn.maxTokenType).toArray ) {
-                                    if (!this.ignoredTokens.contains(token))
-                                        this.candidates.tokens += (token -> ArrayBuffer.empty[number])
-                                }
+                var skipToNextTransitionsLoop = false
+                for ( transition <- transitions ) {
+                    transition.getSerializationType match {
+                        case Transition.RULE =>
+                            val endStatus = this.processRule(transition.target, currentEntry.tokenIndex, callStack, indentation)
+                            for (position <- endStatus) {
+                                //statePipeline.push({ state: (<RuleTransition>transition).followState, tokenIndex: position });
+                                statePipeline += PipelineEntry(state = transition.asInstanceOf[RuleTransition].followState, tokenIndex = position)
                             }
-                        } else {
-                            //statePipeline.push({ state: transition.target, tokenIndex: currentEntry.tokenIndex + 1 });
-                            statePipeline += PipelineEntry( state = transition.target, tokenIndex= currentEntry.tokenIndex + 1)
-                        }
-                    } else {
+
+                        case Transition.PREDICATE =>
+                            if (this.checkPredicate(transition.asInstanceOf[PredicateTransition])) {
+                                //statePipeline.push({ state: transition.target, tokenIndex: currentEntry.tokenIndex });
+                                statePipeline += PipelineEntry(state = transition.target, tokenIndex = currentEntry.tokenIndex)
+                            }
+                        case Transition.WILDCARD =>
+                            if (atCaret) {
+                                if (!this.translateToRuleIndex(callStack)) {
+                                    for (token <- IntervalSet.of(Token.MIN_USER_TOKEN_TYPE, this.atn.maxTokenType).toArray ) {
+                                        if (!this.ignoredTokens.contains(token))
+                                            this.candidates.tokens += (token -> ArrayBuffer.empty[number])
+                                    }
+                                }
+                            } else {
+                                //statePipeline.push({ state: transition.target, tokenIndex: currentEntry.tokenIndex + 1 });
+                                statePipeline += PipelineEntry( state = transition.target, tokenIndex= currentEntry.tokenIndex + 1)
+                            }
+                        case _ =>
+                            if (transition.isEpsilon) {
+                                // Jump over simple states with a single outgoing epsilon transition.
+                                //statePipeline.push({ state: transition.target, tokenIndex: currentEntry.tokenIndex });
+                                statePipeline += PipelineEntry( state = transition.target, tokenIndex= currentEntry.tokenIndex)
+                                //continue;
+                                skipToNextTransitionsLoop = true
+                            }
+                    }
+                    if (!skipToNextTransitionsLoop) {
                         var set = transition.label
                         if (null != set && set.size > 0) {
                             if (transition.getSerializationType == Transition.NOT_SET) {
@@ -583,7 +558,7 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
                                 if (!this.translateToRuleIndex(callStack)) {
                                     val list = set.toArray
                                     val addFollowing = list.size == 1
-                                    for ( symbol <- list)
+                                    for (symbol <- list)
                                         if (!this.ignoredTokens.contains(symbol)) {
                                             if (this.showDebugOutput)
                                                 logger.debug("=====> collected: ", this.vocabulary.getDisplayName(symbol))
@@ -601,7 +576,7 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
                                     }
 
                                     //statePipeline.push({ state: transition.target, tokenIndex: currentEntry.tokenIndex + 1 });
-                                    statePipeline += PipelineEntry( state = transition.target, tokenIndex= currentEntry.tokenIndex + 1)
+                                    statePipeline += PipelineEntry(state = transition.target, tokenIndex = currentEntry.tokenIndex + 1)
                                 }
                             }
                         }
@@ -615,13 +590,32 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
         if (callStack.nonEmpty) {
             callStack.remove(callStack.size - 1)
         }
+        // Cache the result, for later lookup to avoid duplicate walks.
+        positionMap += (tokenIndex -> result)
+
         result
     }
+
+    private val atnStateTypeMap: Array[String] = Array[String] (
+    "invalid",
+    "basic",
+    "rule start",
+    "block start",
+    "plus block start",
+    "star block start",
+    "token start",
+    "rule stop",
+    "block end",
+    "star loop back",
+    "star loop entry",
+    "plus loop back",
+    "loop end"
+    )
 
     private def generateBaseDescription(state: ATNState): String = {
         val stateValue = if (state.stateNumber == ATNState.INVALID_STATE_NUMBER) "Invalid" else state.stateNumber
 
-        "[" + stateValue + " " + state.getStateType + "] in " + this.ruleNames(state.ruleIndex)
+        "[" + stateValue + " " + atnStateTypeMap(state.getStateType) + "] in " + this.ruleNames(state.ruleIndex)
     }
 
     private def printDescription(currentIndent: String, state: ATNState, baseDescription: String, tokenIndex: number): Unit = {
@@ -647,7 +641,7 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
 
                 transitionDescription += "\n" + currentIndent + "\t(" + labels + ") " + "[" + transition.target.stateNumber + " " +
                     //ATNStateType[transition.target.stateType] + "] in " + this.ruleNames[transition.target.ruleIndex];
-                    transition.target.getStateType + "] in " + this.ruleNames(transition.target.ruleIndex)
+                    atnStateTypeMap(transition.target.getStateType) + "] in " + this.ruleNames(transition.target.ruleIndex)
             }
         }
 
