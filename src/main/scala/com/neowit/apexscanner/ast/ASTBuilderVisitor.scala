@@ -257,6 +257,10 @@ class ASTBuilderVisitor(project: Project, fileOpt: Option[Path]) extends Apexcod
         visitChildren(ctx.expression())
     }
 
+    override def visitAssignmentRightExpr(ctx: AssignmentRightExprContext): AstNode = {
+        visitChildren(ctx.expression())
+    }
+
     override def visitExprDotExpression(ctx: ExprDotExpressionContext): AstNode = {
         visitChildren(ExpressionDotExpressionNode(Range(ctx)), ctx)
     }
