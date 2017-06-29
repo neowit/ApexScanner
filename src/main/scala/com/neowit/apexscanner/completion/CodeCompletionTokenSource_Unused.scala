@@ -27,7 +27,7 @@ import org.antlr.v4.runtime._
 /**
   * Created by Andrey Gavrikov 
   */
-class CodeCompletionTokenSource( source: TokenSource, caret: Caret) extends TokenSource {
+class CodeCompletionTokenSource_Unused(source: TokenSource, caret: Caret) extends TokenSource {
 
     private var tokenFactory: TokenFactory[_] = CommonTokenFactory.DEFAULT
     private var caretToken: Token = null
