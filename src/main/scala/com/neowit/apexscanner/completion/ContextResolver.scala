@@ -22,28 +22,33 @@
 package com.neowit.apexscanner.completion
 
 import com.neowit.apexscanner.Project
-import com.neowit.apexscanner.antlr.ApexcodeParser.{CreatorExpressionContext, PrimaryExprContext, TypeCastExprContext}
+import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeParser}
+import com.neowit.apexscanner.antlr.ApexcodeParser._
 import com.neowit.apexscanner.ast.ASTBuilderVisitor
 import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.resolvers.{AscendingDefinitionFinder, NodeBySymbolTextFinder}
-import org.antlr.v4.runtime.{ParserRuleContext, Token}
+import org.antlr.v4.runtime.{ParserRuleContext, Token, TokenStream}
 
 import scala.concurrent.Future
 
 /**
   * Created by Andrey Gavrikov 
   */
-class ContextResolver(project: Project, lastAstNode: AstNode) {
+class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstNode) {
     private val _visitor = new ASTBuilderVisitor(project, fileOpt = None)
 
-    def resolveContext(context: ParserRuleContext, lastAstNode: AstNode): Future[Option[IsTypeDefinition]] = {
+    def resolveContext(context: ParserRuleContext, tokens: TokenStream): Future[Option[IsTypeDefinition]] = {
         context match {
             case c: PrimaryExprContext => // single token
                 Future.successful(resolvePrimary(c))
-            case c: CreatorExpressionContext => // single token
-                Future.successful(resolveCreator(c))
-            case c: TypeCastExprContext => // single token
+            case c: CreatorExpressionContext =>
+                resolveCreator(c, tokens, lastAstNode)
+            case c: TypeCastExprContext => // ((ObjType)some).<caret>
                 Future.successful(resolveTypeCast(c))
+            case c: ExprDotExpressionContext => // aaa.bbb.<caret>
+                Future.successful(resolveExprDotExpression(c))
+            case c: ClassVariableContext => // String str = new List<Map<String, Set<Integer>>>(<caret>
+                Future.successful(resolveClassVariableContext(c))
             case _ => ???
         }
     }
@@ -61,10 +66,31 @@ class ContextResolver(project: Project, lastAstNode: AstNode) {
             None
         }
     }
-    private def resolveCreator(context: CreatorExpressionContext): Option[IsTypeDefinition] = {
+    private def resolveCreator(context: CreatorExpressionContext, tokens: TokenStream, lastAstNode: AstNode): Future[Option[IsTypeDefinition]] = {
         _visitor.visitCreatorExpression(context) match {
-            case creator: CreatorNode =>
-                Option(creator)
+            case creator: CreatorNode if creator.getValueType.nonEmpty =>
+                Future.successful(Option(creator))
+            case _ if null != context.creator() && context.creator().getChildCount > 0 =>
+                // failed to parse something meaningful
+                // try to determine type from tokens
+                // 1. find start and end of type part
+                val newTokenIndex = context.NEW().getSymbol.getTokenIndex
+                val endPredicate: Token => Boolean = t => t.getText == "("
+                // find where `new Type<bla>`(...) ends
+                ApexParserUtils.findNextTokenOnChannel(newTokenIndex + 1, tokens, endPredicate) match {
+                    case Some(lastTokenOfTypeExpression) =>
+                        val typeTokens = ApexParserUtils.getTokensBetween(tokens, newTokenIndex + 1, lastTokenOfTypeExpression.getTokenIndex - 1)
+                        val expr = "new " + typeTokens.map(_.getText).mkString("") + "()" // fake possible expression, e.g. `new SomeClass()`
+                        val _tokens = ApexParserUtils.getTokensFromText(expr)
+                        val parser = new ApexcodeParser(_tokens)
+                        ApexParserUtils.removeConsoleErrorListener(parser)
+                        // visit expression to try and build valid CreatorNode
+                        val tree = parser.expression()
+                        resolveContext(tree, _tokens)
+                    case None =>
+                        Future.successful(None)
+                }
+                //val startPredicate: Token => Boolean = t => t.getText.toLowerCase == "new"
             case _ => ???
         }
     }
@@ -75,7 +101,52 @@ class ContextResolver(project: Project, lastAstNode: AstNode) {
             case _ => ???
         }
     }
-
+    private def resolveExprDotExpression(context: ExprDotExpressionContext): Option[IsTypeDefinition] = {
+        _visitor.visitExprDotExpression(context) match {
+            case n: ExpressionDotExpressionNode =>
+                // add sub-tree to main AST
+                astScopeNode.addChildToAst(n)
+                // finally try to resolve definition of fudged expression
+                n.resolveDefinition() match {
+                    case defOpt @ Some(_: IsTypeDefinition) =>
+                        defOpt.map(_.asInstanceOf[IsTypeDefinition])
+                    case _ =>
+                        // TODO
+                        // if this is valid branch then use ExpressionDotExpressionNode.getResolvedPartDefinition(node)
+                        // to find definition of node preceding the caret
+                        ???
+                }
+            case _ => ???
+        }
+    }
+    private def resolveClassVariableContext(context: ClassVariableContext): Option[IsTypeDefinition] = {
+        _visitor.visitClassVariable(context) match {
+            case n: ClassVariableNode =>
+                // add sub-tree to main AST
+                astScopeNode.addChildToAst(n)
+                if (n.children.nonEmpty) {
+                    val lastChild = n.children.last // last child of variable declaration should contain context
+                    lastChild match {
+                        case _lastChild: IsTypeDefinition =>
+                            Option(_lastChild)
+                        case _lastChild: HasTypeDefinition =>
+                            // finally try to resolve definition of fudged expression
+                            _lastChild.resolveDefinition() match {
+                                case defOpt @ Some(_: IsTypeDefinition) =>
+                                    defOpt.map(_.asInstanceOf[IsTypeDefinition])
+                                case _ =>
+                                    // TODO
+                                    // if this is valid branch then use ExpressionDotExpressionNode.getResolvedPartDefinition(node)
+                                    // to find definition of node preceding the caret
+                                    ???
+                            }
+                    }
+                } else {
+                    ???
+                }
+            case _ => ???
+        }
+    }
     /**
       * looks for definition of "tokenToResolve" when AST node is NOT available.
       * This method is a last resort - it is unreliable because does matching using token text
@@ -139,54 +210,5 @@ class ContextResolver(project: Project, lastAstNode: AstNode) {
         }
     }
 
-/*
-private def findTypeDefinition(startNode: AstNode, tokenToResolve: Token, processedParents: Set[AstNode]): Option[IsTypeDefinition] = {
-startNode match {
-    case _:IsTypeDefinition =>
-        Option(startNode.asInstanceOf[IsTypeDefinition])
-    case _ =>
-        //TODO - this is WRONG, it will not search for correct token
-        findDefinitionAscending(startNode) match {
-            case typeDefOpt @ Some(typeDef) =>
-                typeDefOpt
-            case None =>
-                // looks like token is not part of available AST
-                // fall back to search by token text
-                val rootNode = startNode
-                val finder = new NodeBySymbolTextFinder(tokenToResolve.getText)
-                finder.findInside(rootNode, processedParents) match {
-                    case Some(node) =>
-                        findTypeDefinition(node, tokenToResolve, processedParents + startNode)
-                    case None =>
-                        startNode.getParentInAst(skipFallThroughNodes = true) match {
-                            case Some(parent) =>
-                                findTypeDefinition(parent, tokenToResolve, processedParents + startNode)
-                            case None =>
-                                None
-                        }
-                }
-        }
-}
-}
-private def findDefinitionAscending(node: AstNode): Option[IsTypeDefinition] = {
-val defFinder = new AscendingDefinitionFinder()
-val definitions = defFinder.findDefinition(node, node)
-definitions match {
-    case Nil =>
-        // definition not found in current file
-        //TODO
-        None
-    case head :: Nil =>
-        // exactly 1 node found, looks promising
-        head match {
-            case n:IsTypeDefinition =>
-                Option(n)
-            case _ => None
-        }
-    case nodes =>
-        nodes.find(_.isInstanceOf[IsTypeDefinition]).map(_.asInstanceOf[IsTypeDefinition])
-}
-}
-*/
 }
 
