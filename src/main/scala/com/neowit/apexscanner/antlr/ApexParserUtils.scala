@@ -25,7 +25,8 @@ import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
 
 import com.neowit.apexscanner.VirtualDocument
-import org.antlr.v4.runtime.{CharStreams, ConsoleErrorListener, Parser, Token}
+import org.antlr.v4.runtime._
+import org.antlr.v4.runtime.misc.Interval
 /**
   * Created by Andrey Gavrikov 
   */
@@ -63,5 +64,102 @@ object ApexParserUtils {
         val input = CharStreams.fromStream(document.inputStream, StandardCharsets.UTF_8)
         val lexer = new ApexcodeLexer(input)
         lexer
+    }
+    def getPrevTokenOnChannel(startTokenIndex: Int, tokens: TokenStream, predicate: Token => Boolean): Option[Token] = {
+        var i = startTokenIndex - 1
+        while (i >=0) {
+            val token = tokens.get(i)
+
+            if (Token.DEFAULT_CHANNEL == token.getChannel && predicate(token)) {
+                return Option(token)
+            }
+            i -= 1
+        }
+        None
+    }
+
+    def getNextTokenOnChannel(startTokenIndex: Int, tokens: TokenStream, predicate: Token => Boolean): Option[Token] = {
+        var i = startTokenIndex + 1
+        val size = tokens.size()
+        while (i < size) {
+            val token = tokens.get(i)
+
+            if (Token.DEFAULT_CHANNEL == token.getChannel && predicate(token)) {
+                return Option(token)
+            }
+            i += 1
+        }
+        None
+    }
+
+    def findNextTokenOnChannel(startTokenIndex: Int, tokens: TokenStream, predicate: Token => Boolean): Option[Token] = {
+        var i = startTokenIndex
+        val size = tokens.size()
+        while (i < size) {
+            val token = tokens.get(i)
+
+            if (Token.DEFAULT_CHANNEL == token.getChannel && predicate(token)) {
+                return Option(token)
+            }
+            i += 1
+        }
+        None
+    }
+
+    def getTokensFromText(text: String): TokenStream = {
+        val input = CharStreams.fromString(text)
+        val lexer = new ApexcodeLexer(input)
+        val tokens = new CommonTokenStream(lexer)
+        tokens
+    }
+
+    /**
+      *
+      * @param tokens "stream" must be initialised and loaded from lexer
+      * @param startTokenIndex index of start token
+      * @param startPredicate start token must match given condition
+      * @param endPredicate end token must match given condition
+      * @return tokens between token matching start predicate and ending token *before* toking matching end predicate
+      */
+    def getTokensBetween(tokens: TokenStream, startTokenIndex: Int, startPredicate: Token => Boolean, endPredicate: Token => Boolean): Seq[Token] = {
+        tokens.seek(startTokenIndex)
+        val interval =
+        findNextTokenOnChannel(startTokenIndex, tokens, startPredicate) match {
+            case Some(startToken) =>
+                findNextTokenOnChannel(startToken.getTokenIndex, tokens, endPredicate) match {
+                    case Some(endToken) =>
+                        new Interval(startToken.getTokenIndex, endToken.getTokenIndex -1)
+                    case None => new Interval(startToken.getTokenIndex, tokens.size() -1)
+                }
+            case None => new Interval(0, 0)
+        }
+
+        val start = interval.a
+        val stop = interval.b
+        getTokensBetween(tokens, start, stop)
+
+    }
+    def getTokensBetween(tokens: TokenStream, startTokenIndex: Int, endTokenIndex: Int): Seq[Token] = {
+        tokens.seek(startTokenIndex)
+        val start = startTokenIndex
+        var stop = endTokenIndex
+        if (start < 0 || stop < 0) {
+            Seq.empty[Token]
+        } else {
+            if (stop >= tokens.size) stop = tokens.size - 1
+
+            val resultBuilder = Seq.newBuilder[Token]
+            var i = start
+            while ( i <= stop ) {
+                val t = tokens.get(i)
+                resultBuilder += t
+                if (t.getType == Token.EOF) {
+                    i = stop // force exit
+                }
+                i += 1
+            }
+            resultBuilder.result()
+        }
+
     }
 }
