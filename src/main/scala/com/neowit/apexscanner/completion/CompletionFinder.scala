@@ -50,6 +50,7 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                 val tokens = parser.getTokenStream
                 //caretReachedException.finalContext
                 //now when we found token corresponding caret position try to understand context
+                //collectCandidates(caret, caretToken, parser)
                 val resolver = new CaretExpressionResolver(project)
                 resolver.resolveCaretScope(caret, caretToken, tokens).map{
                     case Some(CaretScope(contextNode, Some(typeDefinition))) =>
@@ -81,6 +82,7 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
             case ApexcodeParser.RULE_classBodyMemberRef =>
                 val kinds = Seq(SymbolKind.Enum, SymbolKind.Variable, SymbolKind.Method, SymbolKind.Property)
                 kindsBuilder ++= kinds
+            case ApexcodeParser.RULE_creator =>
             case ApexcodeParser.RULE_assignmentRightExpr =>
                 // right part of assignment expression can be anything
                 //TODO consider returning elements defined in nearby scope (e.g. local variables)
@@ -101,6 +103,8 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
         try {
             // run actual scan, trying to identify caret position
             parser.compilationUnit()
+            //val tree = parser.compilationUnit()
+            //print(tree.toStringTree(parser))
         } catch {
             case e:Throwable =>
                 logger.debug(e.getMessage)
@@ -145,7 +149,8 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
         )
         core.preferredRules = Set(
             ApexcodeParser.RULE_classBodyMemberRef,
-            ApexcodeParser.RULE_assignmentRightExpr
+            ApexcodeParser.RULE_assignmentRightExpr,
+            ApexcodeParser.RULE_creator
         )
         core.showResult = true
         //core.showDebugOutput = true
