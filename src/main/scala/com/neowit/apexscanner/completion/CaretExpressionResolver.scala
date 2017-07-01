@@ -64,7 +64,7 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
               // now we have list of tokens between last AST Node and caret
               val tokensBeforeCaret = tokensBeforeCaretBuilder.result().reverse
               // finally try to find definition of the last meaningful token before caret, aka "caret scope token"
-              resolveExpressionBeforeCaret(tokensBeforeCaret, astScopeNode, lastAstNode).map {
+              resolveExpressionBeforeCaret(caret, tokensBeforeCaret, astScopeNode, lastAstNode).map {
                 case Some(caretScopeTypeDef) =>
                     Option(CaretScope(astScopeNode, Option(caretScopeTypeDef)))
                 case None =>
@@ -79,7 +79,7 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
       * @param tokensBeforeCaret unresolved tokens in front of caret
       * @return
       */
-    def resolveExpressionBeforeCaret(tokensBeforeCaret: List[Token], astScopeNode: AstNode, lastAstNode: AstNode): Future[Option[IsTypeDefinition]] = {
+    def resolveExpressionBeforeCaret(caret: Caret, tokensBeforeCaret: List[Token], astScopeNode: AstNode, lastAstNode: AstNode): Future[Option[IsTypeDefinition]] = {
 
         import collection.JavaConverters._
         val tokenSource = new ListTokenSource(tokensBeforeCaret.asJava)
@@ -88,7 +88,7 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
         //parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
         //val tree = parser.expression()
 
-        findLongestTree(tokensBeforeCaret) match {
+        findLongestTree(caret, tokensBeforeCaret) match {
             case Some(tree) =>
                 // now visit resulting tree and try resolve caret context
                 val resolver = new ContextResolver(project, astScopeNode, lastAstNode)
@@ -103,64 +103,64 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
       * @param tokensBeforeCaret tokens in front of caret (on default channel)
       * @return
       */
-    private def findLongestTree(tokensBeforeCaret: List[Token]): Option[ParserRuleContext] = {
-        import collection.JavaConverters._
-        def parseAsExpression(tokens: List[Token]): ParserRuleContext = {
-            val tokenSource = new ListTokenSource(tokens.asJava)
-            val tokenStream = new CommonTokenStream(tokenSource)
-            val parser = new ApexcodeParser(tokenStream)
-            //parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
-            parser.expression()
-        }
-        def parseAsClassVariable(tokens: List[Token]): ParserRuleContext = {
-            val tokenSource = new ListTokenSource(tokens.asJava)
-            val tokenStream = new CommonTokenStream(tokenSource)
-            val parser = new ApexcodeParser(tokenStream)
-            //parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
-            parser.classVariable()
-        }
-        def parse(tokens: List[Token]): Option[ParserRuleContext] = {
-            val methods = Seq[List[Token] => ParserRuleContext](
-                parseAsExpression,
-                parseAsClassVariable
-            )
-            val tokensLength = tokens.length
-            for (method <- methods) {
-                val tree = method(tokens)
-                // this condition may need tweaking
-                // check if last token in resulting tree is near caret (i.e. last expression type/method is probably right guess)
-                if (tree.stop.getTokenIndex + 1 >= tokensLength) {
-                    return Option(tree)
-                }
-            }
-            None
-        }
+    private def findLongestTree(caret: Caret, tokensBeforeCaret: List[Token]): Option[ParserRuleContext] = {
         if (tokensBeforeCaret.nonEmpty) {
-            val lastTokenBeforeCaret = tokensBeforeCaret.reverse.head
-            val caretToken = createToken(ApexcodeLexer.FIXER_TOKEN, "FIXER_TOKEN", lastTokenBeforeCaret)
-            val treeOpt = parse(tokensBeforeCaret :+ caretToken)
-            treeOpt
-            /*
-            if (tree.stop.getTokenIndex < caretToken.getTokenIndex) {
-                var prevTokens = tokensBeforeCaret :+ caretToken
-                var prevToken = caretToken
-                var i = 0
-                val MAX_I = 3
-                while (i < MAX_I && tree.stop.getTokenIndex < caretToken.getTokenIndex) {
-                    val fixerToken = createToken(ApexcodeLexer.FIXER_TOKEN, "FIXER_TOKEN", prevToken)
-                    val allTokens = prevTokens :+ fixerToken
-                    tree = parse(allTokens)
-                    i += 1
-                    prevTokens = allTokens
-                    prevToken = fixerToken
+            val tokensArray = tokensBeforeCaret.toArray
+            var lastTokenBeforeCaret = tokensArray(tokensArray.length - 1)
+            val exprTokens =
+                if (ApexParserUtils.isWordToken(lastTokenBeforeCaret) && tokensArray.length > 1 && caret.isInside(lastTokenBeforeCaret)) {
+                    //have a situation like this: aaa.bbb<caret>
+                    // caret is inside of last token, so replace last token with caret
+                    lastTokenBeforeCaret = tokensArray(tokensArray.length - 2)
+                    val caretToken = createToken(ApexcodeLexer.FIXER_TOKEN, "FIXER_TOKEN", lastTokenBeforeCaret)
+                    tokensBeforeCaret.dropRight(1) :+ caretToken
+                } else {
+                    // append caret after last token
+                    val caretToken = createToken(ApexcodeLexer.FIXER_TOKEN, "FIXER_TOKEN", lastTokenBeforeCaret)
+                    tokensBeforeCaret :+ caretToken
                 }
-            }
-            Option(tree)
-            */
+            val treeOpt = parse(exprTokens)
+            treeOpt
         } else {
             None
         }
 
+    }
+
+    private def parseAsExpression(tokens: java.util.List[Token]): ParserRuleContext = {
+        val tokenSource = new ListTokenSource(tokens)
+        val tokenStream = new CommonTokenStream(tokenSource)
+        val parser = new ApexcodeParser(tokenStream)
+        //parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
+        parser.expression()
+    }
+    private def parseAsClassVariable(tokens: java.util.List[Token]): ParserRuleContext = {
+        val tokenSource = new ListTokenSource(tokens)
+        val tokenStream = new CommonTokenStream(tokenSource)
+        val parser = new ApexcodeParser(tokenStream)
+        //parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
+        parser.classVariable()
+    }
+
+    private def parse(tokens: List[Token]): Option[ParserRuleContext] = {
+        import collection.JavaConverters._
+        val methods = Seq[java.util.List[Token] => ParserRuleContext](
+            parseAsExpression,
+            parseAsClassVariable
+        )
+
+        val tokensList = tokens.asJava
+        val tokensLength = tokens.length
+
+        for (method <- methods) {
+            val tree = method(tokensList)
+            // this condition may need tweaking
+            // check if last token in resulting tree is near caret (i.e. last expression type/method is probably right guess)
+            if (tree.stop.getTokenIndex + 1 >= tokensLength) {
+                return Option(tree)
+            }
+        }
+        None
     }
 
     private def createToken(tokenType: Int, text: String, prevToken: Token): Token = {
@@ -168,7 +168,8 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
         val stop = start + text.length
 
         val source = new Pair[TokenSource, CharStream](prevToken.getTokenSource, prevToken.getInputStream)
-        val token = new CommonToken(source, tokenType, prevToken.getChannel, start, stop)
+        val factory = CommonTokenFactory.DEFAULT
+        val token = factory.create(source, tokenType, text, prevToken.getChannel, start, stop, prevToken.getLine, prevToken.getCharPositionInLine + prevToken.getText.length)
         token
     }
     /**
