@@ -23,7 +23,7 @@ package com.neowit.apexscanner.nodes
 
 import com.neowit.apexscanner.ast.QualifiedName
 
-sealed trait ValueType {
+trait ValueType {
     def qualifiedName: QualifiedName
     def typeArguments: Seq[ValueType]
 
