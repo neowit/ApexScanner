@@ -24,7 +24,7 @@ package com.neowit.apexscanner.antlr
 import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
 
-import com.neowit.apexscanner.VirtualDocument
+import com.neowit.apexscanner.{FileBasedDocument, TextBasedDocument, VirtualDocument}
 import org.antlr.v4.runtime._
 import org.antlr.v4.runtime.misc.Interval
 /**
@@ -57,11 +57,13 @@ object ApexParserUtils {
       * @return case insensitive ApexcodeLexer
       */
     def getDefaultLexer(document: VirtualDocument): ApexcodeLexer = {
-        //val input = new ANTLRInputStream(new FileInputStream(file))
-        //val input = new CaseInsensitiveInputStream(new FileInputStream(file.toFile))
-        // since Antlr 4.7 ANTLRInputStream is deprecated
-        //val input = CharStreams.fromPath(file)
-        val input = CharStreams.fromStream(document.inputStream, StandardCharsets.UTF_8)
+        val input:CharStream =
+        document match {
+            case doc: FileBasedDocument =>
+                CharStreams.fromStream(doc.inputStream, StandardCharsets.UTF_8)
+            case doc: TextBasedDocument =>
+                CharStreams.fromString(doc.text)
+        }
         val lexer = new ApexcodeLexer(input)
         lexer
     }

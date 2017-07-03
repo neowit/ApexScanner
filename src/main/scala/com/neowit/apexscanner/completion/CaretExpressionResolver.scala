@@ -41,7 +41,7 @@ case class CaretScope(scopeNode: AstNode, typeDefinition: Option[IsTypeDefinitio
 class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  extends LazyLogging {
 
 
-    def resolveCaretScope(caret: CaretInFile, caretToken: Token, tokens: TokenStream): Future[Option[CaretScope]] = {
+    def resolveCaretScope(caret: CaretInDocument, caretToken: Token, tokens: TokenStream): Future[Option[CaretScope]] = {
 
         val document = caret.document
         findAstParentNode(document, caretToken).flatMap {
@@ -175,7 +175,7 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
     /**
       * find AST node which is closest to expression where caret is positioned
       */
-    private def getNearestPrecedingAstNode(caret: CaretInFile, astScopeNode: AstNode): AstNode = {
+    private def getNearestPrecedingAstNode(caret: CaretInDocument, astScopeNode: AstNode): AstNode = {
         if (astScopeNode.children.isEmpty) {
             astScopeNode
         } else {

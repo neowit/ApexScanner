@@ -33,14 +33,57 @@ import scala.concurrent.{ExecutionContext, Future}
 import com.neowit.apexscanner.symbols._
 import org.antlr.v4.runtime.atn.PredictionMode
 
+case class FindCaretScopeResult(caretScope: Option[CaretScope], caretToken: Token)
 /**
   * Created by Andrey Gavrikov 
   */
 class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends LazyLogging {
-    //case class FindCaretTokenResult(ex: CaretReachedException, tokens: CommonTokenStream )
-    case class FindCaretTokenResult(caretToken: Token, parser: ApexcodeParser )
 
     def listCompletions(file: VirtualDocument, line: Int, column: Int): Future[Seq[Symbol]] = {
+        val caret = new CaretInDocument(Position(line, column), file)
+        val parser = createParser(caret.document)
+        findCaretScope(caret, parser).map{
+            case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
+                typeDefinition.getValueType match {
+                    case Some(valueType) =>
+                        logger.debug("Caret value type: " + valueType)
+                        getValueTypeMembers(valueType)
+                    case None => Seq.empty
+                }
+            case Some(FindCaretScopeResult(Some(CaretScope(scopeNode, None)), caretToken)) =>
+                // caret definition is not obvious, but we have an AST scope node
+                val candidates = collectCandidates(caret, caretToken, parser)
+                getCandidateSymbols(scopeNode, candidates)
+
+            case Some(FindCaretScopeResult(None, caretToken)) =>
+                // caret definition is not obvious, and we do not even have an AST scope node
+                collectCandidates(caret, caretToken, parser)
+                ???
+            case _ =>
+                Seq.empty
+        }
+    }
+
+    def findCaretScope(caret: CaretInDocument, parser: ApexcodeParser): Future[Option[FindCaretScopeResult]] = {
+        findCaretToken(caret, parser) match {
+            case Some(caretToken) =>
+                //now when we found token corresponding caret position try to understand context
+                //collectCandidates(caret, caretToken, parser)
+                val resolver = new CaretExpressionResolver(project)
+                val tokens = parser.getTokenStream
+                resolver.resolveCaretScope(caret, caretToken, tokens).map{
+                    case caretScopeOpt @ Some( CaretScope(_, _)) =>
+                        Option(FindCaretScopeResult(caretScopeOpt, caretToken))
+                    case _  =>
+                        Option(FindCaretScopeResult(None, caretToken))
+                }
+            case None =>
+                Future.successful(None)
+        }
+    }
+
+    /*
+    def listCompletions2(file: VirtualDocument, line: Int, column: Int): Future[Seq[Symbol]] = {
         val caret = new CaretInFile(Position(line, column), file)
         findCaretToken(caret) match {
             case Some(findCaretTokenResult) =>
@@ -72,6 +115,7 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                 Future.successful(Seq.empty)
         }
     }
+    */
 
     private def getCandidateSymbols(scope: AstNode, candidates: CandidatesCollection): Seq[Symbol] = {
         val kindsBuilder = Seq.newBuilder[SymbolKind]
@@ -91,14 +135,14 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
         scope.getSymbolsOfKinds(allSymbolKinds)
     }
 
-    private def findCaretToken(caret: CaretInFile): Option[FindCaretTokenResult] = {
-        val lexer = ApexParserUtils.getDefaultLexer(caret.document)
-        val tokens = new CommonTokenStream(lexer)
-        val parser = new ApexcodeParser(tokens)
-        // do not dump parse errors into console (or any other default listeners)
-        parser.removeErrorListeners()
-        parser.setErrorHandler(new BailErrorStrategy)
-        //parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
+    private def findCaretToken(caret: CaretInDocument, parser: ApexcodeParser): Option[Token] = {
+        //val lexer = ApexParserUtils.getDefaultLexer(caret.document)
+        //val tokens = new CommonTokenStream(lexer)
+        //val parser = new ApexcodeParser(tokens)
+        //// do not dump parse errors into console (or any other default listeners)
+        //parser.removeErrorListeners()
+        //parser.setErrorHandler(new BailErrorStrategy)
+        ////parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
         parser.getInterpreter.setPredictionMode(PredictionMode.LL)
         try {
             // run actual scan, trying to identify caret position
@@ -110,19 +154,32 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                 logger.debug(e.getMessage)
         }
         var i = 0
+        val tokens = parser.getInputStream
         var token: Token = tokens.get(i)
         while (caret.isAfter(token) && Token.EOF != token.getType) {
             i += 1
             token = tokens.get(i)
         }
         if (caret.isInside(token) || caret.isBefore(token)) {
-            Option(FindCaretTokenResult(token, parser))
+            Option(token)
         } else {
             None
         }
     }
 
-    def collectCandidates(caret: CaretInFile, caretToken: Token, parser: ApexcodeParser): CandidatesCollection = {
+    def createParser(document: VirtualDocument): ApexcodeParser = {
+        val lexer = ApexParserUtils.getDefaultLexer(document)
+        val tokens = new CommonTokenStream(lexer)
+        val parser = new ApexcodeParser(tokens)
+        // do not dump parse errors into console (or any other default listeners)
+        parser.removeErrorListeners()
+        parser.setErrorHandler(new BailErrorStrategy)
+        //parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
+        //parser.getInterpreter.setPredictionMode(PredictionMode.LL)
+        parser
+    }
+
+    def collectCandidates(caret: CaretInDocument, caretToken: Token, parser: ApexcodeParser): CandidatesCollection = {
         /*
         val lexer = ApexParserUtils.getDefaultLexer(caret.document)
         val tokens: CommonTokenStream = new CommonTokenStream(lexer)

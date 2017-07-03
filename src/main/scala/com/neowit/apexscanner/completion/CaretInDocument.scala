@@ -27,5 +27,5 @@ import com.neowit.apexscanner.nodes.Position
 /**
   * Created by Andrey Gavrikov 
   */
-class CaretInFile(override val position: Position, val document: VirtualDocument) extends Caret (position)
+class CaretInDocument(override val position: Position, val document: VirtualDocument) extends Caret (position)
 
