@@ -87,14 +87,24 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
         //val parser = new ApexcodeParser(tokenStream)
         //parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
         //val tree = parser.expression()
-
-        findLongestTree(caret, tokensBeforeCaret) match {
-            case Some(tree) =>
-                // now visit resulting tree and try resolve caret context
-                val resolver = new ContextResolver(project, astScopeNode, lastAstNode)
-                resolver.resolveContext(tree, tokenStream)
-            case None =>
-                Future.successful(None)
+        tokensBeforeCaret match {
+            case _tokens if _tokens.nonEmpty =>
+                findLongestTree(caret, tokensBeforeCaret) match {
+                    case Some(tree) =>
+                        // now visit resulting tree and try resolve caret context
+                        val resolver = new ContextResolver(project, astScopeNode, lastAstNode)
+                        resolver.resolveContext(tree, tokenStream)
+                    case None =>
+                        Future.successful(None)
+                }
+            case _ =>
+                // looks like we have a valid AST up until caret
+                // assume lastAstNode is a definition of caret
+                lastAstNode match {
+                    case n: IsTypeDefinition => Future.successful(Option(n))
+                    case _ =>
+                        ??? //should we give up ?
+                }
         }
     }
 
