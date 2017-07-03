@@ -49,7 +49,7 @@ object AstBuilder {
 class AstBuilder(project: Project) {
     val DEFAULT_SCANNER = new Scanner(Scanner.defaultIsIgnoredPath, onEachFileScanResult, SyntaxChecker.errorListenerCreator)
 
-    private val astCache = Map.newBuilder[VirtualDocument.DocumentId, AstBuilderResult]
+    private val astCache = new collection.mutable.HashMap[VirtualDocument.DocumentId, AstBuilderResult]
     private val fileNameCache = Map.newBuilder[String, VirtualDocument]
 
     def build(path: Path, scanner: Scanner)(implicit ex: ExecutionContext): Future[Unit] = {
@@ -81,7 +81,7 @@ class AstBuilder(project: Project) {
       * @return
       */
     def getAst(document: VirtualDocument): Option[AstBuilderResult] = {
-        astCache.result().get(document.getId)
+        astCache.get(document.getId)
     }
     def getAstByFilename(fileName: String): Option[AstBuilderResult] = {
         getDocument(fileName).flatMap(path => getAst(path))
