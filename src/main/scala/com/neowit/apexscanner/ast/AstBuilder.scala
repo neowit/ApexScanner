@@ -56,7 +56,8 @@ class AstBuilder(project: Project) {
         scanner.scan(path)
     }
     def build(document: VirtualDocument, scanner: Scanner = DEFAULT_SCANNER, predictionMode: PredictionMode = PredictionMode.SLL): Future[Unit] = {
-        scanner.scan(document, predictionMode)
+        val scanResult = scanner.scan(document, predictionMode)
+        onEachFileScanResult(scanResult)
         Future.successful(())
     }
 
