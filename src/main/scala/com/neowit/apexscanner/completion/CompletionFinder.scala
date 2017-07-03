@@ -111,7 +111,7 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
         }
         var i = 0
         var token: Token = tokens.get(i)
-        while (caret.isAfter(token)) {
+        while (caret.isAfter(token) && Token.EOF != token.getType) {
             i += 1
             token = tokens.get(i)
         }
