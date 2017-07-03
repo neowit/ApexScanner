@@ -198,7 +198,7 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
       */
     private def findAstParentNode(document: VirtualDocument, token: Token): Future[Option[AstNode]] = {
 
-        project.getAst(document.file).map{
+        project.getAst(document).map{
             case Some(_res) =>
                 val position = Position(token.getLine, token.getCharPositionInLine)
                 val locationFinder = new NodeByLocationFinder(position)

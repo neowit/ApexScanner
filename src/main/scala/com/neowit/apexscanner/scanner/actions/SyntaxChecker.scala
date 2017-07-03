@@ -23,14 +23,15 @@ package com.neowit.apexscanner.scanner.actions
 
 import java.nio.file.Path
 
+import com.neowit.apexscanner.VirtualDocument
 import com.neowit.apexscanner.scanner._
 import org.antlr.v4.runtime.{BaseErrorListener, RecognitionException, Recognizer}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 object SyntaxChecker {
-    def errorListenerCreator(file: Path): ApexErrorListener = {
-        new SyntaxCheckerErrorListener(file)
+    def errorListenerCreator(document: VirtualDocument): ApexErrorListener = {
+        new SyntaxCheckerErrorListener(document)
     }
 }
 class SyntaxChecker {
@@ -49,7 +50,7 @@ class SyntaxChecker {
         val resultBuilder = Seq.newBuilder[SyntaxCheckResult]
 
         def onFileCheckResult(result: FileScanResult):Unit = {
-            val sourceFile = result.sourceFile
+            val sourceFile = result.document.file
             //val fileName = result.sourceFile.getName(sourceFile.getNameCount-1).toString
             val res = SyntaxCheckResult(sourceFile, result.errors)
             resultBuilder += res
@@ -65,7 +66,7 @@ case class SyntaxError(offendingSymbol: scala.Any,
                        charPositionInLine: Int,
                        msg: String)
 
-private class SyntaxCheckerErrorListener(file: Path) extends BaseErrorListener with ApexErrorListener {
+private class SyntaxCheckerErrorListener(document: VirtualDocument) extends BaseErrorListener with ApexErrorListener {
     private val errorBuilder = Seq.newBuilder[SyntaxError]
     override def syntaxError(recognizer: Recognizer[_, _],
                              offendingSymbol: scala.Any,

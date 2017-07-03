@@ -76,7 +76,7 @@ class DidSaveHandler extends NotificationHandler with MessageJsonSupport with La
         val errorBuilder = Map.newBuilder[Path, Seq[SyntaxError]]
 
         def onFileCheckResult(scanResult: FileScanResult):Unit = {
-            val file: Path = scanResult.sourceFile
+            val file: Path = scanResult.document.file
             val errors = scanResult.errors
             //even if there were no errors we still need to return: file -> Seq.empty
             // otherwise client will not "know" that previously reported errors are now gone

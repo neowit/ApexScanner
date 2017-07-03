@@ -56,7 +56,7 @@ object DebugVisitor {
         ()
     }
     def onEachFileScanResult(result: FileScanResult): Unit = {
-        val visitor = new ASTBuilderVisitor(project, Option(result.sourceFile))
+        val visitor = new ASTBuilderVisitor(project, Option(result.document))
         val compileUnit = visitor.visit(result.parseContext)
         new AstWalker().walk(compileUnit, new DebugVisitor)
     }

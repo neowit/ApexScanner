@@ -23,7 +23,7 @@ package com.neowit.apexscanner.resolvers
 
 import java.nio.file.{FileSystems, Path}
 
-import com.neowit.apexscanner.{Project, TestConfigProvider}
+import com.neowit.apexscanner.{FileBasedDocument, Project, TestConfigProvider}
 import com.neowit.apexscanner.ast.AstBuilder
 import com.neowit.apexscanner.nodes.AstNode
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -65,9 +65,10 @@ object ResolverTestUtils extends TestConfigProvider with ScalaFutures with Integ
 
         val project = existingProject.getOrElse(Project(path))
         val astBuilder = new AstBuilder(project)
-        astBuilder.build(path).futureValue
+        val document = FileBasedDocument(path)
+        astBuilder.build(path, astBuilder.DEFAULT_SCANNER).futureValue
 
-        astBuilder.getAst(path) match {
+        astBuilder.getAst(document) match {
             case None =>
             // do nothing
                 ResolverTestData(filePath, path, rootNode = None, project)

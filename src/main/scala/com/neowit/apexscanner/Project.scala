@@ -84,13 +84,13 @@ case class Project(path: Path)(implicit ex: ExecutionContext) {
         _containerByQName.get(qualifiedName)
     }
 
-    def getAst(path: Path): Future[Option[AstBuilderResult]] = {
-        astBuilder.getAst(path) match {
+    def getAst(document: VirtualDocument): Future[Option[AstBuilderResult]] = {
+        astBuilder.getAst(document) match {
           case Some(_ast) => Future.successful(Option(_ast))
           case None =>
               // looks like AST for given file has not been built yet, let's fix it
-              astBuilder.build(path).map { _ =>
-                  astBuilder.getAst(path)
+              astBuilder.build(document).map { _ =>
+                  astBuilder.getAst(document)
               }
         }
     }

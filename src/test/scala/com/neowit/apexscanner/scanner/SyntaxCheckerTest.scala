@@ -20,7 +20,8 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
 
     private val ignoredNames = Set(
         "A-Fake-Class.cls", // not real apex code
-        "IObjectWrapper.cls" // old class, contains no longer supported type parameter: interface Name<T>
+        "IObjectWrapper.cls", // old class, contains no longer supported type parameter: interface Name<T>
+        "CompletionTester.cls" // this class usually contains broken syntax because of incomplete expressions
     )
     private val ignoredDirs = Set("resources_unpacked", "Referenced Packages", "_ProjectTemplate")
 
@@ -47,7 +48,7 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
         val fileNameSetBuilder = Set.newBuilder[String]
 
         def onFileCheckResult(scanResult: FileScanResult):Unit = {
-            val file: Path = scanResult.sourceFile
+            val file: Path = scanResult.document.file
             val errors = scanResult.errors
             val fileName = file.getName(file.getNameCount-1).toString
             fileNameSetBuilder += fileName

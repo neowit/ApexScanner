@@ -22,7 +22,7 @@ package com.neowit.apexscanner.scanner
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.{FileVisitResult, Files, Path, SimpleFileVisitor}
 
-import com.neowit.apexscanner.FileBasedDocument
+import com.neowit.apexscanner.{FileBasedDocument, VirtualDocument}
 import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, ApexcodeParser}
 import com.neowit.apexscanner.scanner.actions.SyntaxError
 import org.antlr.v4.runtime._
@@ -32,7 +32,7 @@ import org.antlr.v4.runtime.misc.ParseCancellationException
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-case class FileScanResult(sourceFile: Path, errors: Seq[SyntaxError], parseContext: ParserRuleContext)
+case class FileScanResult(document: VirtualDocument, errors: Seq[SyntaxError], parseContext: ParserRuleContext)
 
 object Scanner{
 
@@ -66,7 +66,7 @@ object Scanner{
   */
 class Scanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath,
               onEachResult: FileScanResult => Unit = Scanner.emptyOnEachResult,
-              errorListenerFactory: Path => ApexErrorListener) {
+              errorListenerFactory: VirtualDocument => ApexErrorListener) {
 
     /**
       * Parse & Check syntax in files residing in specified path/location
@@ -97,6 +97,10 @@ class Scanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath,
         val files = fileListBuilder.result()
 
         files.foreach{ file =>
+            val document = FileBasedDocument(file)
+            val scanResult = scan(document, predictionMode)
+            onEachResult(scanResult)
+            /*
             val lexer = getLexer(file)
             val tokenStream = new CommonTokenStream(lexer)
             val parser = new ApexcodeParser(tokenStream)
@@ -125,17 +129,49 @@ class Scanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath,
 
             val errors = errorListener.result()
             onEachResult(FileScanResult(file, errors, compilationUnit))
+            */
 
         }
     }
 
+    def scan( document: VirtualDocument, predictionMode: PredictionMode): FileScanResult = {
+        val lexer = getLexer(document)
+        val tokenStream = new CommonTokenStream(lexer)
+        val parser = new ApexcodeParser(tokenStream)
+        // do not dump parse errors into console (or any other default listeners)
+        parser.removeErrorListeners()
+        val errorListener = errorListenerFactory(document)
+        parser.addErrorListener(errorListener)
+        parser.setErrorHandler(new BailErrorStrategy)
+        parser.getInterpreter.setPredictionMode(predictionMode)
+
+        // run actual scan
+        val compilationUnit:ParserRuleContext =
+            Try(parser.compilationUnit()) match {
+                case Success(tree) => tree
+                case Failure(e:ParseCancellationException) if PredictionMode.LL != predictionMode =>
+                    // repeat scan with PredictionMode.LL
+                    tokenStream.seek(0)
+                    errorListener.clear()
+                    parser.reset()
+                    parser.setErrorHandler(new DefaultErrorStrategy)
+                    parser.getInterpreter.setPredictionMode(PredictionMode.LL)
+                    val tree = parser.compilationUnit()
+                    tree
+                case Failure(e) => throw e
+            }
+
+        val errors = errorListener.result()
+        FileScanResult(document, errors, compilationUnit)
+    }
+
     /**
       * default case insensitive ApexCode lexer
-      * @param file - file to parse
+      * @param document - file/document to parse
       * @return case insensitive ApexcodeLexer
       */
-    def getLexer(file: Path): ApexcodeLexer = {
-        ApexParserUtils.getDefaultLexer(FileBasedDocument(file))
+    def getLexer(document: VirtualDocument): ApexcodeLexer = {
+        ApexParserUtils.getDefaultLexer(document)
     }
 }
 

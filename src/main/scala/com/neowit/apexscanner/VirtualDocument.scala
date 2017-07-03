@@ -24,6 +24,8 @@ package com.neowit.apexscanner
 import java.io.InputStream
 import java.nio.file.Path
 
+import com.neowit.apexscanner.VirtualDocument.DocumentId
+
 
 /**
   * Created by Andrey Gavrikov 
@@ -32,4 +34,10 @@ trait VirtualDocument {
     def file: Path
     def inputStream: InputStream
     def getTextContent: Option[String]
+    def getId: DocumentId = file.getFileName.toString
+    def getFileName: Path = file.getFileName
+}
+
+object VirtualDocument {
+    type DocumentId = String
 }

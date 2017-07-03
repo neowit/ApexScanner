@@ -23,10 +23,11 @@ package com.neowit.apexscanner.ast
 
 import java.nio.file.{FileSystems, Path}
 
-import com.neowit.apexscanner.Project
+import com.neowit.apexscanner.{FileBasedDocument, Project, VirtualDocument}
 import com.neowit.apexscanner.nodes.AstNode
 import com.neowit.apexscanner.scanner.actions.SyntaxChecker
 import com.neowit.apexscanner.scanner.{FileScanResult, Scanner}
+import org.antlr.v4.runtime.atn.PredictionMode
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -38,8 +39,9 @@ object AstBuilder {
         import scala.concurrent.ExecutionContext.Implicits.global
 
         val path = FileSystems.getDefault.getPath(args(0))
+        val document = FileBasedDocument(path)
         val builder = new AstBuilder(Project(path))
-        builder.build(path)
+        builder.build(document)
         ()
     }
 }
@@ -47,37 +49,41 @@ object AstBuilder {
 class AstBuilder(project: Project) {
     val DEFAULT_SCANNER = new Scanner(Scanner.defaultIsIgnoredPath, onEachFileScanResult, SyntaxChecker.errorListenerCreator)
 
-    private val astCache = Map.newBuilder[Path, AstBuilderResult]
-    private val fileNameCache = Map.newBuilder[String, Path]
+    private val astCache = Map.newBuilder[VirtualDocument.DocumentId, AstBuilderResult]
+    private val fileNameCache = Map.newBuilder[String, VirtualDocument]
 
-    def build(path: Path, scanner: Scanner = DEFAULT_SCANNER)(implicit ex: ExecutionContext): Future[Unit] = {
+    def build(path: Path, scanner: Scanner)(implicit ex: ExecutionContext): Future[Unit] = {
         scanner.scan(path)
+    }
+    def build(document: VirtualDocument, scanner: Scanner = DEFAULT_SCANNER, predictionMode: PredictionMode = PredictionMode.SLL): Future[Unit] = {
+        scanner.scan(document, predictionMode)
+        Future.successful(())
     }
 
     private def onEachFileScanResult(result: FileScanResult): Unit = {
-        val visitor = new ASTBuilderVisitor(project, Option(result.sourceFile))
+        val visitor = new ASTBuilderVisitor(project, Option(result.document))
         val compileUnit = visitor.visit(result.parseContext)
         //new AstWalker().walk(compileUnit, new DebugVisitor)
-        val sourceFile = result.sourceFile
-        astCache += sourceFile -> AstBuilderResult(result, compileUnit)
-        fileNameCache += sourceFile.getFileName.toString -> result.sourceFile
+        val sourceDocument = result.document
+        astCache += sourceDocument.getId -> AstBuilderResult(result, compileUnit)
+        fileNameCache += sourceDocument.getFileName.toString -> sourceDocument
         // record all ClassLike nodes in project
         visitor.getClassLikeNodes.foreach(project.addByQualifiedName(_))
     }
-    private def getPath(fileName: String): Option[Path] = {
+    private def getDocument(fileName: String): Option[VirtualDocument] = {
         fileNameCache.result().get(fileName)
     }
 
     /**
       * get cached AST for given file
-      * @param path single file path
+      * @param document single document
       * @return
       */
-    def getAst(path: Path): Option[AstBuilderResult] = {
-        astCache.result().get(path)
+    def getAst(document: VirtualDocument): Option[AstBuilderResult] = {
+        astCache.result().get(document.getId)
     }
     def getAstByFilename(fileName: String): Option[AstBuilderResult] = {
-        getPath(fileName).flatMap(path => getAst(path))
+        getDocument(fileName).flatMap(path => getAst(path))
     }
 }
 
