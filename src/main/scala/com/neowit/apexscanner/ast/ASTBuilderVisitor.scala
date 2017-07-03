@@ -243,7 +243,7 @@ class ASTBuilderVisitor(project: Project, documentOpt: Option[VirtualDocument]) 
     }
     */
 
-    override def visitMethodCallExpr(ctx: MethodCallExprContext): AstNode = {
+    override def visitMethodCall(ctx: MethodCallContext): AstNode = {
         visitChildren(MethodCallNode(ctx.func.getText, Range(ctx)), ctx)
     }
 
@@ -251,9 +251,6 @@ class ASTBuilderVisitor(project: Project, documentOpt: Option[VirtualDocument]) 
         visitChildren(ExpressionListNode(Range(ctx)), ctx)
     }
 
-    override def visitClassBodyMemberRef(ctx: ClassBodyMemberRefContext): AstNode = {
-        visitChildren(ctx.expression())
-    }
 
     override def visitAssignmentRightExpr(ctx: AssignmentRightExprContext): AstNode = {
         visitChildren(ctx.expression())
