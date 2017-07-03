@@ -44,7 +44,12 @@ object ListCompletions extends LazyLogging {
         //val res = completions.list(FileBasedDocument(path), line, 12) //con.;// FallThoughNode
         //val res = completions.list(FileBasedDocument(path), line + 1, 20) //con.acc() + ; // ExpressionStatementNode
         //val res = completions.list(FileBasedDocument(path), line +2, 15) //con.acc; // ExpressionDotExpression
-        val res = completions.list(FileBasedDocument(path), line +3, 27) //((Opportunity)obj). // Expression -> ExpressionDotExpression
+        //val res = completions.list(FileBasedDocument(path), line +3, 27) //((Opportunity)obj). // Expression -> ExpressionDotExpression
+        //val res = completions.list(FileBasedDocument(path), line +4, 22) //new Object__c(
+        //val res = completions.list(FileBasedDocument(path), line +5, 38) //new CompletionTester( Field =
+        //val res = completions.list(FileBasedDocument(path), line +6, 44) //new List<Map<String, Set<Integer>>>(
+        val res = completions.list(FileBasedDocument(path), line +7, 57) //String str = new List<Map<String, Set<Integer>>>(
+
         Await.result(res, Duration.Inf)
         logger.debug( res.toString )
         ()
