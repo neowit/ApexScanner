@@ -26,7 +26,7 @@ import com.neowit.apexscanner.ast.QualifiedName
 /**
   * Created by Andrey Gavrikov 
   */
-case class TypeCastNode(range: Range) extends AstNode with IsTypeDefinition{
+case class TypeCastNode(range: Range) extends AbstractExpression with IsTypeDefinition {
     override def nodeType: AstNodeType = TypeCastNodeType
 
     override def getValueType: Option[ValueType] = {
