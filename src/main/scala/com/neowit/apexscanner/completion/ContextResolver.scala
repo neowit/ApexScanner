@@ -27,7 +27,8 @@ import com.neowit.apexscanner.antlr.ApexcodeParser._
 import com.neowit.apexscanner.ast.ASTBuilderVisitor
 import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.resolvers.{AscendingDefinitionFinder, NodeBySymbolTextFinder}
-import org.antlr.v4.runtime.{ParserRuleContext, Token, TokenStream}
+import org.antlr.v4.runtime.tree.ParseTree
+import org.antlr.v4.runtime.{Token, TokenStream}
 
 import scala.concurrent.Future
 
@@ -37,7 +38,7 @@ import scala.concurrent.Future
 class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstNode) {
     private val _visitor = new ASTBuilderVisitor(project, documentOpt = None)
 
-    def resolveContext(context: ParserRuleContext, tokens: TokenStream): Future[Option[IsTypeDefinition]] = {
+    def resolveContext(context: ParseTree, tokens: TokenStream): Future[Option[IsTypeDefinition]] = {
         context match {
             case c: PrimaryExprContext => // single token
                 Future.successful(resolvePrimary(c))
@@ -49,7 +50,17 @@ class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstN
                 Future.successful(resolveExprDotExpression(c))
             case c: ClassVariableContext => // String str = new List<Map<String, Set<Integer>>>(<caret>
                 Future.successful(resolveClassVariableContext(c))
-            case _ => ???
+            case _:InfixAddExprContext | _:InfixAndExprContext | _:InfixEqualityExprContext |
+                 _:InfixMulExprContext | _:InfixOrExprContext | _:InfixShiftExprContext if context.getChildCount > 0=>
+                // all infix expressions are served here
+                val lastChild = context.getChild(context.getChildCount - 1)
+                resolveContext(lastChild, tokens)
+            case _: SpecialCaretExprContext =>
+                // looks like we have a free standing caret, not bound to any specific expression
+                Future.successful(None)
+            case x =>
+                println(x)
+                ???
         }
     }
 
@@ -110,7 +121,8 @@ class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstN
                 n.resolveDefinition() match {
                     case defOpt @ Some(_: IsTypeDefinition) =>
                         defOpt.map(_.asInstanceOf[IsTypeDefinition])
-                    case _ =>
+                    case x =>
+                        println(x)
                         // TODO
                         // if this is valid branch then use ExpressionDotExpressionNode.getResolvedPartDefinition(node)
                         // to find definition of node preceding the caret

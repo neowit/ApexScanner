@@ -23,7 +23,7 @@ package com.neowit.apexscanner.completion
 
 import java.nio.file.{FileSystems, Path, Paths}
 
-import com.neowit.apexscanner.nodes.Position
+import com.neowit.apexscanner.nodes.{MethodBodyNodeType, Position}
 import com.neowit.apexscanner.{Project, TestConfigProvider, TextBasedDocument}
 import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -72,10 +72,34 @@ class CompletionFinderTest extends FunSuite with TestConfigProvider with ScalaFu
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assertResult(None, "Wrong caret type detected.")(typeDefinition.getValueType.map(_.toString))
-            case _ =>
+            case Some(FindCaretScopeResult(Some(CaretScope(scopeNode, None)), _)) =>
+                assertResult(MethodBodyNodeType, "Wrong scope type")(scopeNode.nodeType)
+                println(scopeNode)
+            case x =>
+                println(x)
                 assert(false, "Failed to identify caret type")
         }
     }
+
+    test("testFindCaretScope: `con.acc() + con.`") {
+        val text =
+            """
+              |class CompletionTester {
+              | public void testCompletion() {
+              |		CompletionTester con = new CompletionTester();
+              |     con.acc() + con.<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = findCaretScope(text, "testFindCaretScope.con").futureValue
+        result match {
+            case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
+                assertResult(Some("CompletionTester"), "Wrong caret type detected. Expected 'CompletionTester'")(typeDefinition.getValueType.map(_.toString))
+            case _ =>
+                assert(false, "Failed to identify caret type. Expected 'CompletionTester'")
+        }
+    }
+
     test("testFindCaretScope: `con.acc<CARET>`") {
         val text =
             """
