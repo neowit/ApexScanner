@@ -35,8 +35,7 @@ import scala.concurrent.Future
   */
 class CompletionFinderTest extends FunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
     private val filePath = getProperty("CompletionFinderTest.path")
-    private val path = FileSystems.getDefault.getPath(filePath)
-    private val project = Project(path)
+    private val projectPath = FileSystems.getDefault.getPath(filePath)
 
     test("testFindCaretScope: `con.`") {
         val text =
@@ -100,6 +99,48 @@ class CompletionFinderTest extends FunSuite with TestConfigProvider with ScalaFu
         }
     }
 
+    test("testFindCaretScope: `con.opp.`") {
+        val text =
+            """
+              |class CompletionTester {
+              | Opportunity opp;
+              | public void testCompletion() {
+              |		CompletionTester con = new CompletionTester();
+              |     con.opp.<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = findCaretScope(text, "testFindCaretScope").futureValue
+        result match {
+            case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
+                assertResult(Some("Opportunity"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.toString))
+            case _ =>
+                assert(false, "Failed to identify caret type. Expected 'Opportunity'")
+        }
+    }
+
+    test("testFindCaretScope: `con.inner.opp`") {
+        val text =
+            """
+              |class CompletionTester {
+              | class InnerClass {
+              |     Opportunity opp;
+              | }
+              | InnerClass inner;
+              | public void testCompletion() {
+              |		CompletionTester con = new CompletionTester();
+              |     con.inner.opp.<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = findCaretScope(text, "testFindCaretScope").futureValue
+        result match {
+            case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
+                assertResult(Some("Opportunity"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.toString))
+            case _ =>
+                assert(false, "Failed to identify caret type. Expected 'Opportunity'")
+        }
+    }
     test("testFindCaretScope: `con.acc<CARET>`") {
         val text =
             """
