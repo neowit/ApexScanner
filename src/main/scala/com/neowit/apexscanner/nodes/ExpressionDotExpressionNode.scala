@@ -39,14 +39,32 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
         _resolvedParts.lastOption
     }
 
+    /**
+      * a chain of expression like this: aaa.bbb.ccc
+      * will be represented as
+      *     ExpressionDotExpressionNode(ExpressionDotExpressionNode(aaa, bbb), ccc)
+      * we want those to become
+      *     ExpressionDotExpressionNode(aaa, bbb, ccc)
+      * so have to unpack nested ExpressionDotExpressionNode nodes
+      * @return
+      */
     private def getExpressions: Seq[AbstractExpression] = {
-        val expressions = findChildrenInAst{
-            case _:AbstractExpression => true
+        def unpack(n: AbstractExpression): Seq[AbstractExpression] = {
+            n match {
+                case chain: ExpressionDotExpressionNode =>
+                    chain.getExpressions
+                case one => Seq(one)
+            }
+        }
+
+        val expressions = findChildrenInAst {
+            case _: AbstractExpression => true
             case _ => false
         }.map(_.asInstanceOf[AbstractExpression])
-        expressions
-    }
 
+        val res = expressions.foldLeft(Seq.empty[AbstractExpression])(_ ++ unpack(_))
+        res
+    }
     /**
       * check if given node is part of this expression and
       * find its position in the list of expressions comprising this expression
