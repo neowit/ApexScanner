@@ -227,30 +227,13 @@ class ASTBuilderVisitor(project: Project, documentOpt: Option[VirtualDocument]) 
         visitChildren(ExpressionStatementNode(Range(ctx)), ctx)
     }
 
-    /*
     override def visitMethodCallExpr(ctx: MethodCallExprContext): AstNode = {
-        val context = ctx.methodCall()
-        val methodNameTerminal =
-            if (null != context.Identifier()) context.Identifier()
-            else if (null != context.SUPER()) context.SUPER()
-            else if (null != context.THIS()) context.THIS()
-            else null
-        if (null != methodNameTerminal) {
-            visitChildren(MethodCallNode(methodNameTerminal.getText, Range(ctx)), ctx)
-        } else {
-            NullNode
-        }
-    }
-    */
-
-    override def visitMethodCall(ctx: MethodCallContext): AstNode = {
         visitChildren(MethodCallNode(ctx.func.getText, Range(ctx)), ctx)
     }
 
     override def visitExpressionList(ctx: ExpressionListContext): AstNode = {
         visitChildren(ExpressionListNode(Range(ctx)), ctx)
     }
-
 
     override def visitAssignmentRightExpr(ctx: AssignmentRightExprContext): AstNode = {
         visitChildren(ctx.expression())
