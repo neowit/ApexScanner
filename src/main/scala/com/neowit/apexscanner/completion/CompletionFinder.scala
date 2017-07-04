@@ -123,9 +123,9 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
         // collect keywords and convert those to symbols (need to decide on symbol type)
         // see "The final step to get your completion strings is usually something like this:" https://github.com/mike-lischke/antlr4-c3
         candidates.rules.keys.foreach{
-            case ApexcodeParser.RULE_classBodyMemberRef =>
-                val kinds = Seq(SymbolKind.Enum, SymbolKind.Variable, SymbolKind.Method, SymbolKind.Property)
-                kindsBuilder ++= kinds
+            //case ApexcodeParser.RULE_classBodyMemberRef =>
+            //    val kinds = Seq(SymbolKind.Enum, SymbolKind.Variable, SymbolKind.Method, SymbolKind.Property)
+            //    kindsBuilder ++= kinds
             case ApexcodeParser.RULE_creator =>
             case ApexcodeParser.RULE_assignmentRightExpr =>
                 // right part of assignment expression can be anything
@@ -205,7 +205,7 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
 
         )
         core.preferredRules = Set(
-            ApexcodeParser.RULE_classBodyMemberRef,
+            //ApexcodeParser.RULE_classBodyMemberRef,
             ApexcodeParser.RULE_assignmentRightExpr,
             ApexcodeParser.RULE_creator
         )
