@@ -246,6 +246,7 @@ class CompletionFinderTest extends FunSuite with TestConfigProvider with ScalaFu
     }
 
     private def findCaretScope(text: String, documentName: String): Future[Option[FindCaretScopeResult]] = {
+        val project = Project(projectPath)
         val completionFinder = new CompletionFinder(project)
         val caretInDocument = getCaret(text, Paths.get(documentName))
         val document = caretInDocument.document
