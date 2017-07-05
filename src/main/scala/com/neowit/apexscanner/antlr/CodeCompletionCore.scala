@@ -499,6 +499,7 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
                 }
             }
 
+            skipToNextLoop = false
             currentEntry.state.getStateType match {
                 case ATNState.RULE_START => // Happens only for the first state in this rule, not subrules.
                     indentation.append("  ")
@@ -520,6 +521,7 @@ class CodeCompletionCore(parser: Parser) extends LazyLogging {
                 //for (let i = transitions.length - 1; i >= 0; --i) {
                 var skipToNextTransitionsLoop = false
                 for ( transition <- transitions ) {
+                    skipToNextTransitionsLoop = false
                     transition.getSerializationType match {
                         case Transition.RULE =>
                             val endStatus = this.processRule(transition.target, currentEntry.tokenIndex, callStack, indentation)
