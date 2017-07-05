@@ -27,7 +27,7 @@ import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, ApexcodePar
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes._
 import com.typesafe.scalalogging.LazyLogging
-import org.antlr.v4.runtime.{BailErrorStrategy, CommonTokenStream, Token}
+import org.antlr.v4.runtime.{ANTLRErrorStrategy, BailErrorStrategy, CommonTokenStream, Token}
 
 import scala.concurrent.{ExecutionContext, Future}
 import com.neowit.apexscanner.symbols._
@@ -37,7 +37,53 @@ case class FindCaretScopeResult(caretScope: Option[CaretScope], caretToken: Toke
 /**
   * Created by Andrey Gavrikov 
   */
+object CompletionFinder extends LazyLogging {
+    def createParser(document: VirtualDocument, errorHandlerOpt: Option[ANTLRErrorStrategy] = Option(new BailErrorStrategy)): ApexcodeParser = {
+        val lexer = ApexParserUtils.getDefaultLexer(document)
+        val tokens = new CommonTokenStream(lexer)
+        val parser = new ApexcodeParser(tokens)
+        // do not dump parse errors into console (or any other default listeners)
+        parser.removeErrorListeners()
+        errorHandlerOpt.foreach(parser.setErrorHandler)
+        //parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
+        //parser.getInterpreter.setPredictionMode(PredictionMode.LL)
+        parser
+    }
+
+    def findCaretToken(caret: CaretInDocument, parser: ApexcodeParser): Option[Token] = {
+        //val lexer = ApexParserUtils.getDefaultLexer(caret.document)
+        //val tokens = new CommonTokenStream(lexer)
+        //val parser = new ApexcodeParser(tokens)
+        //// do not dump parse errors into console (or any other default listeners)
+        //parser.removeErrorListeners()
+        //parser.setErrorHandler(new BailErrorStrategy)
+        ////parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
+        parser.getInterpreter.setPredictionMode(PredictionMode.LL)
+        try {
+            // run actual scan, trying to identify caret position
+            parser.compilationUnit()
+            //val tree = parser.compilationUnit()
+            //print(tree.toStringTree(parser))
+        } catch {
+            case e:Throwable =>
+                logger.debug(e.getMessage)
+        }
+        var i = 0
+        val tokens = parser.getInputStream
+        var token: Token = tokens.get(i)
+        while (caret.isAfter(token) && Token.EOF != token.getType) {
+            i += 1
+            token = tokens.get(i)
+        }
+        if (caret.isInside(token) || caret.isBefore(token)) {
+            Option(token)
+        } else {
+            None
+        }
+    }
+}
 class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends LazyLogging {
+    import CompletionFinder._
 
     def listCompletions(file: VirtualDocument, line: Int, column: Int): Future[Seq[Symbol]] = {
         val caret = new CaretInDocument(Position(line, column), file)
@@ -135,49 +181,9 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
         scope.getSymbolsOfKinds(allSymbolKinds)
     }
 
-    private def findCaretToken(caret: CaretInDocument, parser: ApexcodeParser): Option[Token] = {
-        //val lexer = ApexParserUtils.getDefaultLexer(caret.document)
-        //val tokens = new CommonTokenStream(lexer)
-        //val parser = new ApexcodeParser(tokens)
-        //// do not dump parse errors into console (or any other default listeners)
-        //parser.removeErrorListeners()
-        //parser.setErrorHandler(new BailErrorStrategy)
-        ////parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
-        parser.getInterpreter.setPredictionMode(PredictionMode.LL)
-        try {
-            // run actual scan, trying to identify caret position
-            parser.compilationUnit()
-            //val tree = parser.compilationUnit()
-            //print(tree.toStringTree(parser))
-        } catch {
-            case e:Throwable =>
-                logger.debug(e.getMessage)
-        }
-        var i = 0
-        val tokens = parser.getInputStream
-        var token: Token = tokens.get(i)
-        while (caret.isAfter(token) && Token.EOF != token.getType) {
-            i += 1
-            token = tokens.get(i)
-        }
-        if (caret.isInside(token) || caret.isBefore(token)) {
-            Option(token)
-        } else {
-            None
-        }
-    }
 
-    def createParser(document: VirtualDocument): ApexcodeParser = {
-        val lexer = ApexParserUtils.getDefaultLexer(document)
-        val tokens = new CommonTokenStream(lexer)
-        val parser = new ApexcodeParser(tokens)
-        // do not dump parse errors into console (or any other default listeners)
-        parser.removeErrorListeners()
-        parser.setErrorHandler(new BailErrorStrategy)
-        //parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
-        //parser.getInterpreter.setPredictionMode(PredictionMode.LL)
-        parser
-    }
+
+
 
     def collectCandidates(caret: CaretInDocument, caretToken: Token, parser: ApexcodeParser): CandidatesCollection = {
         /*
