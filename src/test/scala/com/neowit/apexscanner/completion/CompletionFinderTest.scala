@@ -23,8 +23,9 @@ package com.neowit.apexscanner.completion
 
 import java.nio.file.{FileSystems, Path, Paths}
 
-import com.neowit.apexscanner.nodes.{MethodBodyNodeType, Position}
-import com.neowit.apexscanner.{Project, TestConfigProvider, TextBasedDocument}
+import com.neowit.apexscanner.antlr.CaretUtils
+import com.neowit.apexscanner.nodes.MethodBodyNodeType
+import com.neowit.apexscanner.{Project, TestConfigProvider}
 import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
@@ -250,26 +251,13 @@ class CompletionFinderTest extends FunSuite with TestConfigProvider with ScalaFu
         val completionFinder = new CompletionFinder(project)
         val caretInDocument = getCaret(text, Paths.get(documentName))
         val document = caretInDocument.document
-        val parser = completionFinder.createParser(document)
+        val parser = CompletionFinder.createParser(document)
 
         completionFinder.findCaretScope(caretInDocument, parser)
     }
 
     private def getCaret(text: String, file: Path): CaretInDocument = {
-        val caretTag = "<CARET>"
-        val lines = text.split("""\n""")
-        var lineNum = 1
-        for (line <- lines) {
-            val caretCharacterInLine = line.indexOf(caretTag)
-            if (caretCharacterInLine >=0) {
-                // found relevant line, remove caret tag from it
-                val documentText = text.replace(caretTag, "")
-                val fixedDocument = TextBasedDocument(documentText, file)
-                return new CaretInDocument(Position(lineNum, caretCharacterInLine), fixedDocument)
-            }
-            lineNum += 1
-        }
-        throw new IllegalArgumentException(s"Caret not found in text $text")
+        CaretUtils.getCaret(text, file)
     }
 
 }
