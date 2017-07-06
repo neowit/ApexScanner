@@ -32,9 +32,11 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 /**
-  * Created by Andrey Gavrikov 
+  * Created by Andrey Gavrikov
+  *
+  * unit tests for CompletionFinder.findCaretScope() logic
   */
-class CompletionFinderTest extends FunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
+class CompletionFinderFindCaretScopeTest extends FunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
     private val filePath = getProperty("CompletionFinderTest.path")
     private val projectPath = FileSystems.getDefault.getPath(filePath)
 
