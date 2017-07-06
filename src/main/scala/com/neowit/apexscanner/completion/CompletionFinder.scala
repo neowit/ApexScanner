@@ -31,7 +31,6 @@ import org.antlr.v4.runtime.{ANTLRErrorStrategy, BailErrorStrategy, CommonTokenS
 
 import scala.concurrent.{ExecutionContext, Future}
 import com.neowit.apexscanner.symbols._
-import org.antlr.v4.runtime.atn.PredictionMode
 
 case class FindCaretScopeResult(caretScope: Option[CaretScope], caretToken: Token)
 /**
@@ -49,38 +48,6 @@ object CompletionFinder extends LazyLogging {
         //parser.getInterpreter.setPredictionMode(PredictionMode.LL)
         parser
     }
-
-    def findCaretToken(caret: CaretInDocument, parser: ApexcodeParser): Option[Token] = {
-        //val lexer = ApexParserUtils.getDefaultLexer(caret.document)
-        //val tokens = new CommonTokenStream(lexer)
-        //val parser = new ApexcodeParser(tokens)
-        //// do not dump parse errors into console (or any other default listeners)
-        //parser.removeErrorListeners()
-        //parser.setErrorHandler(new BailErrorStrategy)
-        ////parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
-        parser.getInterpreter.setPredictionMode(PredictionMode.LL)
-        try {
-            // run actual scan, trying to identify caret position
-            parser.compilationUnit()
-            //val tree = parser.compilationUnit()
-            //print(tree.toStringTree(parser))
-        } catch {
-            case e:Throwable =>
-                logger.debug(e.getMessage)
-        }
-        var i = 0
-        val tokens = parser.getInputStream
-        var token: Token = tokens.get(i)
-        while (caret.isAfter(token) && Token.EOF != token.getType) {
-            i += 1
-            token = tokens.get(i)
-        }
-        if (caret.isInside(token) || caret.isBefore(token)) {
-            Option(token)
-        } else {
-            None
-        }
-    }
 }
 class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends LazyLogging {
     import CompletionFinder._
@@ -88,7 +55,8 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
     def listCompletions(file: VirtualDocument, line: Int, column: Int): Future[Seq[Symbol]] = {
         val caret = new CaretInDocument(Position(line, column), file)
         val parser = createParser(caret.document)
-        findCaretScope(caret, parser).map{
+        val scopeFinder = new CaretScopeFinder(project)
+        scopeFinder.findCaretScope(caret, parser).map{
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 typeDefinition.getValueType match {
                     case Some(valueType) =>
@@ -107,24 +75,6 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                 ???
             case _ =>
                 Seq.empty
-        }
-    }
-
-    def findCaretScope(caret: CaretInDocument, parser: ApexcodeParser): Future[Option[FindCaretScopeResult]] = {
-        findCaretToken(caret, parser) match {
-            case Some(caretToken) =>
-                //now when we found token corresponding caret position try to understand context
-                //collectCandidates(caret, caretToken, parser)
-                val resolver = new CaretExpressionResolver(project)
-                val tokens = parser.getTokenStream
-                resolver.resolveCaretScope(caret, caretToken, tokens).map{
-                    case caretScopeOpt @ Some( CaretScope(_, _)) =>
-                        Option(FindCaretScopeResult(caretScopeOpt, caretToken))
-                    case _  =>
-                        Option(FindCaretScopeResult(None, caretToken))
-                }
-            case None =>
-                Future.successful(None)
         }
     }
 

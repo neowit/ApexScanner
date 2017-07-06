@@ -36,7 +36,7 @@ import scala.concurrent.Future
   *
   * unit tests for CompletionFinder.findCaretScope() logic
   */
-class CompletionFinderFindCaretScopeTest extends FunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
+class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
     private val filePath = getProperty("CompletionFinderTest.path")
     private val projectPath = FileSystems.getDefault.getPath(filePath)
 
@@ -294,12 +294,11 @@ class CompletionFinderFindCaretScopeTest extends FunSuite with TestConfigProvide
 
     private def findCaretScope(text: String, documentName: String): Future[Option[FindCaretScopeResult]] = {
         val project = Project(projectPath)
-        val completionFinder = new CompletionFinder(project)
         val caretInDocument = getCaret(text, Paths.get(documentName))
         val document = caretInDocument.document
         val parser = CompletionFinder.createParser(document)
-
-        completionFinder.findCaretScope(caretInDocument, parser)
+        val scopeFinder = new CaretScopeFinder(project)
+        scopeFinder.findCaretScope(caretInDocument, parser)
     }
 
     private def getCaret(text: String, file: Path): CaretInDocument = {
