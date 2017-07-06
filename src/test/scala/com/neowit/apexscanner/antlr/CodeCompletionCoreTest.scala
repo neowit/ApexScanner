@@ -75,24 +75,9 @@ class CodeCompletionCoreTest extends FunSuite {
         val text =
             """class CompletionTester {
               |
-              |	//enum SEASONS {Spring, Winter, Summer, Autumn}
-              |
-              |    //void testSObjectNewWithMultiLevelRelationship() {
-              |    //}
-              |
-              |    SObject obj;
-              |
               |	public void testCompletion() {
               |		CompletionTester con = new CompletionTester();
-              |        //con. // FallThoughNode
-              |        con.acc() + <CARET> // ExpressionStatementNode
-              |        //con.acc // ExpressionDotExpression
-              |        //((Opportunity)obj).
-              |        //new Object__c(
-              |        //new CompletionTester( Field =
-              |        //new List<Map<String, Set<Integer>>>( )
-              |        //String str = new List<Map<String, Set<Integer>>>(
-              |
+              |     con.acc() + <CARET>
               |	}
               |
               |}
@@ -105,6 +90,60 @@ class CodeCompletionCoreTest extends FunSuite {
         c3.showResult = true
         //c3.showDebugOutput = true
         val candidates = c3.collectCandidates(caretToken.getTokenIndex )
+        assertResult(0, "Did not expect any rules")(candidates.rules.size)
+
+        val expectedTokens = Set[Int](
+            ApexcodeLexer.THIS,
+            ApexcodeLexer.SUPER,
+            ApexcodeLexer.IntegerLiteral,
+            ApexcodeLexer.FloatingPointLiteral,
+            ApexcodeLexer.StringLiteral,
+            ApexcodeLexer.BooleanLiteral,
+            ApexcodeLexer.NULL,
+            ApexcodeLexer.SoslLiteral,
+            ApexcodeLexer.SoqlLiteral,
+            ApexcodeLexer.Identifier,
+            ApexcodeLexer.NEW
+        )
+        val candidateTokenSet = candidates.tokens.keySet
+        expectedTokens.foreach{n =>
+            assert(candidateTokenSet.contains(n), "Missing token: " + ApexcodeLexer.VOCABULARY.getDisplayName(n))
+        }
+
+    }
+
+    test("CollectCandidates: `str =  `") {
+        val text =
+            """class CompletionTester {
+              |
+              |	public void testCompletion() {
+              |     str = <CARET>
+              |	}
+              |}
+            """.stripMargin
+        val (caretToken, parser) = getCaretTokenAndParser(text)
+        val c3 = new CodeCompletionCore(parser)
+        // parse
+        parser.compilationUnit()
+
+        c3.showResult = true
+        /*
+        c3.preferredRules = Set[CodeCompletionCore.number](
+            ApexcodeParser.RULE_assignmentRightExpr
+        )
+        */
+        //c3.showDebugOutput = true
+        val candidates = c3.collectCandidates(caretToken.getTokenIndex )
+        /*
+        val expectedRules = Set[Int](
+            ApexcodeParser.RULE_assignmentRightExpr
+        )
+        assert(candidates.rules.size >= expectedRules.size, "Less rules returned than expected")
+        val candidateRuleSet = candidates.rules.keySet
+        expectedRules.foreach{n =>
+            assert(candidateRuleSet.contains(n), "Missing token: " + ApexcodeParser.VOCABULARY.getDisplayName(n))
+        }
+        */
         assertResult(0, "Did not expect any rules")(candidates.rules.size)
 
         val expectedTokens = Set[Int](
