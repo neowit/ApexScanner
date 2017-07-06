@@ -27,7 +27,7 @@ import com.neowit.apexscanner.antlr.ApexcodeParser._
 import com.neowit.apexscanner.ast.ASTBuilderVisitor
 import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.resolvers.{AscendingDefinitionFinder, NodeBySymbolTextFinder}
-import org.antlr.v4.runtime.tree.ParseTree
+import org.antlr.v4.runtime.tree.{ErrorNode, ParseTree}
 import org.antlr.v4.runtime.{Token, TokenStream}
 
 import scala.concurrent.Future
@@ -50,11 +50,18 @@ class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstN
                 Future.successful(resolveExprDotExpression(c))
             case c: ClassVariableContext => // String str = new List<Map<String, Set<Integer>>>(<caret>
                 Future.successful(resolveClassVariableContext(c))
+            case c: CodeBlockContext => // Opportunity opp; this.opp.<CARET>
+                Future.successful(resolveCodeBlockContext(c))
             case _:InfixAddExprContext | _:InfixAndExprContext | _:InfixEqualityExprContext |
                  _:InfixMulExprContext | _:InfixOrExprContext | _:InfixShiftExprContext if context.getChildCount > 0=>
                 // all infix expressions are served here
-                val lastChild = context.getChild(context.getChildCount - 1)
-                resolveContext(lastChild, tokens)
+                getLastNonErrorChild(context) match {
+                    case Some(lastChild) =>
+                        resolveContext(lastChild, tokens)
+                    case None =>
+                        // looks like there are no non error children available
+                        Future.successful(None)
+                }
             case _: SpecialCaretExprContext =>
                 // looks like we have a free standing caret, not bound to any specific expression
                 Future.successful(None)
@@ -62,6 +69,17 @@ class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstN
                 println(x)
                 ???
         }
+    }
+    private def getLastNonErrorChild(context: ParseTree): Option[ParseTree] = {
+        var i = context.getChildCount - 1
+        while (i >=0) {
+            context.getChild(i) match {
+                case ch: ErrorNode => // keep going
+                case ch => return Option(ch)
+            }
+            i -= 1
+        }
+        None
     }
 
     private def resolvePrimary(context: PrimaryExprContext): Option[IsTypeDefinition] = {
@@ -157,6 +175,30 @@ class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstN
                     ???
                 }
             case _ => ???
+        }
+    }
+
+    private def resolveCodeBlockContext(context: CodeBlockContext): Option[IsTypeDefinition] = {
+        _visitor.visitCodeBlock(context) match {
+            case n if n.children.nonEmpty=>
+                // add sub-tree to main AST
+                astScopeNode.addChildToAst(n)
+                val lastChild = n.children.last // last child should contain context
+                lastChild match {
+                    case ex: IsTypeDefinition =>
+                        Option(ex)
+                    case ex: ExpressionStatementNode =>
+                        ex.resolveDefinition() match {
+                            case defOpt @ Some(_: IsTypeDefinition) =>
+                                defOpt.map(_.asInstanceOf[IsTypeDefinition])
+                            case _ =>
+                                // TODO
+                                ???
+                        }
+
+                }
+            case _ =>
+                ???
         }
     }
     /**

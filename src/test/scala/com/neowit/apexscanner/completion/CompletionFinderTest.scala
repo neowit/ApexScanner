@@ -142,6 +142,50 @@ class CompletionFinderTest extends FunSuite with TestConfigProvider with ScalaFu
                 assert(false, "Failed to identify caret type. Expected 'Opportunity'")
         }
     }
+
+    //TODO
+    test("testFindCaretScope: `this.opp`") {
+        val text =
+            """
+              |class CompletionTester {
+              | Opportunity opp;
+              |
+              | this.opp.<CARET>
+              |}
+            """.stripMargin
+        val result = findCaretScope(text, "testFindCaretScope").futureValue
+        result match {
+            case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
+                assertResult(Some("Opportunity"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.toString))
+            case _ =>
+                assert(false, "Failed to identify caret type. Expected 'Opportunity'")
+        }
+    }
+
+
+    //TODO
+    test("testFindCaretScope: `this.inner.opp`") {
+        val text =
+            """
+              |class CompletionTester {
+              | class InnerClass {
+              |     Opportunity opp;
+              | }
+              | InnerClass inner;
+              | public void testCompletion() {
+              |     this.inner.opp.<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = findCaretScope(text, "testFindCaretScope").futureValue
+        result match {
+            case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
+                assertResult(Some("Opportunity"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.toString))
+            case _ =>
+                assert(false, "Failed to identify caret type. Expected 'Opportunity'")
+        }
+    }
+
     test("testFindCaretScope: `con.acc<CARET>`") {
         val text =
             """

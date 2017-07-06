@@ -23,7 +23,7 @@ package com.neowit.apexscanner.completion
 
 import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, ApexcodeParser}
 import com.neowit.apexscanner.{Project, VirtualDocument}
-import com.neowit.apexscanner.nodes.{AstNode, IsTypeDefinition, Position}
+import com.neowit.apexscanner.nodes.{AstNode, HasTypeDefinition, IsTypeDefinition, Position}
 import com.neowit.apexscanner.resolvers.NodeByLocationFinder
 import com.typesafe.scalalogging.LazyLogging
 import org.antlr.v4.runtime._
@@ -102,7 +102,17 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
                 // assume lastAstNode is a definition of caret
                 lastAstNode match {
                     case n: IsTypeDefinition => Future.successful(Option(n))
-                    case _ =>
+                    case n: HasTypeDefinition =>
+                        n.resolveDefinition() match {
+                            case defOpt @ Some(_: IsTypeDefinition) =>
+                                Future.successful(defOpt.map(_.asInstanceOf[IsTypeDefinition]))
+                            case x =>
+                                // TODO
+                                println(x)
+                                ???
+                        }
+                    case n =>
+                        println(n)
                         ??? //should we give up ?
                 }
         }
@@ -144,6 +154,7 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
         //parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
         parser.expression()
     }
+
     private def parseAsClassVariable(tokens: java.util.List[Token]): ParserRuleContext = {
         val tokenSource = new ListTokenSource(tokens)
         val tokenStream = new CommonTokenStream(tokenSource)
@@ -152,11 +163,29 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
         parser.classVariable()
     }
 
+    private def parseAsCodeBlock(tokens: java.util.List[Token]): ParserRuleContext = {
+        val tokenSource = new ListTokenSource(tokens)
+        val tokenStream = new CommonTokenStream(tokenSource)
+        val parser = new ApexcodeParser(tokenStream)
+        //parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
+        parser.codeBlock()
+    }
+
+    private def parseAsClassBody(tokens: java.util.List[Token]): ParserRuleContext = {
+        val tokenSource = new ListTokenSource(tokens)
+        val tokenStream = new CommonTokenStream(tokenSource)
+        val parser = new ApexcodeParser(tokenStream)
+        //parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
+        parser.classBody()
+    }
+
     private def parse(tokens: List[Token]): Option[ParserRuleContext] = {
         import collection.JavaConverters._
         val methods = Seq[java.util.List[Token] => ParserRuleContext](
             parseAsExpression,
-            parseAsClassVariable
+            parseAsClassVariable,
+            parseAsCodeBlock,
+            parseAsClassBody
         )
 
         val tokensList = tokens.asJava
