@@ -28,4 +28,6 @@ case class MethodHeaderNode(range: Range) extends AstNode{
     override def nodeType: AstNodeType = MethodHeaderNodeType
     def methodName: Option[String] = getChildInAst[MethodNameNode](MethodNameNodeType).map(_.name)
     def dataType: Option[ValueType] = getChildInAst[DataTypeNode](DataTypeNodeType).map(_.getDataType)
+    def modifiers: Seq[ModifierNode] = getChildrenInAst[ModifierNode](ModifierNodeType)
+    def annotatios: Seq[AnnotationNode] = getChildrenInAst[AnnotationNode](AnnotationNodeType)
 }
