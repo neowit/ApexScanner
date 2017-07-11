@@ -20,16 +20,9 @@
  */
 
 package com.neowit.apexscanner.nodes
-import com.neowit.apexscanner.ast.QualifiedName
 
-case class MethodParameterNode(name: String, range: Range) extends AstNode with MethodParameterLike {
-    override def nodeType: AstNodeType = MethodParameterNodeType
+/**
+  * Created by Andrey Gavrikov 
+  */
+trait MethodParameterLike extends IsTypeDefinition
 
-    override def getDebugInfo: String = super.getDebugInfo + " TODO"
-
-    def getValueType: Option[ValueType] = getChildInAst[DataTypeNode](DataTypeNodeType).map(_.getDataType)
-
-    override def qualifiedName: Option[QualifiedName] = Option(QualifiedName(Array(name)))
-
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
-}
