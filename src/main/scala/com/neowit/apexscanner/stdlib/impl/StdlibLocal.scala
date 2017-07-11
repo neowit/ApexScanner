@@ -23,50 +23,69 @@ package com.neowit.apexscanner.stdlib.impl
 
 
 import java.io.File
+import java.nio.file.FileSystems
 
+import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.ast.QualifiedName
-import com.neowit.apexscanner.stdlib.{ApexAPI, StandardLibrary, StdlibNode}
+import com.neowit.apexscanner.nodes.AstNode
+import com.neowit.apexscanner.stdlib.StandardLibrary
+import com.neowit.apexscanner.symbols.SymbolKind
 import io.circe.jawn._
 
 /**
   * Created by Andrey Gavrikov 
   */
 object StdlibLocal {
-    def apply(file: File): StandardLibrary = {
-        val lib = new StdlibLocal(file)
+    def apply(file: File, project: Project): StandardLibrary = {
+        val lib = new StdlibLocal(file, project)
         lib.load()
         lib
     }
     def main(args: Array[String]): Unit = {
-        val lib = StdlibLocal(new File("/Users/andrey/development/scala/projects/ApexScanner/src/main/resources/apex-api-v40.json"))
+        import scala.concurrent.ExecutionContext.Implicits.global
+        val projectPath = FileSystems.getDefault.getPath("/Users/andrey/eclipse.workspace/Sforce - SFDC Experiments/SForce (vim-force.com)/src")
+        val project = Project(projectPath)
+        StdlibLocal(new File("/Users/andrey/development/scala/projects/ApexScanner/src/main/resources/apex-api-v40.json"), project)
+        project.getByQualifiedName(QualifiedName(Array("System", "String"))) match {
+            case Some(node) =>
+                val methods = node.getSymbolsOfKind(SymbolKind.Method)
+                println(methods)
+            case None =>
+                println("not found")
+        }
+        /*
         lib.findChild(QualifiedName(Array("System", "String"))) match {
             case Some(node) =>
                 println("node")
             case None =>
                 println("not found")
         }
+        */
     }
 }
-private class StdlibLocal(file: File) extends StandardLibrary with StdlibLocalJsonSupport{
-    var _apexAPI: Option[ApexAPI] = None
-    override def findChild(name: QualifiedName): Option[StdlibNode] = {
+private class StdlibLocal(file: File, project: Project) extends StandardLibrary with StdlibLocalJsonSupport{
+    var _apexAPI: Option[ApexApiJson] = None
+    override def findChild(name: QualifiedName): Option[AstNode] = {
         println("Checking StdLib type: " + name)
         //TODO - implement StdLib nodes
         _apexAPI match {
             case Some(api) =>
                 //TODO - resolve name step by step
-                api.publicDeclarations.get()
+                //api.publicDeclarations.get()
             case None => throw new IllegalStateException("Standard Apex library is not loaded. Call StdlibLocal.load() first")
         }
         None
     }
     def load(): StdlibLocal = {
-        decodeFile[ApexAPI](file) match {
+        decodeFile[ApexApiJson](file) match {
             case Left(failure) => throw new IllegalArgumentException("Failed to parse file: '" + file.getPath + "'; " + failure.getMessage)
             case Right(apexAPI) =>
+                val visitor = new StdlibJsonVisitor(project)
+                visitor.visit(apexAPI)
                 _apexAPI = Option(apexAPI)
                 println(apexAPI.publicDeclarations.keys)
         }
+        //TODO visit resulting JSON Nodes and build proper AST
         this
     }
 }

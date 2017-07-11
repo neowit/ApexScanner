@@ -21,7 +21,6 @@
 
 package com.neowit.apexscanner.stdlib.impl
 
-import com.neowit.apexscanner.stdlib._
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
 
@@ -29,16 +28,16 @@ import io.circe.generic.semiauto.deriveDecoder
   * Created by Andrey Gavrikov 
   */
 trait StdlibLocalJsonSupport {
-    implicit val StdlibPropertyDecoder: Decoder[StdlibProperty] = deriveDecoder
-    implicit val StdlibMethodParameterDecoder: Decoder[StdlibMethodParameter] = deriveDecoder
-    implicit val StdlibMethodDecoder: Decoder[StdlibMethod] = deriveDecoder
-    implicit val StdlibClassDecoder: Decoder[StdlibClass] = deriveDecoder
-    //implicit val StdlibNamespaceDecoder: Decoder[StdlibNamespace] = deriveDecoder
-    implicit val StdlibNamespaceDecoder: Decoder[StdlibNamespace] = Decoder.decodeJsonObject.emap { jsonObj =>
+    implicit val ApexApiJsonPropertyDecoder: Decoder[ApexApiJsonProperty] = deriveDecoder
+    implicit val ApexApiJsonMethodParameterDecoder: Decoder[ApexApiJsonMethodParameter] = deriveDecoder
+    implicit val ApexApiJsonMethodDecoder: Decoder[ApexApiJsonMethod] = deriveDecoder
+    implicit val ApexApiJsonClassDecoder: Decoder[ApexApiJsonClass] = deriveDecoder
+    //implicit val ApexApiJsonNamespaceDecoder: Decoder[ApexApiJsonNamespace] = deriveDecoder
+    implicit val ApexApiJsonNamespaceDecoder: Decoder[ApexApiJsonNamespace] = Decoder.decodeJsonObject.emap { jsonObj =>
         val classByName =
         jsonObj.toMap.map{
             case (className, classJson) =>
-                className -> classJson.as[StdlibClass].toOption
+                className -> classJson.as[ApexApiJsonClass].toOption
         }.filter{
             case (className, Some(stdlibClass)) => true
             case _ => false
@@ -46,11 +45,31 @@ trait StdlibLocalJsonSupport {
             case (className, Some(stdlibClass)) => className -> stdlibClass
         }
         if (classByName.isEmpty) {
-            Left("Failed to parse StdlibNamespace")
+            Left("Failed to parse ApexApiJsonNamespace")
         } else {
-            Right(StdlibNamespace(classMap = classByName))
+            Right(ApexApiJsonNamespace(classMap = classByName))
         }
         //Either.catchNonFatal(Instant.parse(str)).leftMap(t => "Instant")
     }
-    implicit val ApexAPIDecoder: Decoder[ApexAPI] = deriveDecoder
+    implicit val ApexApiDecoder: Decoder[ApexApiJson] = deriveDecoder
 }
+
+trait ApexApiJsonRuleNode
+
+
+case class ApexApiJsonNamespace(classMap: Map[String, ApexApiJsonClass]) extends ApexApiJsonRuleNode
+
+
+case class ApexApiJsonProperty(name: String) extends ApexApiJsonRuleNode
+case class ApexApiJsonMethodParameter(name: String, `type`: String)
+case class ApexApiJsonMethod(argTypes: Option[Array[String]],
+                             isStatic: Option[Boolean],
+                             methodDoc: Option[String],
+                             name: String,
+                             parameters: Array[ApexApiJsonMethodParameter],
+                             returnType: Option[String]
+                       ) extends ApexApiJsonRuleNode
+
+case class ApexApiJsonClass(constructors: Array[ApexApiJsonMethod], methods: Array[ApexApiJsonMethod], properties: Array[ApexApiJsonProperty]) extends ApexApiJsonRuleNode
+
+case class ApexApiJson(publicDeclarations: Map[String, ApexApiJsonNamespace]) extends ApexApiJsonRuleNode

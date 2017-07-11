@@ -19,18 +19,19 @@
  *
  */
 
-package com.neowit.apexscanner.stdlib
+package com.neowit.apexscanner.stdlib.impl
 
-import com.neowit.apexscanner.ast.QualifiedName
-import com.neowit.apexscanner.nodes._
+import com.neowit.apexscanner.Project
 
 /**
   * Created by Andrey Gavrikov 
   */
-trait StandardLibrary {
-    def findChild(name: QualifiedName): Option[AstNode]
+trait StdlibJsonBaseVisitor[T] {
+    def visit(context: ApexApiJson): Project
+    def visitApexApiJsonNamespace(name: String, context: ApexApiJsonNamespace): T
+    def visitApexApiJsonClass(name: String, context: ApexApiJsonClass): T
+    def visitApexApiJsonProperty(context: ApexApiJsonProperty): T
+    def visitApexApiJsonMethodParameter(context: ApexApiJsonMethodParameter): T
+    def visitApexApiJsonMethod(context: ApexApiJsonMethod): T
 
 }
-
-
-

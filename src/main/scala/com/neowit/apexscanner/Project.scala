@@ -81,7 +81,7 @@ case class Project(path: Path)(implicit ex: ExecutionContext) {
                 //val doc = scala.io.Source.fromInputStream(is.openStream())("UTF-8").getLines().mkString
 
             }
-        StdlibLocal(file)
+        StdlibLocal(file, this)
     }
 
     def saveFileContent(document: VirtualDocument): Future[Unit] = {
