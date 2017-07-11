@@ -21,12 +21,13 @@
 
 package com.neowit.apexscanner
 
-import java.nio.file.{FileSystems, Path}
+import java.io.File
+import java.nio.file.Path
 
 import com.neowit.apexscanner.ast.{AstBuilder, AstBuilderResult, QualifiedName}
 import com.neowit.apexscanner.nodes.{AstNode, HasQualifiedName}
 import com.neowit.apexscanner.stdlib.StandardLibrary
-import com.neowit.apexscanner.stdlib.impl.StdLibLocal
+import com.neowit.apexscanner.stdlib.impl.StdlibLocal
 
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
@@ -36,6 +37,7 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 case class Project(path: Path)(implicit ex: ExecutionContext) {
     private val astBuilder: AstBuilder = new AstBuilder(this)
+    private var _stdLibPath: Option[Path] = None
     private var _stdLib: Option[StandardLibrary] = None
 
     private val _containerByQName = new mutable.HashMap[QualifiedName, AstNode with HasQualifiedName]()
@@ -51,12 +53,35 @@ case class Project(path: Path)(implicit ex: ExecutionContext) {
         }
     }
 
+    /**
+      * @param path custom path to STD Lib JSON file
+      * val path = FileSystems.getDefault.getPath(stdLibDir)
+      */
+    def setStdLibPath(path: Path): Unit = {
+        if (!path.toFile.canRead) {
+            throw new IllegalArgumentException(s"Provided Standard Library path: '${path.toString}' is not readable. Default library will be used.")
+        }
+        _stdLibPath = Option(path)
+    }
+
+    def getStdLibPath: Option[Path] = _stdLibPath
+
     private def loadStandardLibrary(): StandardLibrary = {
 
-        // TODO implement proper resolution of path to STD Library
-        val stdLibDir = "TODO"
-        val path = FileSystems.getDefault.getPath(stdLibDir)
-        new StdLibLocal(path)
+        val file =
+            _stdLibPath match {
+                case Some(providedPath) => providedPath.toFile
+                case None =>
+                    val url = getClass.getClassLoader.getResource("apex-api-v40.json")
+                    if (null != url) {
+                        new File(url.toURI)
+                    } else {
+                        throw new IllegalStateException("Standard Apex Library resource is not available")
+                    }
+                //val doc = scala.io.Source.fromInputStream(is.openStream())("UTF-8").getLines().mkString
+
+            }
+        StdlibLocal(file)
     }
 
     def saveFileContent(document: VirtualDocument): Future[Unit] = {

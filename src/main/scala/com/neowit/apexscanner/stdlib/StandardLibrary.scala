@@ -22,12 +22,50 @@
 package com.neowit.apexscanner.stdlib
 
 import com.neowit.apexscanner.ast.QualifiedName
-import com.neowit.apexscanner.stdlib.nodes.StdLibNode
+import com.neowit.apexscanner.nodes._
+import com.neowit.apexscanner.symbols.SymbolKind
 
 /**
   * Created by Andrey Gavrikov 
   */
 trait StandardLibrary {
-    def findChild(name: QualifiedName): Option[StdLibNode]
+    def findChild(name: QualifiedName): Option[StdlibNode]
 
 }
+
+trait StdlibNode extends AstNode {
+    override def range: Range = Range.INVALID_LOCATION
+}
+
+trait StdlibClassLike extends StdlibNode with ClassLike {
+    override def nodeType: AstNodeType = ClassNodeType
+
+    override def symbolKind: SymbolKind = SymbolKind.Class
+
+    override def getValueType: Option[ValueType] = {
+        qualifiedName.map(name => ValueTypeClass(name))
+    }
+
+    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+}
+
+case class StdlibNamespace(classMap: Map[String, StdlibClass]) extends StdlibClassLike
+
+case class StdlibProperty(name: String) extends StdlibNode {
+    override def nodeType: AstNodeType = ClassVariableNodeType
+}
+case class StdlibMethodParameter(name: String, `type`: String) extends StdlibNode {
+    override def nodeType: AstNodeType = MethodParameterNodeType
+}
+case class StdlibMethod( argTypes: Option[Array[String]],
+                         isStatic: Option[Boolean],
+                         methodDoc: Option[String],
+                         name: String,
+                         parameters: Array[StdlibMethodParameter]
+                       ) extends StdlibNode {
+    override def nodeType: AstNodeType = MethodNodeType
+}
+
+case class StdlibClass(constructors: Array[StdlibMethod], methods: Array[StdlibMethod], properties: Array[StdlibProperty]) extends StdlibClassLike
+
+case class ApexAPI(publicDeclarations: Map[String, StdlibNamespace])
