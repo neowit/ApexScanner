@@ -184,6 +184,12 @@ class ASTBuilderVisitor(project: Project, documentOpt: Option[VirtualDocument]) 
         visitChildren(ClassVariableNode(Range(ctx)), ctx)
     }
 
+    /////////////////// constructor ////////////////////////////////
+
+    override def visitClassConstructor(ctx: ClassConstructorContext): AstNode = {
+        visitChildren(ConstructorNode(Range(ctx)), ctx)
+    }
+
     /////////////////// method ////////////////////////////////
     override def visitClassMethod(ctx: ClassMethodContext): AstNode = {
         visitChildren(MethodNode(Range(ctx)), ctx)
