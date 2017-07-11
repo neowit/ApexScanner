@@ -21,8 +21,10 @@
 
 package com.neowit.apexscanner.nodes
 
-case class MethodNode(range: Range) extends MethodNodeBase { self =>
-
+/**
+  * Created by Andrey Gavrikov 
+  */
+case class ConstructorNode(range: Range) extends MethodNodeBase { self =>
     def nameOpt: Option[String] =
         getChildInAst[MethodHeaderNode](MethodHeaderNodeType).flatMap(_.methodName)
 
@@ -32,20 +34,13 @@ case class MethodNode(range: Range) extends MethodNodeBase { self =>
     def getApexDoc: Option[DocNode] = getChildrenInAst[DocNode](DocNodeType).headOption
 
 
-    lazy val isAbstract: Boolean = getChildInAst[MethodBodyNode](MethodBodyNodeType).isEmpty
-
-    lazy val isStatic: Boolean = {
-        getChildInAst[MethodHeaderNode](MethodHeaderNodeType)
-            .exists(_.modifiers.exists(_.modifierType == ModifierNode.STATIC))
-    }
+    val isAbstract: Boolean = false // constructors can not be abstract
+    val isStatic: Boolean = false // constructors can not be static
 
     override def getValueType: Option[ValueType] = {
-        getChildInAst[MethodHeaderNode](MethodHeaderNodeType).flatMap(_.dataType)
+        getClassOrInterfaceNode.getValueType
     }
 
 
     override protected def getSelf: AstNode = self
-
 }
-
-
