@@ -25,11 +25,12 @@ import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeParser}
 import com.neowit.apexscanner.ast.ASTBuilderVisitor
 import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.nodes.{AstNode, ClassNode, DataTypeNode, DocNode, IdentifierNode, MethodNodeBase, MethodParameterNode, NamespaceNode, Range, ValueType}
+import com.typesafe.scalalogging.LazyLogging
 
 /**
   * Created by Andrey Gavrikov 
   */
-class StdlibJsonVisitor(project: Project) extends StdlibJsonBaseVisitor[AstNode]{
+class StdlibJsonVisitor(project: Project) extends StdlibJsonBaseVisitor[AstNode] with LazyLogging {
     val astBuilderVisitor = new ASTBuilderVisitor(project, documentOpt = None)
 
     /**
@@ -52,6 +53,7 @@ class StdlibJsonVisitor(project: Project) extends StdlibJsonBaseVisitor[AstNode]
             case (clsName, cls) =>
                 val clsNode = visitApexApiJsonClass(clsName, cls)
                 namespace.addChildToAst(clsNode)
+                project.addByQualifiedName(clsNode.asInstanceOf[ClassNode])
         }
         namespace
     }
