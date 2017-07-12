@@ -23,13 +23,11 @@ package com.neowit.apexscanner.stdlib.impl
 
 
 import java.io.File
-import java.nio.file.FileSystems
 
 import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes.AstNode
 import com.neowit.apexscanner.stdlib.StandardLibrary
-import com.neowit.apexscanner.symbols.SymbolKind
 import io.circe.jawn._
 
 /**
@@ -41,29 +39,8 @@ object StdlibLocal {
         lib.load()
         lib
     }
-    def main(args: Array[String]): Unit = {
-        import scala.concurrent.ExecutionContext.Implicits.global
-        val projectPath = FileSystems.getDefault.getPath("/Users/andrey/eclipse.workspace/Sforce - SFDC Experiments/SForce (vim-force.com)/src")
-        val project = Project(projectPath)
-        StdlibLocal(new File("/Users/andrey/development/scala/projects/ApexScanner/src/main/resources/apex-api-v40.json"), project)
-        project.getByQualifiedName(QualifiedName(Array("System", "String"))) match {
-            case Some(node) =>
-                val methods = node.getSymbolsOfKind(SymbolKind.Method)
-                println(methods)
-            case None =>
-                println("not found")
-        }
-        /*
-        lib.findChild(QualifiedName(Array("System", "String"))) match {
-            case Some(node) =>
-                println("node")
-            case None =>
-                println("not found")
-        }
-        */
-    }
 }
-private class StdlibLocal(file: File, project: Project) extends StandardLibrary with StdlibLocalJsonSupport{
+private class StdlibLocal(file: File, project: Project) extends StandardLibrary with StdlibLocalJsonSupport {
     var _apexAPI: Option[ApexApiJson] = None
     override def findChild(name: QualifiedName): Option[AstNode] = {
         println("Checking StdLib type: " + name)
@@ -83,7 +60,7 @@ private class StdlibLocal(file: File, project: Project) extends StandardLibrary 
                 val visitor = new StdlibJsonVisitor(project)
                 visitor.visit(apexAPI)
                 _apexAPI = Option(apexAPI)
-                println(apexAPI.publicDeclarations.keys)
+                //println(apexAPI.publicDeclarations.keys)
         }
         //TODO visit resulting JSON Nodes and build proper AST
         this

@@ -52,6 +52,7 @@ class StdlibJsonVisitor(project: Project) extends StdlibJsonBaseVisitor[AstNode]
         context.classMap.foreach{
             case (clsName, cls) =>
                 val clsNode = visitApexApiJsonClass(clsName, cls)
+                //logger.debug(clsNode.toString)
                 namespace.addChildToAst(clsNode)
                 project.addByQualifiedName(clsNode.asInstanceOf[ClassNode])
         }
