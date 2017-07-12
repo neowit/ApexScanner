@@ -21,13 +21,14 @@
 
 package com.neowit.apexscanner.stdlib.impl
 
+import com.typesafe.scalalogging.LazyLogging
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
 
 /**
   * Created by Andrey Gavrikov 
   */
-trait StdlibLocalJsonSupport {
+trait StdlibLocalJsonSupport extends LazyLogging {
     implicit val ApexApiJsonPropertyDecoder: Decoder[ApexApiJsonProperty] = deriveDecoder
     implicit val ApexApiJsonMethodParameterDecoder: Decoder[ApexApiJsonMethodParameter] = deriveDecoder
     implicit val ApexApiJsonMethodDecoder: Decoder[ApexApiJsonMethod] = deriveDecoder
@@ -40,9 +41,15 @@ trait StdlibLocalJsonSupport {
                 className -> classJson.as[ApexApiJsonClass].toOption
         }.filter{
             case (className, Some(stdlibClass)) => true
-            case _ => false
+            case (className, None) =>
+                logger.error("Failed to parse: " + className)
+                false
+            case _ =>
+                logger.error("Failed to parse unknown")
+                false
         }.collect{
-            case (className, Some(stdlibClass)) => className -> stdlibClass
+            case (className, Some(stdlibClass)) =>
+                className -> stdlibClass
         }
         if (classByName.isEmpty) {
             Left("Failed to parse ApexApiJsonNamespace")
