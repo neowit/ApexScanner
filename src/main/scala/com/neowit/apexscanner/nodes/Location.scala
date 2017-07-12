@@ -44,5 +44,7 @@ case object LocationUndefined extends Location {
     override def path: Path = null
 
     override def range: Range = null
+
+    override def getDebugInfo: String = "Undefined"
 }
 
