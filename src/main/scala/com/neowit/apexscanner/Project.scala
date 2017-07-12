@@ -25,7 +25,7 @@ import java.io.File
 import java.nio.file.Path
 
 import com.neowit.apexscanner.ast.{AstBuilder, AstBuilderResult, QualifiedName}
-import com.neowit.apexscanner.nodes.{AstNode, HasQualifiedName}
+import com.neowit.apexscanner.nodes.{AstNode, HasQualifiedName, NamespaceNode}
 import com.neowit.apexscanner.stdlib.StandardLibrary
 import com.neowit.apexscanner.stdlib.impl.StdlibLocal
 
@@ -41,6 +41,7 @@ case class Project(path: Path)(implicit ex: ExecutionContext) {
     private var _stdLib: Option[StandardLibrary] = None
 
     private val _containerByQName = new mutable.HashMap[QualifiedName, AstNode with HasQualifiedName]()
+    private val _namespaceByQName = new mutable.HashMap[QualifiedName, NamespaceNode]()
     private val _fileContentByPath = new mutable.HashMap[Path, VirtualDocument]()
 
     def getStandardLibrary: StandardLibrary = {
@@ -95,19 +96,44 @@ case class Project(path: Path)(implicit ex: ExecutionContext) {
         _fileContentByPath -= file
         Future.successful(())
     }
+
     /**
       * add given class/interface/trigger to global map of top level containers
       * @param node usually class/interface/trigger
       */
     def addByQualifiedName(node: AstNode with HasQualifiedName): Unit = {
         node.qualifiedName match {
-          case Some(qName) => _containerByQName += qName -> node
-          case None =>
+            case Some(qName) => _containerByQName += qName -> node
+            case None =>
+        }
+        // check if this node is a Namespace
+        node match {
+            case n @ NamespaceNode(Some(name)) =>
+                n.qualifiedName.foreach(qName => _namespaceByQName += qName -> n)
+            case _ => // do nothing
         }
     }
+
     def getByQualifiedName(qualifiedName: QualifiedName): Option[AstNode] = {
-        _containerByQName.get(qualifiedName)
+        _containerByQName.get(qualifiedName).orElse{
+            //check if this name is in one of available namespaces
+            // first try to find namespace which contains class with name == qualifiedName
+            val namespaceQNameOpt =
+                _namespaceByQName.keySet.find{ qName =>
+                        val fullName = QualifiedName(qName, qualifiedName)
+                        _containerByQName.contains(fullName)
+                }
+            // retrieve class node fro namespace (if namespace found)
+            namespaceQNameOpt match {
+                case Some(namespaceQName) =>
+                    val fullName = QualifiedName(namespaceQName, qualifiedName)
+                    _containerByQName.get(fullName)
+                case None => None
+            }
+        }
     }
+
+
 
     def getAst(document: VirtualDocument): Future[Option[AstBuilderResult]] = {
         astBuilder.getAst(document) match {
