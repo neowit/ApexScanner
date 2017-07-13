@@ -34,6 +34,14 @@ case class QualifiedName(components: Array[String]) {
 
     def getFirstComponent: String = components.head
     def getLastComponent: String = components.last
+    lazy val head: QualifiedName = QualifiedName(Array(getFirstComponent))
+    lazy val tailOption: Option[QualifiedName] = {
+        if (length > 1) {
+            Option(QualifiedName(components.drop(1)))
+        } else {
+            None
+        }
+    }
 
     def endsWith(name: QualifiedName): Boolean = componentsLower.endsWith(name.componentsLower)
 
