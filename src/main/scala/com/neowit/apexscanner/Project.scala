@@ -114,6 +114,11 @@ case class Project(path: Path)(implicit ex: ExecutionContext) {
         }
     }
 
+    /**
+      * NOTE: this method only finds nodes physically added via addByQualifiedName()
+      * It will not find class methods/variables or Enum constants,
+      * when target node type is not already known to be Namespace or Class - use QualifiedNameDefinitionFinder
+      */
     def getByQualifiedName(qualifiedName: QualifiedName): Option[AstNode] = {
         _containerByQName.get(qualifiedName).orElse{
             //check if this name is in one of available namespaces
