@@ -24,7 +24,7 @@ package com.neowit.apexscanner.stdlib.impl
 import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeParser}
 import com.neowit.apexscanner.ast.ASTBuilderVisitor
 import com.neowit.apexscanner.Project
-import com.neowit.apexscanner.nodes.{AstNode, ClassNode, DataTypeNode, DocNode, IdentifierNode, MethodNodeBase, MethodParameterNode, NamespaceNode, Range, ValueType}
+import com.neowit.apexscanner.nodes.{AstNode, ClassNode, DataTypeNode, DocNode, EnumConstantNode, EnumNode, IdentifierNode, MethodNodeBase, MethodParameterNode, NamespaceNode, Range, ValueType}
 import com.typesafe.scalalogging.LazyLogging
 
 /**
@@ -49,7 +49,14 @@ class StdlibJsonVisitor(project: Project) extends StdlibJsonBaseVisitor[AstNode]
 
     override def visitApexApiJsonNamespace(name: String, context: ApexApiJsonNamespace): AstNode = {
         val namespace = NamespaceNode(Option(name))
+        // tooling API does not return ENUMS correctly
+        // it returns them as normal classes , e.g. ApexPages.Severity
+        // so having to detect Enums by name
         context.classMap.foreach{
+            case (clsName, cls) if isEnum(clsName)=>
+                val enumNode = visitApexApiJsonEnum(clsName, cls)
+                namespace.addChildToAst(enumNode)
+
             case (clsName, cls) =>
                 val clsNode = visitApexApiJsonClass(clsName, cls)
                 //logger.debug(clsNode.toString)
@@ -58,6 +65,7 @@ class StdlibJsonVisitor(project: Project) extends StdlibJsonBaseVisitor[AstNode]
         }
         namespace
     }
+
     override def visitApexApiJsonClass(name: String, context: ApexApiJsonClass): AstNode = {
         val cls = ClassNode(Range.INVALID_LOCATION)
         cls.addChildToAst(IdentifierNode(name, Range.INVALID_LOCATION))
@@ -76,6 +84,25 @@ class StdlibJsonVisitor(project: Project) extends StdlibJsonBaseVisitor[AstNode]
         }
         */
         cls
+    }
+
+    def visitApexApiJsonEnum(name: String, context: ApexApiJsonClass): AstNode = {
+        val enum = EnumNode(Range.INVALID_LOCATION)
+        enum.addChildToAst(IdentifierNode(name, Range.INVALID_LOCATION))
+        context.methods.foreach{n =>
+            val m = visitApexApiJsonMethod(n)
+            enum.addChildToAst(m)
+        }
+        context.properties.foreach{n =>
+            val m = visitApexApiJsonEnumConstant(n)
+            enum.addChildToAst(m)
+        }
+        enum
+    }
+
+    private val ENUM_CLASS_NAMES = Set("Severity")
+    private def isEnum(className: String): Boolean = {
+        className.endsWith("Enum") || ENUM_CLASS_NAMES.contains(className)
     }
 
     override def visitApexApiJsonMethod(context: ApexApiJsonMethod): AstNode = {
@@ -111,9 +138,18 @@ class StdlibJsonVisitor(project: Project) extends StdlibJsonBaseVisitor[AstNode]
     }
 
     //TODO figure out the purpose of property in APEX API
+    // Tooling API is not consistent in what it returns as "properties"
+    // it often returns ENUM values as properties
+    //  e.g. ApexPages.Severity
+    // but also returns actual object properties
+    //  e.g. Component.childComponents
     //  "properties" : [ {
     override def visitApexApiJsonProperty(context: ApexApiJsonProperty): AstNode = {
         ???
+    }
+    def visitApexApiJsonEnumConstant(context: ApexApiJsonProperty): AstNode = {
+        val node = EnumConstantNode(context.name, Range.INVALID_LOCATION)
+        node
     }
 
     override def visitApexApiJsonMethodParameter(context: ApexApiJsonMethodParameter): AstNode = {

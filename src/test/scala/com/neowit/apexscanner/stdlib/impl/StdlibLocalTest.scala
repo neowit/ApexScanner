@@ -26,6 +26,7 @@ import java.nio.file.FileSystems
 import com.neowit.apexscanner.{Project, TestConfigProvider}
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes.{MethodNodeBase, MethodNodeType}
+import com.neowit.apexscanner.resolvers.QualifiedNameDefinitionFinder
 import com.neowit.apexscanner.symbols.SymbolKind
 import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -83,6 +84,20 @@ class StdlibLocalTest extends FunSuite with TestConfigProvider with ScalaFutures
                 }
                 assert(methods.exists(_.symbolName.equalsIgnoreCase("getId")), "SaveResult.getId not found")
                 assert(methods.exists(_.symbolName.equalsIgnoreCase("isSuccess")), "SaveResult.isSuccess not found")
+            //println(methods)
+            case None =>
+                assert(false, "Not found: " + qName)
+        }
+    }
+
+    test("test: Severity") {
+        val finder = new QualifiedNameDefinitionFinder(project)
+        val qName = QualifiedName(Array("ApexPages", "Severity"))
+        finder.findDefinition(qName) match {
+            case Some(node) =>
+                val enumConstants = node.getSymbolsOfKind(SymbolKind.Property)
+                assert(enumConstants.exists(_.symbolName == "INFO"), "ApexPages.Severity.INFO not found")
+                assert(enumConstants.exists(_.symbolName == "ERROR"), "ApexPages.Severity.ERROR not found")
             //println(methods)
             case None =>
                 assert(false, "Not found: " + qName)
