@@ -36,6 +36,7 @@ case object ClassVariableNodeType extends AstNodeType
 case object CreatorNodeType extends AstNodeType
 case object DataTypeNodeType extends AstNodeType
 case object DocNodeType extends AstNodeType
+case object EnumConstantNodeType extends AstNodeType
 case object EnumNodeType extends AstNodeType
 case object ExpressionListNodeType extends AstNodeType
 case object ExpressionNodeType extends AstNodeType

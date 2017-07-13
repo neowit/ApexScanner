@@ -21,7 +21,7 @@
 
 package com.neowit.apexscanner.nodes
 
-import com.neowit.apexscanner.symbols.SymbolKind
+import com.neowit.apexscanner.symbols.{Symbol, SymbolKind}
 
 case class EnumNode(range: Range ) extends ClassLike {
     override def nodeType: AstNodeType = EnumNodeType
@@ -49,4 +49,15 @@ case class EnumNode(range: Range ) extends ClassLike {
     override def getSuperClassOrInterface: Option[ClassLike] = None
 
     override def implements: Seq[ImplementsInterfaceNode] = Seq.empty
+
+    override def getSymbolsOfKind(kind: SymbolKind): Seq[Symbol] = {
+        val symbols: Seq[Symbol] =
+            kind match {
+                case SymbolKind.Method => findChildrenInAst(_.nodeType == MethodNodeType).map(_.asInstanceOf[Symbol])
+                case SymbolKind.Variable => findChildrenInAst(_.nodeType == ClassVariableNodeType).map(_.asInstanceOf[Symbol])
+                case SymbolKind.Property => findChildrenInAst(_.nodeType == EnumConstantNodeType).map(_.asInstanceOf[Symbol])
+                case _ => Seq.empty
+            }
+        symbols
+    }
 }

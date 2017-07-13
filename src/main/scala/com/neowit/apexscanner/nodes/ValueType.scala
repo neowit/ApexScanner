@@ -90,6 +90,14 @@ case class ValueTypeEnum(qualifiedName: QualifiedName) extends ValueType {
     }
 }
 
+case class ValueTypeEnumConstant(qualifiedName: QualifiedName) extends ValueType {
+    override def typeArguments: Seq[ValueType] = Seq.empty
+
+    override def toString: String = {
+        "enum" + qualifiedName
+    }
+}
+
 //VOID
 case object ValueTypeVoid extends ValueType {
     //override def text: String = "void"
