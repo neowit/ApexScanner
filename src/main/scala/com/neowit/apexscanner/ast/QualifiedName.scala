@@ -63,8 +63,8 @@ case class QualifiedName(components: Array[String]) {
 
     override def canEqual(that: Any): Boolean = {
         that match {
-            case QualifiedName(_components) =>
-                components.sameElements(_components)
+            case qName @ QualifiedName(_) =>
+                componentsLower.sameElements(qName.componentsLower)
             case _ => false
         }
     }
