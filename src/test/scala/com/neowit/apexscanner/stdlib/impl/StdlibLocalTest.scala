@@ -90,7 +90,7 @@ class StdlibLocalTest extends FunSuite with TestConfigProvider with ScalaFutures
         }
     }
 
-    test("test: Severity") {
+    test("test: ApexPages.Severity") {
         val finder = new QualifiedNameDefinitionFinder(project)
         val qName = QualifiedName(Array("ApexPages", "Severity"))
         finder.findDefinition(qName) match {
