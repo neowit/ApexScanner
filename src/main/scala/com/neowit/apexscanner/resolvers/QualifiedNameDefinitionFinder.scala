@@ -79,7 +79,8 @@ class QualifiedNameDefinitionFinder(project: Project)(implicit ex: ExecutionCont
         targetOpt match {
             case Some(target) if 1 == target.length=>
                 containerNode.findChildInAst{
-                    case child: HasQualifiedName => child.qualifiedName.exists(_.equals(target))
+                    case child: HasQualifiedName =>
+                        child.qualifiedName.exists(childQName => childQName.equals(target) || childQName.endsWith(target))
                     case _ => false
                 }
             case Some(target) if target.length > 0=>
