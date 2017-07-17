@@ -21,7 +21,7 @@
 
 package com.neowit.apexscanner
 
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, Path, Paths}
 import java.util.Properties
 import java.util.stream.Collectors
 
@@ -34,6 +34,16 @@ trait TestConfigProvider {
     paths.load(is)
 
     def getProperty(propName: String): String = paths.getProperty(propName)
+
+    /**
+      * test resource paths are all relative to TEST_RESOURCE_ROOT
+      * @param propName e.g. QualifiedNameDefinitionFinderTest.projectPath
+      * @return path to local file which is concatenation of TEST_RESOURCE_ROOT + getProperty(propName)
+      */
+    def getTestResourcePath(propName: String): Path = {
+        val testResourceRoot = paths.getProperty("TEST_RESOURCE_ROOT")
+        Paths.get(testResourceRoot, paths.getProperty(propName))
+    }
 
     def getLineNoByTag(path: Path, lineTag: String): Seq[Int] = {
         val lines = Files.lines(path)
