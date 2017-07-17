@@ -22,18 +22,67 @@
 package com.neowit.apexscanner
 
 import java.io.File
-import java.nio.file.Path
+import java.nio.file._
 
 import com.neowit.apexscanner.ast.{AstBuilder, AstBuilderResult, QualifiedName}
 import com.neowit.apexscanner.nodes.{AstNode, HasQualifiedName, NamespaceNode}
+import com.neowit.apexscanner.scanner.Scanner
 import com.neowit.apexscanner.stdlib.StandardLibrary
 import com.neowit.apexscanner.stdlib.impl.StdlibLocal
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Created by Andrey Gavrikov 
+  */
+object Project {
+
+    val defaultIsIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath
+    def getClassOrTriggerMatcher(name: String): PathMatcher = {
+        FileSystems.getDefault.getPathMatcher("""regex:(?i).*\b""" + name + """\.(cls|trigger)$""")
+    }
+
+    /**
+      * using provided path try to find src (root) project folder
+      * project root is usually same folder that contains package.xml file
+      * @param path starting from provided path
+      * @return
+      */
+    def findApexProjectRoot(path: Path): Option[Path] = {
+        findApexProjectRoot(path, maxDepth = 10)
+    }
+
+    /**
+      *
+      * @param path start path
+      * @param maxDepth if current path is not project root then maxDepth (if >=0) tells how many levels up we are
+      *                 allowed to go up the file hierarchy
+      * @return
+      */
+    @tailrec
+    private def findApexProjectRoot(path: Path, maxDepth: Int): Option[Path] = {
+        if (null == path || maxDepth < 0) {
+            None
+        } else if ( isProjectRoot(path) ) {
+            Option(path)
+        } else {
+            // go up
+            val parent = path.getParent
+            findApexProjectRoot(parent, maxDepth - 1)
+        }
+    }
+
+    private def isProjectRoot(path: Path): Boolean = {
+        // check if path points to a folder that either has name "src" or contains file package.xml
+        null != path && path.toFile.isDirectory && (path.endsWith("src") || new File(path.toString, "package.xml").canRead)
+    }
+}
+
+/**
+  * @param path must point to Apex project root, @see also Project.findApexProjectRoot(path)
+  *             no check is made to ensure that provided path points to correct folder
   */
 case class Project(path: Path)(implicit ex: ExecutionContext) {
     private val astBuilder: AstBuilder = new AstBuilder(this)
@@ -138,8 +187,6 @@ case class Project(path: Path)(implicit ex: ExecutionContext) {
         }
     }
 
-
-
     def getAst(document: VirtualDocument): Future[Option[AstBuilderResult]] = {
         astBuilder.getAst(document) match {
           case Some(_ast) => Future.successful(Option(_ast))
@@ -150,4 +197,23 @@ case class Project(path: Path)(implicit ex: ExecutionContext) {
               }
         }
     }
+
+    /**
+      * check if given name corresponds to a valid apex file (.cls, .trigger) inside current project
+      * if it does then return document instance
+      * @param name potential document/file name (without extension), e.g. MyClass
+      * @return
+      */
+    def getDocumentByName(name: String): Option[VirtualDocument] = {
+        import scala.collection.JavaConverters._
+        val rootPath = this.path
+        val matcher = Project.getClassOrTriggerMatcher(name)
+        val isIgnoredPath: Path => Boolean = Project.defaultIsIgnoredPath
+        val paths = Files.walk(rootPath).iterator().asScala.filter(file => matcher.matches(file) && !isIgnoredPath(file))
+        paths.toList.headOption match {
+            case Some(foundPath) => Option(FileBasedDocument(foundPath))
+            case None => None
+        }
+    }
+
 }
