@@ -22,11 +22,13 @@
 package com.neowit.apexscanner.completion
 
 import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, ApexcodeParser}
+import com.neowit.apexscanner.ast.ASTBuilderVisitor
 import com.neowit.apexscanner.{Project, VirtualDocument}
-import com.neowit.apexscanner.nodes.{AstNode, HasTypeDefinition, IsTypeDefinition, Position}
-import com.neowit.apexscanner.resolvers.NodeByLocationFinder
+import com.neowit.apexscanner.nodes._
+import com.neowit.apexscanner.resolvers.{NearestPrecedingNodeFinder, NodeByLocationFinder}
 import com.typesafe.scalalogging.LazyLogging
 import org.antlr.v4.runtime._
+import org.antlr.v4.runtime.atn.PredictionMode
 import org.antlr.v4.runtime.misc.Pair
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -44,13 +46,23 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
     def resolveCaretScope(caret: CaretInDocument, caretToken: Token, tokens: TokenStream): Future[Option[CaretScope]] = {
 
         val document = caret.document
-        findAstParentNode(document, caretToken).flatMap {
+        findAstScopeNode(document, caretToken, tokens).flatMap {
           case Some(astScopeNode) =>
               // find list of tokens before caret which are not in AST
               val lastAstNode = getNearestPrecedingAstNode(caret, astScopeNode)
-              val lastPosition = lastAstNode.range.end
+              val lastPosition =
+                  if (lastAstNode != astScopeNode) {
+                      lastAstNode.range.end
+                  } else {
+                      // when last node is the same as scope node that means we have unresolved expression with
+                      // caret which starts at the top of the current scope, e.g. at the beginning of method body
+                      // in other words there are no valid expressions (AST nodes) between care expression and parent scope
+                      astScopeNode.range.start
+                  }
               // check if given token is after lastPosition
-              val predicate: Token => Boolean = t => lastPosition.isBefore(t.getLine, t.getCharPositionInLine + t.getText.length - 1)
+              val predicate: Token => Boolean = {t =>
+                  lastPosition.isBefore(t.getLine, t.getCharPositionInLine + t.getText.length - 1)
+              }
               var i = caretToken.getTokenIndex
               val tokensBeforeCaretBuilder = List.newBuilder[Token]
               var keepGoing = true
@@ -101,6 +113,12 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
                 // looks like we have a valid AST up until caret
                 // assume lastAstNode is a definition of caret
                 lastAstNode match {
+                    case n: FallThroughNode =>
+                        lastAstNode.getParentInAst(true) match {
+                            case Some(_lastAstNode) => resolveExpressionBeforeCaret(caret, tokensBeforeCaret, astScopeNode, _lastAstNode)
+                            case None =>
+                                Future.successful(None)
+                        }
                     case n: IsTypeDefinition => Future.successful(Option(n))
                     case n: HasTypeDefinition =>
                         n.resolveDefinition() match {
@@ -109,7 +127,7 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
                             case x =>
                                 // TODO
                                 println(x)
-                                ???
+                                Future.successful(None)
                         }
                     case n =>
                         println(n)
@@ -218,24 +236,53 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
         if (astScopeNode.children.isEmpty) {
             astScopeNode
         } else {
+            val finder = new NearestPrecedingNodeFinder(caret.position)
+            finder.findInside(astScopeNode).getOrElse(astScopeNode)
+        }
+    }
+    /*
+    private def getNearestPrecedingAstNode(caret: CaretInDocument, astScopeNode: AstNode): AstNode = {
+        if (astScopeNode.children.isEmpty) {
+            astScopeNode
+        } else {
             val nodes = astScopeNode.children.toArray
             var i = 0
             var node = nodes(i)
             val length = nodes.length
             while (i < length && caret.isBefore(node.range)) {
-                i += 1
                 node = nodes(i)
+                i += 1
             }
             node
         }
     }
+    */
 
     /**
       *
       * @param token a token to look for in the document
       * @return AST Node inside which given token resides
       */
-    private def findAstParentNode(document: VirtualDocument, token: Token): Future[Option[AstNode]] = {
+    def findAstParentNodeOnLimitedAst(document: VirtualDocument, token: Token, tokens: TokenStream): Future[Option[AstNode]] = {
+
+        buildAstTillCaret(token, document, tokens) match {
+            case Some(rootNode) =>
+                val position = Position(token.getLine, token.getCharPositionInLine)
+                val locationFinder = new NodeByLocationFinder(position)
+                locationFinder.findInside(rootNode) match {
+                    case finalNodeOpt @ Some(_) =>
+                        //finalNode is a node in (or right before) Caret position
+                        Future.successful(finalNodeOpt)
+                    case None =>
+                        Future.successful(None)
+                }
+
+            case _ =>
+                logger.debug("Failed to build AST for file: " + document.file)
+                Future.successful(None)
+        }
+    }
+    private def findAstScopeNode(document: VirtualDocument, token: Token, tokens: TokenStream): Future[Option[AstNode]] = {
 
         project.getAst(document).map{
             case Some(_res) =>
@@ -243,9 +290,12 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
                 val locationFinder = new NodeByLocationFinder(position)
                 val rootNode = _res.rootNode
                 locationFinder.findInside(rootNode) match {
-                    case finalNodeOpt @ Some(_) =>
-                        //finalNode is a node in (or right before) Caret position
+                    case finalNodeOpt @ Some(node) if node.isScope =>
+                        //finalNode is a scope node covering Caret position
                         finalNodeOpt
+                    case Some(finalNode) =>
+                        //finalNode is a node in (or right before) Caret position
+                        finalNode.findParentInAst(_.isScope)
                     case None =>
                         None
                 }
@@ -253,6 +303,82 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
             case _ =>
                 logger.debug("Failed to build AST for file: " + document.file)
                 None
+        }
+    }
+
+    /**
+      * build ast using *only* tokens till caret but not further
+      * @param caretToken previously found Token in caret position
+      * @param document
+      * @param fullTokenStream
+      * @return
+      */
+    private def buildAstTillCaret(caretToken: Token, document: VirtualDocument, fullTokenStream: TokenStream): Option[AstNode] = {
+        import collection.JavaConverters._
+        val tokensBeforeCaret = takeTokensWhile(fullTokenStream, t => t.getTokenIndex < caretToken.getTokenIndex)
+        val caretFixerToken = createToken(ApexcodeLexer.FIXER_TOKEN, "", tokensBeforeCaret.last)
+        val tokenSource = new ListTokenSource((tokensBeforeCaret :+ caretFixerToken).asJava)
+        val tokenStream = new CommonTokenStream(tokenSource)
+        val parser = new ApexcodeParser(tokenStream)
+        // do not dump parse errors into console (or any other default listeners)
+        parser.removeErrorListeners()
+        parser.setErrorHandler(new DefaultErrorStrategy)
+        parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
+        val tree = parser.compilationUnit()
+
+        val visitor = new ASTBuilderVisitor(project, Option(document))
+        val compileUnit = visitor.visit(tree)
+        Option(compileUnit)
+    }
+
+    private def takeTokensWhile(tokenStream: TokenStream, predicate: Token => Boolean): List[Token] = {
+        if (tokenStream.size() < 1) {
+            List.empty[Token]
+        } else {
+            val resultBuilder = List.newBuilder[Token]
+            tokenStream.seek(0)
+            val maxIndex = tokenStream.size() - 1
+            var index = 0
+            var token: Token = tokenStream.get(index)
+            while (index < maxIndex && predicate(token)) {
+                resultBuilder += token
+                index += 1
+                token = tokenStream.get(index)
+            }
+            resultBuilder.result()
+        }
+    }
+}
+
+class CaretScopeTokenSource (source: TokenSource, caretToken: Token) extends TokenSource {
+    override def getSourceName: String = source.getSourceName
+
+    override def getCharPositionInLine: Int = source.getCharPositionInLine
+
+    override def getLine: Int = source.getLine
+
+    override def setTokenFactory(tokenFactory: TokenFactory[_]): Unit = {
+        source.setTokenFactory(tokenFactory)
+    }
+
+    override def getInputStream: CharStream = source.getInputStream
+
+    override def getTokenFactory: TokenFactory[_ <: Token] = source.getTokenFactory
+
+    private var _caretReached = false
+    override def nextToken(): Token = {
+        if (_caretReached) {
+            // next token after caret should be EOF token
+            source.getTokenFactory.create(IntStream.EOF, "")
+        } else {
+            val nextToken = source.nextToken()
+            if (nextToken.getTokenIndex < caretToken.getTokenIndex) {
+                nextToken
+            } else {
+                _caretReached = true
+                source.getTokenFactory.create(ApexcodeLexer.FIXER_TOKEN, "")
+            }
+
         }
     }
 

@@ -226,20 +226,19 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
         }
     }
 
-    test("testFindCaretScope: `new Object__c(<CARET>`") {
+    test("testFindCaretScope: `new CompletionTester(<CARET>`") {
         val text =
             """
               |class CompletionTester {
               | public void testCompletion() {
-              |		CompletionTester con = new CompletionTester();
-              |     new Object__c(<CARET>
+              |     new CompletionTester(<CARET>
               | }
               |}
             """.stripMargin
         val result = findCaretScope(text, "testFindCaretScope").futureValue
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
-                assertResult(Some("Object__c"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.toString))
+                assertResult(Some("CompletionTester"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.toString))
             case _ =>
                 assert(false, "Failed to identify caret type")
         }
@@ -282,6 +281,45 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
         }
     }
 
+    test("testFindCaretScope: `String.`") {
+        val text =
+            """
+              |class CompletionTester {
+              | public void testCompletion() {
+              |     String.<CARET>
+              |     CompletionTester con = new CompletionTester();
+              | }
+              |}
+            """.stripMargin
+        val result = findCaretScope(text, "ignored").futureValue
+        result match {
+            case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
+                assertResult(Some("String"), "Wrong caret type detected. Expected 'String'")(typeDefinition.getValueType.map(_.toString))
+            case _ =>
+                assert(false, "Failed to identify caret type. Expected 'String'")
+        }
+
+    }
+
+    test("testFindCaretScope: `String.;`") {
+        val text =
+            """
+              |class CompletionTester {
+              | public void testCompletion() {
+              |     String.<CARET>;
+              |     CompletionTester con = new CompletionTester();
+              | }
+              |}
+            """.stripMargin
+        val result = findCaretScope(text, "ignored").futureValue
+        result match {
+            case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
+                assertResult(Some("String"), "Wrong caret type detected. Expected 'String'")(typeDefinition.getValueType.map(_.toString))
+            case _ =>
+                assert(false, "Failed to identify caret type. Expected 'String'")
+        }
+
+    }
 
 
     test("testCollectCandidates") {

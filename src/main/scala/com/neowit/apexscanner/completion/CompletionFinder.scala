@@ -181,12 +181,12 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
             case ValueTypeComplex(qualifiedName, typeArguments) => ???
             case ValueTypeSimple(qualifiedName) => getSymbolsOf(qualifiedName)
             case ValueTypeClass(qualifiedName) => getSymbolsOf(qualifiedName) //TODO - is this ever used ?
-            case ValueTypeInterface(qualifiedName) => ???
-            case ValueTypeTrigger(qualifiedName) => ???
-            case ValueTypeEnum(qualifiedName) => ???
-            case ValueTypeVoid => ???
-            case ValueTypeAny => ???
+            case ValueTypeInterface(qualifiedName) => getSymbolsOf(qualifiedName)
+            case ValueTypeTrigger(qualifiedName) => getSymbolsOf(qualifiedName)
+            case ValueTypeEnum(qualifiedName) => getSymbolsOf(qualifiedName)
             case ValueTypeArray(qualifiedNameNode) => ???
+            case ValueTypeVoid => Seq.empty
+            case ValueTypeAny => ???
         }
     }
     private def getSymbolsOf(qualifiedName: QualifiedName): Seq[Symbol] = {

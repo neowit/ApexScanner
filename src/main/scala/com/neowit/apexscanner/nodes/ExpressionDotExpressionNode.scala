@@ -136,7 +136,12 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
                                 case Some(_def: IsTypeDefinition) =>
                                     resolveTailDefinitions(_def, tail)
                                 case _ =>
-                                    Seq.empty
+                                    n match {
+                                        case hasName: HasQualifiedName =>
+
+                                        case _ =>
+                                            Seq.empty
+                                    }
                             }
                     }
             }

@@ -32,6 +32,25 @@ case class Position(line: Int, col: Int) {
         line < otherLine ||
         line == otherLine && col < otherCol
     }
+    def getDistance(p: Position): Distance = {
+        if (this.line == p.line) {
+            Distance(0, this.col - p.col)
+        }
+        val lines = this.line - p.line
+        val cols = this.col - p.col
+        Distance(lines, cols)
+    }
+}
+case class Distance(lines: Int, cols: Int)
+object Distance {
+    def min(d1: Distance, d2: Distance): Distance = {
+        if (d1.lines == d2.lines) {
+            if (d1.cols < d2.cols) d1 else d2
+        } else {
+
+            if (d1.lines < d2.lines) d1 else d2
+        }
+    }
 }
 object Position {
     val INVALID_LOCATION = Position(-1, -1)

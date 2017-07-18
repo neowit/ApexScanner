@@ -26,4 +26,9 @@ package com.neowit.apexscanner.nodes
   */
 case class MethodBodyNode(range: Range) extends AstNode {
     override def nodeType: AstNodeType = MethodBodyNodeType
+
+    /**
+      * @return true if this node is a Scope node (e.g. method declaration, class declaration)
+      */
+    override def isScope = true
 }

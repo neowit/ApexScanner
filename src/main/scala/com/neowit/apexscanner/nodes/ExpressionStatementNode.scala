@@ -41,7 +41,7 @@ case class ExpressionStatementNode(range: Range) extends AstNode with HasTypeDef
                 }
 
             case _ =>
-                ???
+                None
         }
     }
 

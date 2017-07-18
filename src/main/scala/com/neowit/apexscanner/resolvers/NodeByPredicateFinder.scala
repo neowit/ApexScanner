@@ -19,27 +19,30 @@
  *
  */
 
-package com.neowit.apexscanner.nodes
+package com.neowit.apexscanner.resolvers
 
-import com.neowit.apexscanner.Project
-import com.neowit.apexscanner.ast.QualifiedName
-import com.neowit.apexscanner.resolvers.QualifiedNameDefinitionFinder
-
-import scala.concurrent.{ExecutionContext, Future}
+import com.neowit.apexscanner.ast.{AstVisitor, AstWalker}
+import com.neowit.apexscanner.nodes.AstNode
 
 /**
   * Created by Andrey Gavrikov 
   */
-trait HasQualifiedName {
+class NodeByPredicateFinder(predicate: AstNode => Boolean) extends AstVisitor {
+    private var foundNode: Option[AstNode] = None
 
-    def qualifiedName: Option[QualifiedName]
-
-    def resolveDefinitionImpl(project: Project)(implicit ec: ExecutionContext): Future[Option[AstNode]] = {
-        qualifiedName  match {
-            case Some(qName) =>
-                val finder = new QualifiedNameDefinitionFinder(project)
-                finder.findDefinition(qName)
-            case None => Future.successful(None)
+    override def visit(node: AstNode): Boolean = {
+        if (predicate(node)) {
+            foundNode = Option(node)
+            true
+        } else {
+            false
         }
     }
+
+    def findInside(rootNode: AstNode): Option[AstNode] = {
+        new AstWalker().walk(rootNode, this)
+        foundNode
+    }
 }
+
+
