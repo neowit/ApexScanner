@@ -33,39 +33,6 @@ import scala.concurrent.{ExecutionContext, Future}
   * given caret position in Document - try to find its Scope/Type
   */
 object CaretScopeFinder extends LazyLogging {
-    /*
-    def findCaretToken(caret: CaretInDocument, parser: ApexcodeParser): Option[Token] = {
-        //val lexer = ApexParserUtils.getDefaultLexer(caret.document)
-        //val tokens = new CommonTokenStream(lexer)
-        //val parser = new ApexcodeParser(tokens)
-        //// do not dump parse errors into console (or any other default listeners)
-        //parser.removeErrorListeners()
-        //parser.setErrorHandler(new BailErrorStrategy)
-        ////parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
-        parser.getInterpreter.setPredictionMode(PredictionMode.LL)
-        try {
-            // run actual scan, trying to identify caret position
-            parser.compilationUnit()
-            //val tree = parser.compilationUnit()
-            //print(tree.toStringTree(parser))
-        } catch {
-            case e:Throwable =>
-                logger.debug(e.getMessage)
-        }
-        var i = 0
-        val tokens = parser.getInputStream
-        var token: Token = tokens.get(i)
-        while (caret.isAfter(token) && Token.EOF != token.getType) {
-            i += 1
-            token = tokens.get(i)
-        }
-        if (caret.isInside(token) || caret.isBefore(token)) {
-            Option(token)
-        } else {
-            None
-        }
-    }
-    */
 
     def findCaretToken(caret: CaretInDocument, tokenStream: CommonTokenStream): Option[Token] = {
         tokenStream.fill()

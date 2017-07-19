@@ -83,41 +83,6 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
         }
     }
 
-    /*
-    def listCompletions2(file: VirtualDocument, line: Int, column: Int): Future[Seq[Symbol]] = {
-        val caret = new CaretInFile(Position(line, column), file)
-        findCaretToken(caret) match {
-            case Some(findCaretTokenResult) =>
-                //val caretReachedException = findCaretTokenResult.ex
-                val caretToken = findCaretTokenResult.caretToken
-                val parser = findCaretTokenResult.parser
-                val tokens = parser.getTokenStream
-                //caretReachedException.finalContext
-                //now when we found token corresponding caret position try to understand context
-                //collectCandidates(caret, caretToken, parser)
-                val resolver = new CaretExpressionResolver(project)
-                resolver.resolveCaretScope(caret, caretToken, tokens).map{
-                    case Some(CaretScope(contextNode, Some(typeDefinition))) =>
-                        typeDefinition.getValueType match {
-                          case Some(valueType) =>
-                              logger.debug("Caret value type: " + valueType)
-                              getValueTypeMembers(valueType)
-                          case None => Seq.empty
-                        }
-                    case Some(CaretScope(scopeNode, None)) =>
-                        // caret definition is not obvious
-                        val candidates = collectCandidates(caret, caretToken, parser)
-                        getCandidateSymbols(scopeNode, candidates)
-                    case _ =>
-                        collectCandidates(caret, caretToken, parser)
-                        ???
-                }
-            case None =>
-                Future.successful(Seq.empty)
-        }
-    }
-    */
-
     private def getCandidateSymbols(scope: AstNode, candidates: CandidatesCollection): Seq[Symbol] = {
         val kindsBuilder = Seq.newBuilder[SymbolKind]
         // TODO continue here
