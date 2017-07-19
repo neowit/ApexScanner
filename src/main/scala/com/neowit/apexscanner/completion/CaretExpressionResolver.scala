@@ -22,19 +22,14 @@
 package com.neowit.apexscanner.completion
 
 import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, ApexcodeParser}
-import com.neowit.apexscanner.ast.ASTBuilderVisitor
 import com.neowit.apexscanner.{Project, VirtualDocument}
 import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.resolvers.{NearestPrecedingNodeFinder, NodeByLocationFinder}
 import com.typesafe.scalalogging.LazyLogging
 import org.antlr.v4.runtime._
-import org.antlr.v4.runtime.atn.PredictionMode
 import org.antlr.v4.runtime.misc.Pair
 
 import scala.concurrent.{ExecutionContext, Future}
-
-//sealed trait CaretContext
-//case object ClassMember extends CaretContext
 
 case class CaretScope(scopeNode: AstNode, typeDefinition: Option[IsTypeDefinition])
 /**
@@ -101,6 +96,7 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
         //val tree = parser.expression()
         tokensBeforeCaret match {
             case _tokens if _tokens.nonEmpty && _tokens.exists(ApexParserUtils.isWordToken) =>
+                //TODO - is this ever being used (since adding FIXER_TOKEN to source document) ?
                 findLongestTree(caret, tokensBeforeCaret) match {
                     case Some(tree) =>
                         // now visit resulting tree and try resolve caret context
@@ -240,48 +236,7 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
             finder.findInside(astScopeNode).getOrElse(astScopeNode)
         }
     }
-    /*
-    private def getNearestPrecedingAstNode(caret: CaretInDocument, astScopeNode: AstNode): AstNode = {
-        if (astScopeNode.children.isEmpty) {
-            astScopeNode
-        } else {
-            val nodes = astScopeNode.children.toArray
-            var i = 0
-            var node = nodes(i)
-            val length = nodes.length
-            while (i < length && caret.isBefore(node.range)) {
-                node = nodes(i)
-                i += 1
-            }
-            node
-        }
-    }
-    */
 
-    /**
-      *
-      * @param token a token to look for in the document
-      * @return AST Node inside which given token resides
-      */
-    def findAstParentNodeOnLimitedAst(document: VirtualDocument, token: Token, tokens: TokenStream): Future[Option[AstNode]] = {
-
-        buildAstTillCaret(token, document, tokens) match {
-            case Some(rootNode) =>
-                val position = Position(token.getLine, token.getCharPositionInLine)
-                val locationFinder = new NodeByLocationFinder(position)
-                locationFinder.findInside(rootNode) match {
-                    case finalNodeOpt @ Some(_) =>
-                        //finalNode is a node in (or right before) Caret position
-                        Future.successful(finalNodeOpt)
-                    case None =>
-                        Future.successful(None)
-                }
-
-            case _ =>
-                logger.debug("Failed to build AST for file: " + document.file)
-                Future.successful(None)
-        }
-    }
     private def findAstScopeNode(document: VirtualDocument, token: Token, tokens: TokenStream): Future[Option[AstNode]] = {
 
         // to make sure we do not work with stale version of current document use: forceRebuild = true
@@ -307,6 +262,31 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
         }
     }
 
+    /*
+    /**
+      *
+      * @param token a token to look for in the document
+      * @return AST Node inside which given token resides
+      */
+    def findAstParentNodeOnLimitedAst(document: VirtualDocument, token: Token, tokens: TokenStream): Future[Option[AstNode]] = {
+
+        buildAstTillCaret(token, document, tokens) match {
+            case Some(rootNode) =>
+                val position = Position(token.getLine, token.getCharPositionInLine)
+                val locationFinder = new NodeByLocationFinder(position)
+                locationFinder.findInside(rootNode) match {
+                    case finalNodeOpt @ Some(_) =>
+                        //finalNode is a node in (or right before) Caret position
+                        Future.successful(finalNodeOpt)
+                    case None =>
+                        Future.successful(None)
+                }
+
+            case _ =>
+                logger.debug("Failed to build AST for file: " + document.file)
+                Future.successful(None)
+        }
+    }
     /**
       * build ast using *only* tokens till caret but not further
       * @param caretToken previously found Token in caret position
@@ -348,39 +328,6 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
             }
             resultBuilder.result()
         }
-    }
+    }*/
 }
 
-class CaretScopeTokenSource (source: TokenSource, caretToken: Token) extends TokenSource {
-    override def getSourceName: String = source.getSourceName
-
-    override def getCharPositionInLine: Int = source.getCharPositionInLine
-
-    override def getLine: Int = source.getLine
-
-    override def setTokenFactory(tokenFactory: TokenFactory[_]): Unit = {
-        source.setTokenFactory(tokenFactory)
-    }
-
-    override def getInputStream: CharStream = source.getInputStream
-
-    override def getTokenFactory: TokenFactory[_ <: Token] = source.getTokenFactory
-
-    private var _caretReached = false
-    override def nextToken(): Token = {
-        if (_caretReached) {
-            // next token after caret should be EOF token
-            source.getTokenFactory.create(IntStream.EOF, "")
-        } else {
-            val nextToken = source.nextToken()
-            if (nextToken.getTokenIndex < caretToken.getTokenIndex) {
-                nextToken
-            } else {
-                _caretReached = true
-                source.getTokenFactory.create(ApexcodeLexer.FIXER_TOKEN, "")
-            }
-
-        }
-    }
-
-}
