@@ -187,10 +187,14 @@ case class Project(path: Path)(implicit ex: ExecutionContext) {
         }
     }
 
-    def getAst(document: VirtualDocument): Future[Option[AstBuilderResult]] = {
+    /**
+      * @param forceRebuild set ti true in order to force AST re-build/re-cache for provided document
+      * @return
+      */
+    def getAst(document: VirtualDocument, forceRebuild: Boolean = false): Future[Option[AstBuilderResult]] = {
         astBuilder.getAst(document) match {
-          case Some(_ast) => Future.successful(Option(_ast))
-          case None =>
+          case Some(_ast) if !forceRebuild => Future.successful(Option(_ast))
+          case _ =>
               // looks like AST for given file has not been built yet, let's fix it
               astBuilder.build(document).map { _ =>
                   astBuilder.getAst(document)

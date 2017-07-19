@@ -284,7 +284,8 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
     }
     private def findAstScopeNode(document: VirtualDocument, token: Token, tokens: TokenStream): Future[Option[AstNode]] = {
 
-        project.getAst(document).map{
+        // to make sure we do not work with stale version of current document use: forceRebuild = true
+        project.getAst(document, forceRebuild = true).map{
             case Some(_res) =>
                 val position = Position(token.getLine, token.getCharPositionInLine)
                 val locationFinder = new NodeByLocationFinder(position)
