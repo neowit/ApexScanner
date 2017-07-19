@@ -21,11 +21,10 @@
 
 package com.neowit.apexscanner.completion
 
-import com.neowit.apexscanner.Project
-import com.neowit.apexscanner.antlr.ApexcodeParser
+import com.neowit.apexscanner.{Project, TextBasedDocument, VirtualDocument}
+import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer}
 import com.typesafe.scalalogging.LazyLogging
-import org.antlr.v4.runtime.{CommonTokenStream, Token}
-import org.antlr.v4.runtime.atn.PredictionMode
+import org.antlr.v4.runtime.{CommonTokenStream, Token, TokenStreamRewriter}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -34,7 +33,7 @@ import scala.concurrent.{ExecutionContext, Future}
   * given caret position in Document - try to find its Scope/Type
   */
 object CaretScopeFinder extends LazyLogging {
-    
+    /*
     def findCaretToken(caret: CaretInDocument, parser: ApexcodeParser): Option[Token] = {
         //val lexer = ApexParserUtils.getDefaultLexer(caret.document)
         //val tokens = new CommonTokenStream(lexer)
@@ -66,6 +65,7 @@ object CaretScopeFinder extends LazyLogging {
             None
         }
     }
+    */
 
     def findCaretToken(caret: CaretInDocument, tokenStream: CommonTokenStream): Option[Token] = {
         tokenStream.fill()
@@ -82,13 +82,39 @@ object CaretScopeFinder extends LazyLogging {
             None
         }
     }
+
+    /**
+      * insert or replace token in caret position with FIXER_TOKEN
+      * @return updated document (if caret found)
+      */
+    def injectFixerToken(caret: CaretInDocument): VirtualDocument = {
+        val lexer = ApexParserUtils.getDefaultLexer(caret.document)
+        val tokens = new CommonTokenStream(lexer)
+        val rewriter = new TokenStreamRewriter(tokens)
+        val fixerTokenText = lexer.getVocabulary.getSymbolicName(ApexcodeLexer.FIXER_TOKEN)
+
+        CaretScopeFinder.findCaretToken(caret, tokens) match {
+            case Some(caretToken) if caretToken.getText.isEmpty || !ApexParserUtils.isWordToken(caretToken)=>
+                rewriter.insertBefore(caretToken, fixerTokenText)
+            case Some(caretToken) if caretToken.getText.nonEmpty && ApexParserUtils.isWordToken(caretToken) =>
+                rewriter.replace(caretToken.getTokenIndex, fixerTokenText)
+            case _ => // TODO
+        }
+        val fixedDocument = TextBasedDocument(rewriter.getText, caret.document.getFileName)
+        fixedDocument
+    }
 }
 
 class CaretScopeFinder(project: Project)(implicit ex: ExecutionContext) extends LazyLogging {
     import CaretScopeFinder._
 
-    def findCaretScope(caret: CaretInDocument, parser: ApexcodeParser): Future[Option[FindCaretScopeResult]] = {
-        findCaretToken(caret, parser) match {
+    def findCaretScope(caretInOriginalDocument: CaretInDocument): Future[Option[FindCaretScopeResult]] = {
+        // alter original document by injecting FIXER_TOKEN
+        val fixedDocument = injectFixerToken(caretInOriginalDocument)
+        val caret = new CaretInFixedDocument(caretInOriginalDocument.position, fixedDocument, caretInOriginalDocument.document)
+        val (parser, tokenStream) = ApexParserUtils.createParserWithCommonTokenStream(caret)
+
+        findCaretToken(caret, tokenStream) match {
             case Some(caretToken) =>
                 //now when we found token corresponding caret position try to understand context
                 //collectCandidates(caret, caretToken, parser)

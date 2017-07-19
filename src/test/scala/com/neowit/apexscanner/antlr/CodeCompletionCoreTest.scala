@@ -23,7 +23,7 @@ package com.neowit.apexscanner.antlr
 
 import java.nio.file.Paths
 
-import com.neowit.apexscanner.completion.{CaretInFixedDocument, CaretScopeFinder, CompletionFinder}
+import com.neowit.apexscanner.completion.CaretScopeFinder
 import org.antlr.v4.runtime.Token
 import org.scalatest.FunSuite
 
@@ -167,12 +167,10 @@ class CodeCompletionCoreTest extends FunSuite {
     }
 
     private def getCaretTokenAndParser(text: String): (Token, ApexcodeParser) = {
-        val caretOriginal = CaretUtils.getCaret(text, Paths.get("ignored"))
-        val fixedDocument = CompletionFinder.injectFixerToken(caretOriginal)
-        val caretInFixedDocument = new CaretInFixedDocument(caretOriginal.position, fixedDocument, caretOriginal.document)
+        val caret = CaretUtils.getCaret(text, Paths.get("ignored"))
 
-        val parser = CompletionFinder.createParser(caretInFixedDocument, None)
-        CaretScopeFinder.findCaretToken(caretInFixedDocument, parser) match {
+        val (parser, tokenStream) = ApexParserUtils.createParserWithCommonTokenStream(caret, None)
+        CaretScopeFinder.findCaretToken(caret, tokenStream) match {
             case Some(caretToken) =>
                 (caretToken, parser)
             case None => throw new IllegalArgumentException("Failed to detect <CARET> position in : " + text)

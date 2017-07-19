@@ -24,6 +24,7 @@ package com.neowit.apexscanner.antlr
 import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
 
+import com.neowit.apexscanner.completion.CaretInDocument
 import com.neowit.apexscanner.{FileBasedDocument, TextBasedDocument, VirtualDocument}
 import org.antlr.v4.runtime._
 import org.antlr.v4.runtime.misc.Interval
@@ -164,4 +165,23 @@ object ApexParserUtils {
         }
 
     }
+
+    /**
+      * @param caret
+      * @param errorHandlerOpt
+      * @return ApexcodeParser based on CommonTokenStream
+      */
+    def createParserWithCommonTokenStream(caret: CaretInDocument,
+                                          errorHandlerOpt: Option[ANTLRErrorStrategy] = Option(new BailErrorStrategy)): (ApexcodeParser, CommonTokenStream) = {
+        val lexer = ApexParserUtils.getDefaultLexer(caret.document)
+        val tokens = new CommonTokenStream(lexer)
+        val parser = new ApexcodeParser(tokens)
+        // do not dump parse errors into console (or any other default listeners)
+        parser.removeErrorListeners()
+        errorHandlerOpt.foreach(parser.setErrorHandler)
+        //parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
+        //parser.getInterpreter.setPredictionMode(PredictionMode.LL)
+        (parser, tokens)
+    }
+
 }

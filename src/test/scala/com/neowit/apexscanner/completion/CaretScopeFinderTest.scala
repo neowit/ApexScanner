@@ -357,15 +357,13 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
         }
         val caretInDocument = getCaret(text, Paths.get(documentName))
 //        val document = caretInDocument.document
-        val parser = CompletionFinder.createParser(caretInDocument)
         val scopeFinder = new CaretScopeFinder(project)
-        scopeFinder.findCaretScope(caretInDocument, parser)
+        scopeFinder.findCaretScope(caretInDocument)
     }
 
-    private def getCaret(text: String, file: Path): CaretInFixedDocument = {
-        val caretOriginal = CaretUtils.getCaret(text, file)
-        val fixedDocument = CompletionFinder.injectFixerToken(caretOriginal)
-        new CaretInFixedDocument(caretOriginal.position, fixedDocument, caretOriginal.document)
+    private def getCaret(text: String, file: Path): CaretInDocument = {
+        val caret = CaretUtils.getCaret(text, file)
+        caret
     }
 
 }
