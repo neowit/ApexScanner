@@ -341,7 +341,7 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
 
     }
 
-    test("testFindCaretScope: `String.length()`") {
+    test("testFindCaretScope: `str.length().`") {
         val text =
             """
               |class CompletionTester {
