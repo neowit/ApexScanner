@@ -66,7 +66,7 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
             """
               |class CompletionTester {
               | public void testCompletion() {
-              |		CompletionTester con = new CompletionTester();
+              |		SomeClass con = new SomeClass();
               |     con.acc() + <CARET>
               | }
               |}
@@ -341,6 +341,27 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
 
     }
 
+    test("testFindCaretScope: `String.length()`") {
+        val text =
+            """
+              |class CompletionTester {
+              | public void testCompletion() {
+              |     String str;
+              |     str.length().<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = findCaretScope(text, "ignored", loadStdLib = true).futureValue
+        result match {
+            case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
+                assert(typeDefinition.getValueType.isDefined, "Value type not found")
+                val valueType = typeDefinition.getValueType.get
+                assert(QualifiedName(Array("System", "Integer")).couldBeMatch(valueType.qualifiedName), "Expected Integer, actual: " + valueType.qualifiedName)
+            case _ =>
+                assert(false, "Failed to identify caret type. Expected 'String'")
+        }
+
+    }
 
     test("testCollectCandidates") {
 

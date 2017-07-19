@@ -32,7 +32,7 @@ object MethodCallNode {
     }
 }
 
-case class MethodCallNode(methodName: QualifiedName, range: Range) extends AstNode with HasTypeDefinition {
+case class MethodCallNode(methodName: QualifiedName, range: Range) extends AbstractExpression with HasQualifiedName {
     override def nodeType: AstNodeType = MethodCallNodeType
 
     private var _resolvedParameterTypes: Option[Seq[ValueType]] = None
@@ -50,6 +50,8 @@ case class MethodCallNode(methodName: QualifiedName, range: Range) extends AstNo
         res
 
     }
+
+    override def qualifiedName: Option[QualifiedName] = Option(methodName)
 
     //TODO implement taking real parameter types into account
     // current version returns "*" for each parameter
