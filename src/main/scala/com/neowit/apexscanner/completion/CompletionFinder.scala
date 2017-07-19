@@ -22,12 +22,12 @@
 package com.neowit.apexscanner.completion
 
 import com.neowit.apexscanner.antlr.CodeCompletionCore.CandidatesCollection
-import com.neowit.apexscanner.{Project, VirtualDocument}
+import com.neowit.apexscanner.{Project, TextBasedDocument, VirtualDocument}
 import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, ApexcodeParser, CodeCompletionCore}
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes._
 import com.typesafe.scalalogging.LazyLogging
-import org.antlr.v4.runtime.{ANTLRErrorStrategy, BailErrorStrategy, CommonTokenStream, Token}
+import org.antlr.v4.runtime._
 
 import scala.concurrent.{ExecutionContext, Future}
 import com.neowit.apexscanner.symbols._
@@ -37,8 +37,8 @@ case class FindCaretScopeResult(caretScope: Option[CaretScope], caretToken: Toke
   * Created by Andrey Gavrikov 
   */
 object CompletionFinder extends LazyLogging {
-    def createParser(document: VirtualDocument, errorHandlerOpt: Option[ANTLRErrorStrategy] = Option(new BailErrorStrategy)): ApexcodeParser = {
-        val lexer = ApexParserUtils.getDefaultLexer(document)
+    def createParser_old(caret: CaretInDocument, errorHandlerOpt: Option[ANTLRErrorStrategy] = Option(new BailErrorStrategy)): ApexcodeParser = {
+        val lexer = ApexParserUtils.getDefaultLexer(caret.document)
         val tokens = new CommonTokenStream(lexer)
         val parser = new ApexcodeParser(tokens)
         // do not dump parse errors into console (or any other default listeners)
@@ -48,13 +48,56 @@ object CompletionFinder extends LazyLogging {
         //parser.getInterpreter.setPredictionMode(PredictionMode.LL)
         parser
     }
+
+    /**
+      * @param caret
+      * @param errorHandlerOpt
+      * @return
+      */
+    def createParser(caret: CaretInFixedDocument, errorHandlerOpt: Option[ANTLRErrorStrategy] = Option(new BailErrorStrategy)): ApexcodeParser = {
+        val lexer = ApexParserUtils.getDefaultLexer(caret.document)
+        val tokens = new CommonTokenStream(lexer)
+
+        //TODO create parser based on this document
+        val parser = new ApexcodeParser(tokens)
+        // do not dump parse errors into console (or any other default listeners)
+        parser.removeErrorListeners()
+        errorHandlerOpt.foreach(parser.setErrorHandler)
+        //parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
+        //parser.getInterpreter.setPredictionMode(PredictionMode.LL)
+        parser
+    }
+
+    /**
+      * insert or replace token in caret position with FIXER_TOKEN
+      * @return updated document (if caret found)
+      */
+    def injectFixerToken(caret: CaretInDocument): VirtualDocument = {
+        val lexer = ApexParserUtils.getDefaultLexer(caret.document)
+        val tokens = new CommonTokenStream(lexer)
+        val rewriter = new TokenStreamRewriter(tokens)
+        val fixerTokenText = lexer.getVocabulary.getSymbolicName(ApexcodeLexer.FIXER_TOKEN)
+
+        CaretScopeFinder.findCaretToken(caret, tokens) match {
+            case Some(caretToken) if caretToken.getText.isEmpty || !ApexParserUtils.isWordToken(caretToken)=>
+                rewriter.insertBefore(caretToken, fixerTokenText)
+            case Some(caretToken) if caretToken.getText.nonEmpty && ApexParserUtils.isWordToken(caretToken) =>
+                rewriter.replace(caretToken.getTokenIndex, fixerTokenText)
+            case _ => // TODO
+        }
+        val fixedDocument = TextBasedDocument(rewriter.getText, caret.document.getFileName)
+        fixedDocument
+    }
 }
 class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends LazyLogging {
     import CompletionFinder._
 
     def listCompletions(file: VirtualDocument, line: Int, column: Int): Future[Seq[Symbol]] = {
-        val caret = new CaretInDocument(Position(line, column), file)
-        val parser = createParser(caret.document)
+        // alter original document by injecting FIXER_TOKEN
+        val fixedDocument = injectFixerToken(new CaretInDocument(Position(line, column), file))
+        val caretInOriginalDocument = new CaretInDocument(Position(line, column), file)
+        val caret = new CaretInFixedDocument(Position(line, column), fixedDocument, caretInOriginalDocument.document)
+        val parser = createParser(caret)
         val scopeFinder = new CaretScopeFinder(project)
         scopeFinder.findCaretScope(caret, parser).map{
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>

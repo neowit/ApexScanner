@@ -239,7 +239,7 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
         val result = findCaretScope(text, "testFindCaretScope").futureValue
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
-                assertResult(Some("CompletionTester"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.toString))
+                assertResult(Some(QualifiedName(Array("CompletionTester"))), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
             case _ =>
                 assert(false, "Failed to identify caret type")
         }
@@ -321,6 +321,25 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
         }
 
     }
+    test("testFindCaretScope: `String.abbr`") {
+        val text =
+            """
+              |class CompletionTester {
+              | public void testCompletion() {
+              |     String.abbr<CARET>
+              |     CompletionTester con = new CompletionTester();
+              | }
+              |}
+            """.stripMargin
+        val result = findCaretScope(text, "ignored", loadStdLib = true).futureValue
+        result match {
+            case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
+                assertResult(Some(QualifiedName(Array("System", "String"))), "Wrong caret type detected. Expected 'String'")(typeDefinition.getValueType.map(_.qualifiedName))
+            case _ =>
+                assert(false, "Failed to identify caret type. Expected 'String'")
+        }
+
+    }
 
 
     test("testCollectCandidates") {
@@ -337,14 +356,16 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
             project.getStandardLibrary // force loading of StandardLibrary
         }
         val caretInDocument = getCaret(text, Paths.get(documentName))
-        val document = caretInDocument.document
-        val parser = CompletionFinder.createParser(document)
+//        val document = caretInDocument.document
+        val parser = CompletionFinder.createParser(caretInDocument)
         val scopeFinder = new CaretScopeFinder(project)
         scopeFinder.findCaretScope(caretInDocument, parser)
     }
 
-    private def getCaret(text: String, file: Path): CaretInDocument = {
-        CaretUtils.getCaret(text, file)
+    private def getCaret(text: String, file: Path): CaretInFixedDocument = {
+        val caretOriginal = CaretUtils.getCaret(text, file)
+        val fixedDocument = CompletionFinder.injectFixerToken(caretOriginal)
+        new CaretInFixedDocument(caretOriginal.position, fixedDocument, caretOriginal.document)
     }
 
 }

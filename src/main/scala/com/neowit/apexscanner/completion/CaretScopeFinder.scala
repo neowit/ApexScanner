@@ -24,7 +24,7 @@ package com.neowit.apexscanner.completion
 import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.antlr.ApexcodeParser
 import com.typesafe.scalalogging.LazyLogging
-import org.antlr.v4.runtime.Token
+import org.antlr.v4.runtime.{CommonTokenStream, Token}
 import org.antlr.v4.runtime.atn.PredictionMode
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -34,6 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
   * given caret position in Document - try to find its Scope/Type
   */
 object CaretScopeFinder extends LazyLogging {
+    
     def findCaretToken(caret: CaretInDocument, parser: ApexcodeParser): Option[Token] = {
         //val lexer = ApexParserUtils.getDefaultLexer(caret.document)
         //val tokens = new CommonTokenStream(lexer)
@@ -54,6 +55,22 @@ object CaretScopeFinder extends LazyLogging {
         }
         var i = 0
         val tokens = parser.getInputStream
+        var token: Token = tokens.get(i)
+        while (caret.isAfter(token) && Token.EOF != token.getType) {
+            i += 1
+            token = tokens.get(i)
+        }
+        if (caret.isInside(token) || caret.isBefore(token)) {
+            Option(token)
+        } else {
+            None
+        }
+    }
+
+    def findCaretToken(caret: CaretInDocument, tokenStream: CommonTokenStream): Option[Token] = {
+        tokenStream.fill()
+        var i = 0
+        val tokens = tokenStream
         var token: Token = tokens.get(i)
         while (caret.isAfter(token) && Token.EOF != token.getType) {
             i += 1
