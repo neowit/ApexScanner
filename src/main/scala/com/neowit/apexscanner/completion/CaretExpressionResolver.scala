@@ -100,7 +100,7 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
         //parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
         //val tree = parser.expression()
         tokensBeforeCaret match {
-            case _tokens if _tokens.nonEmpty =>
+            case _tokens if _tokens.nonEmpty && _tokens.exists(ApexParserUtils.isWordToken) =>
                 findLongestTree(caret, tokensBeforeCaret) match {
                     case Some(tree) =>
                         // now visit resulting tree and try resolve caret context
