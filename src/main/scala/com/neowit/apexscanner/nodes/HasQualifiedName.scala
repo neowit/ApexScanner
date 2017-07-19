@@ -21,11 +21,8 @@
 
 package com.neowit.apexscanner.nodes
 
-import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.ast.QualifiedName
-import com.neowit.apexscanner.resolvers.QualifiedNameDefinitionFinder
 
-import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Created by Andrey Gavrikov 
@@ -34,12 +31,4 @@ trait HasQualifiedName {
 
     def qualifiedName: Option[QualifiedName]
 
-    def resolveDefinitionImpl(project: Project)(implicit ec: ExecutionContext): Future[Option[AstNode]] = {
-        qualifiedName  match {
-            case Some(qName) =>
-                val finder = new QualifiedNameDefinitionFinder(project)
-                finder.findDefinition(qName)
-            case None => Future.successful(None)
-        }
-    }
 }

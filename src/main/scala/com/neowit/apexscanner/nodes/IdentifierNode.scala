@@ -22,9 +22,10 @@
 package com.neowit.apexscanner.nodes
 
 import com.neowit.apexscanner.antlr.ApexcodeParser.ClassDeclarationContext
+import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.resolvers.AscendingDefinitionFinder
 
-case class IdentifierNode(name: String, range: Range) extends AbstractExpression with HasTypeDefinition {
+case class IdentifierNode(name: String, range: Range) extends AbstractExpression {
     override def nodeType: AstNodeType = IdentifierNodeType
     override def getDebugInfo: String = super.getDebugInfo + " " + name
 
@@ -37,9 +38,29 @@ case class IdentifierNode(name: String, range: Range) extends AbstractExpression
           case _ =>
               val finder = new AscendingDefinitionFinder()
               val res = finder.findDefinition(this, this).headOption
-              res
+              res match {
+                  case resOpt @ Some(_) => resOpt
+                  case None => // finally check in global AST
+                      resolveDefinitionByQualifiedName()
+              }
         }
 
+    }
+
+    // TODO - implement proper (non blocking) future handling
+    def resolveDefinitionByQualifiedName(): Option[AstNode] = {
+        import com.neowit.apexscanner.resolvers.QualifiedNameDefinitionFinder
+        import scala.concurrent.duration.Duration
+        import scala.concurrent.Await
+        import scala.concurrent.ExecutionContext.Implicits.global
+
+        this.getProject  match {
+            case Some(project) =>
+                val finder = new QualifiedNameDefinitionFinder(project)
+                val futureResult = finder.findDefinition(QualifiedName(Array(name)))
+                Await.result(futureResult, Duration.Inf)
+            case None => None
+        }
     }
 }
 

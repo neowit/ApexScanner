@@ -24,6 +24,7 @@ package com.neowit.apexscanner.completion
 import java.nio.file.{FileSystems, Path, Paths}
 
 import com.neowit.apexscanner.antlr.CaretUtils
+import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes.MethodBodyNodeType
 import com.neowit.apexscanner.{Project, TestConfigProvider}
 import org.scalatest.FunSuite
@@ -291,10 +292,10 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "ignored").futureValue
+        val result = findCaretScope(text, "ignored", loadStdLib = true).futureValue
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
-                assertResult(Some("String"), "Wrong caret type detected. Expected 'String'")(typeDefinition.getValueType.map(_.toString))
+                assertResult(Some(QualifiedName(Array("System", "String"))), "Wrong caret type detected. Expected 'String'")(typeDefinition.getValueType.map(_.qualifiedName))
             case _ =>
                 assert(false, "Failed to identify caret type. Expected 'String'")
         }
@@ -311,10 +312,10 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "ignored").futureValue
+        val result = findCaretScope(text, "ignored", loadStdLib = true).futureValue
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
-                assertResult(Some("String"), "Wrong caret type detected. Expected 'String'")(typeDefinition.getValueType.map(_.toString))
+                assertResult(Some(QualifiedName(Array("System", "String"))), "Wrong caret type detected. Expected 'String'")(typeDefinition.getValueType.map(_.qualifiedName))
             case _ =>
                 assert(false, "Failed to identify caret type. Expected 'String'")
         }
@@ -330,8 +331,11 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
 
     }
 
-    private def findCaretScope(text: String, documentName: String): Future[Option[FindCaretScopeResult]] = {
+    private def findCaretScope(text: String, documentName: String, loadStdLib: Boolean = false): Future[Option[FindCaretScopeResult]] = {
         val project = Project(projectPath)
+        if (loadStdLib) {
+            project.getStandardLibrary // force loading of StandardLibrary
+        }
         val caretInDocument = getCaret(text, Paths.get(documentName))
         val document = caretInDocument.document
         val parser = CompletionFinder.createParser(document)

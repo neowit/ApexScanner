@@ -137,17 +137,32 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
                                     resolveTailDefinitions(_def, tail)
                                 case _ =>
                                     n match {
-                                        case hasName: HasQualifiedName =>
+                                        case identifier @ IdentifierNode(_, _) =>
+                                            identifier.resolveDefinitionByQualifiedName() match {
+                                                case Some(_def: IsTypeDefinition) =>
+                                                    resolveTailDefinitions(_def, tail)
+                                                case _ =>
+                                                    Seq.empty
+                                            }
 
-                                        case _ =>
-                                            Seq.empty
                                     }
                             }
                     }
             }
         }
     }
-
+    /*
+    private def resolveDefinition(project: Project, qualifiedName: QualifiedName): Option[AstNode] = {
+        import com.neowit.apexscanner.resolvers.QualifiedNameDefinitionFinder
+        import scala.concurrent.duration.Duration
+        import scala.concurrent.Await
+        // TODO - implement proper (non blocking) future handling
+        import scala.concurrent.ExecutionContext.Implicits.global
+        val finder = new QualifiedNameDefinitionFinder(project)
+        val futureResult = finder.findDefinition(qualifiedName)
+        Await.result(futureResult, Duration.Inf)
+    }
+    */
     /**
       *
       * @param container resolved definition of Head expression
