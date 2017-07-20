@@ -21,6 +21,7 @@
 
 package com.neowit.apexscanner.nodes
 
+import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.resolvers.{AscendingDefinitionFinder, DescendingDefinitionFinder}
 
 /**
@@ -112,7 +113,7 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
             expressions match {
                 case lst if lst.nonEmpty=>
                     val head = lst.head
-                    val tail = lst.drop(1)
+                    val tail = lst.tail
                     head match {
                         case n:IsTypeDefinition => resolveTailDefinitions(n, tail)
                         case n: ThisExpressionNode =>
@@ -171,23 +172,28 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
       */
     private def resolveTailDefinitions(container: AstNode with IsTypeDefinition, expressionsToResolve: Seq[AbstractExpression] ): Seq[AstNode] = {
 
-        def _resolveTailDefinitions(container: AstNode with IsTypeDefinition, expressionsToResolve: Seq[AbstractExpression],
+        def _resolveTailDefinitions(project: Project, container: AstNode with IsTypeDefinition, expressionsToResolve: Seq[AbstractExpression],
                                     resolvedExpressions: Seq[AstNode]): Seq[AstNode] = {
 
             if (expressionsToResolve.isEmpty) {
                 resolvedExpressions
             } else {
                 val head = expressionsToResolve.head
-                val tail = expressionsToResolve.drop(1)
-                val finder = new DescendingDefinitionFinder()
+                val tail = expressionsToResolve.tail
+                val finder = new DescendingDefinitionFinder(project)
                 finder.findDefinition(head, container).headOption match {
                     case Some(_def: IsTypeDefinition) =>
-                        _resolveTailDefinitions(_def, tail, resolvedExpressions ++ Seq(_def))
+                        _resolveTailDefinitions(project, _def, tail, resolvedExpressions ++ Seq(_def))
                     case _ =>
                         Seq.empty
                 }
             }
         }
-        _resolveTailDefinitions(container, expressionsToResolve, Seq(container))
+        getProject match {
+            case Some(project) =>
+                _resolveTailDefinitions(project, container, expressionsToResolve, Seq(container))
+            case None =>
+                Seq.empty
+        }
     }
 }

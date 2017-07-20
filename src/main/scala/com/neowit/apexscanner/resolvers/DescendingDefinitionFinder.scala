@@ -21,13 +21,14 @@
 
 package com.neowit.apexscanner.resolvers
 
+import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes._
 
 /**
   * Created by Andrey Gavrikov 
   */
-class DescendingDefinitionFinder {
+class DescendingDefinitionFinder(project: Project) {
     /**
       * try to find definition of target inside containerNode
       * target can be
@@ -70,14 +71,11 @@ class DescendingDefinitionFinder {
                                 // e.g. if container is variable definition with value type = Class
                                 _containerNode.getValueType match {
                                     case Some(typeDef) =>
-                                        containerNode.getProject match {
-                                            case Some(project) =>
-                                                project.getByQualifiedName(QualifiedName.getFullyQualifiedValueTypeName(_containerNode)) match {
-                                                    case Some(_container: IsTypeDefinition) =>
-                                                        findDefinition(target, _container)
-                                                    case _ => Seq.empty
-                                                }
-                                            case None => Seq.empty
+                                        project.getByQualifiedName(QualifiedName.getFullyQualifiedValueTypeName(_containerNode)) match {
+                                            case Some(_container: IsTypeDefinition) =>
+                                                findDefinition(target, _container)
+                                            case _ =>
+                                                Seq.empty
                                         }
 
                                     case None => Seq.empty
