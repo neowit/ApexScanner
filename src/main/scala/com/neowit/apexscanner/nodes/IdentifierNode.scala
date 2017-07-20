@@ -30,19 +30,19 @@ case class IdentifierNode(name: String, range: Range) extends AbstractExpression
     override def getDebugInfo: String = super.getDebugInfo + " " + name
 
     override protected def resolveDefinitionImpl(): Option[AstNode] = {
-        println("resolve definition of: " + name)
-        getParentInAst(skipFallThroughNodes = true) match {
-          case Some(n:ExpressionDotExpressionNode) =>
-              // this identifier is part of expression1.expression2....
-              n.getResolvedPartDefinition(this)
-          case _ =>
-              val finder = new AscendingDefinitionFinder()
-              val res = finder.findDefinition(this, this).headOption
-              res match {
-                  case resOpt @ Some(_) => resOpt
-                  case None => // finally check in global AST
-                      resolveDefinitionByQualifiedName()
-              }
+        println("resolve definition of identifier: " + name)
+        resolveDefinitionIfPartOfExprDotExpr() match {
+            case defOpt@ Some(_) =>
+                // this identifier is part of expression1.expression2....
+                defOpt
+            case _ =>
+                val finder = new AscendingDefinitionFinder()
+                val res = finder.findDefinition(this, this).headOption
+                res match {
+                    case resOpt @ Some(_) => resOpt
+                    case None => // finally check in global AST
+                        resolveDefinitionByQualifiedName()
+                }
         }
 
     }

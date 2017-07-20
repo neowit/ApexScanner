@@ -28,9 +28,16 @@ import com.neowit.apexscanner.ast.QualifiedName
   */
 trait AbstractExpression extends AstNode with HasTypeDefinition {
     override def nodeType: AstNodeType = ExpressionNodeType
+
+    protected def resolveDefinitionIfPartOfExprDotExpr(): Option[AstNode] = {
+        getParentInAst(skipFallThroughNodes = true) match {
+            case Some(n: ExpressionDotExpressionNode) =>
+                // this node is part of expression1.expression2....
+                n.getResolvedPartDefinition(this)
+            case _ => None
+        }
+    }
 }
-
-
 
 
 /**

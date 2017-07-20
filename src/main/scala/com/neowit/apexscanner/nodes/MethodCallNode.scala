@@ -45,9 +45,15 @@ case class MethodCallNode(methodName: QualifiedName, range: Range) extends Abstr
 
     override protected def resolveDefinitionImpl(): Option[AstNode] = {
         println("resolve definition of method call: " + getDebugInfo)
-        val finder = new AscendingDefinitionFinder()
-        val res = finder.findDefinition(this, this).headOption
-        res
+        resolveDefinitionIfPartOfExprDotExpr() match {
+            case defOpt@Some(_) =>
+                // this identifier is part of expression1.expression2....
+                defOpt
+            case _ =>
+                val finder = new AscendingDefinitionFinder()
+                val res = finder.findDefinition(this, this).headOption
+                res
+        }
 
     }
 
