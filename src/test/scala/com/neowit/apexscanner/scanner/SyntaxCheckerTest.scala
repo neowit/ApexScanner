@@ -1,5 +1,6 @@
 package com.neowit.apexscanner.scanner
 
+import java.io.File
 import java.nio.file.{FileSystems, Files, Path}
 
 import com.neowit.apexscanner.TestConfigProvider
@@ -7,6 +8,7 @@ import com.neowit.apexscanner.scanner.actions.SyntaxChecker
 import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
+import scala.collection.mutable
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -25,9 +27,23 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
     )
     private val ignoredDirs = Set("resources_unpacked", "Referenced Packages", "_ProjectTemplate")
 
+    private val processedKeys: mutable.HashSet[String] = new mutable.HashSet[String]()
+
+    private def recordProcessedFile(path: Path): Unit = {
+        processedKeys += getFileKey(path.toFile)
+    }
+    private def isDuplicate(path: Path): Boolean = {
+        val file = path.toFile
+        file.isFile && processedKeys.contains(getFileKey(file))
+    }
+    private def getFileKey(file: File): String = {
+        val size = file.length()
+        val key = file.getName + size
+        key
+    }
     def isIgnoredPath(path: Path): Boolean = {
         val isDirectory = Files.isDirectory(path)
-        val fileName = path.getName(path.getNameCount-1).toString
+        val fileName = path.toFile.getName
         if (isDirectory) {
             return ignoredDirs.contains(fileName)
         } else {
@@ -35,7 +51,7 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
             if (
                 (fileName.endsWith(".cls") || fileName.endsWith(".trigger"))
                 && !fileName.contains("__") // exclude classes with namespace <Namespace>__classname.cls, they do not have apex code
-                && !ignoredNames.contains(fileName)) {
+                && !ignoredNames.contains(fileName) && !isDuplicate(path)) {
                 return false // not ignored file
             }
         }
@@ -49,6 +65,7 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
 
         def onFileCheckResult(scanResult: FileScanResult):Unit = {
             val file: Path = scanResult.document.file
+            recordProcessedFile(file)
             val errors = scanResult.errors
             val fileName = file.getName(file.getNameCount-1).toString
             fileNameSetBuilder += fileName
