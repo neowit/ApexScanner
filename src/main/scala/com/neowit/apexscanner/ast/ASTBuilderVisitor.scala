@@ -199,9 +199,19 @@ class ASTBuilderVisitor(project: Project, documentOpt: Option[VirtualDocument]) 
         visitChildren(MethodHeaderNode(Range(ctx)), ctx)
     }
 
-    override def visitMethodName(ctx: MethodNameContext): AstNode = {
+    override def visitDefinedMethodName(ctx: DefinedMethodNameContext): AstNode = {
         MethodNameNode(ctx.Identifier().getText, Range(ctx))
     }
+
+    override def visitCalledMethodName(ctx: CalledMethodNameContext): AstNode = {
+        MethodNameNode(ctx.func.getText, Range(ctx))
+    }
+
+    /*
+    override def visitMethodName(ctx: CalledMethodNameContext): AstNode = {
+        MethodNameNode(ctx.Identifier().getText, Range(ctx))
+    }
+    */
 
     override def visitMethodParameter(ctx: MethodParameterContext): AstNode = {
         val methodParameterNode = MethodParameterNode(ctx.methodParameterName().getText, Range(ctx))
