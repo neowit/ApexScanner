@@ -24,6 +24,15 @@ package com.neowit.apexscanner.nodes
 /**
   * Created by Andrey Gavrikov 
   */
-case class MethodNameNode(name: String, range: Range) extends AstNode {
+case class MethodNameNode(name: String, range: Range) extends AstNode with HasTypeDefinition {
     override def nodeType: AstNodeType = MethodNameNodeType
+
+    override protected def resolveDefinitionImpl(): Option[AstNode] = {
+        getParentInAst(true) match {
+            case Some(n: MethodCallNode) =>
+                n.resolveDefinition()
+            case _ =>
+                None
+        }
+    }
 }

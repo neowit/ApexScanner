@@ -63,6 +63,7 @@ class AscendingDefinitionFinder() {
               //targetNode.resolveDefinition()
               targetNode.resolveDefinition().map(Seq(_)).getOrElse(Seq.empty)
           case Some(targetNode)=>
+              println("AscendingDefinitionFinder: " + targetNode)
               // TODO - make sure we do not need this
               //findDefinition(targetNode, targetNode)
               throw new NotImplementedError("Handling of node without HasTypeDefinition is not implemented and should not be needed")
@@ -72,8 +73,8 @@ class AscendingDefinitionFinder() {
     }
 
     def findDefinition(target: AstNode, startNode: AstNode): Seq[AstNode] = {
-        target.getParentInAst(skipFallThroughNodes = true) match {
-            case Some(methodCaller: MethodCallNode) =>
+        target match {
+            case methodCaller: MethodCallNode =>
                 // looks like target is a method call
                 // try to resolve call parameter types first
                 //val paramTypes = resolveMethodCallParameters(methodCaller)
@@ -81,29 +82,26 @@ class AscendingDefinitionFinder() {
                 methodCaller.setResolvedParameterTypes(paramTypes)
                 val matchFunc = methodMatchFunc(methodCaller)
                 findDefinitionInternal(target, methodCaller.methodName, startNode, matchFunc, Seq.empty)
+            case t:IdentifierNode =>
+                val targetName = QualifiedName(Array(t.name))
+                // assume variable
+                val matchFunc = variableMatchFunc(targetName)
+                findDefinitionInternal(target, targetName, startNode, matchFunc, Seq.empty)
+            case t:DataTypeNodeGeneric =>
+                val targetName = t.qualifiedNameNode.qualifiedName
+                // assume variable
+                val matchFunc = variableMatchFunc(targetName)
+                findDefinitionInternal(target, targetName, startNode, matchFunc, Seq.empty)
+            case t:FallThroughNode =>
+                //TODO - given an expression (e.g. method parameter) - resolve its final type
+                // maybe FallThroughNode is not the best type here
+                //resolveExpressionType(t)
+                ???
+
             case _ =>
-                target match {
-                    case t:IdentifierNode =>
-                        val targetName = QualifiedName(Array(t.name))
-                        // assume variable
-                        val matchFunc = variableMatchFunc(targetName)
-                        findDefinitionInternal(target, targetName, startNode, matchFunc, Seq.empty)
-                    case t:DataTypeNodeGeneric =>
-                        val targetName = t.qualifiedNameNode.qualifiedName
-                        // assume variable
-                        val matchFunc = variableMatchFunc(targetName)
-                        findDefinitionInternal(target, targetName, startNode, matchFunc, Seq.empty)
-                    case t:FallThroughNode =>
-                        //TODO - given an expression (e.g. method parameter) - resolve its final type
-                        // maybe FallThroughNode is not the best type here
-                        //resolveExpressionType(t)
-                        ???
-
-                    case _ =>
-                        Seq.empty
-                }
-
+                Seq.empty
         }
+
     }
 
     /**
