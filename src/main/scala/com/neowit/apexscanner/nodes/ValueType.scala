@@ -63,14 +63,14 @@ case class ValueTypeClass(qualifiedName: QualifiedName) extends ValueType {
     override def typeArguments: Seq[ValueType] = Seq.empty
 
     override def toString: String = {
-        "class" + qualifiedName
+        "class: " + qualifiedName
     }
 }
 case class ValueTypeInterface(qualifiedName: QualifiedName) extends ValueType {
     override def typeArguments: Seq[ValueType] = Seq.empty
 
     override def toString: String = {
-        "interface" + qualifiedName
+        "interface: " + qualifiedName
     }
 }
 
@@ -78,7 +78,7 @@ case class ValueTypeTrigger(qualifiedName: QualifiedName) extends ValueType {
     override def typeArguments: Seq[ValueType] = Seq.empty
 
     override def toString: String = {
-        "trigger" + qualifiedName
+        "trigger: " + qualifiedName
     }
 }
 
@@ -86,7 +86,7 @@ case class ValueTypeEnum(qualifiedName: QualifiedName) extends ValueType {
     override def typeArguments: Seq[ValueType] = Seq.empty
 
     override def toString: String = {
-        "enum" + qualifiedName
+        "enum: " + qualifiedName
     }
 }
 
@@ -94,7 +94,7 @@ case class ValueTypeEnumConstant(qualifiedName: QualifiedName) extends ValueType
     override def typeArguments: Seq[ValueType] = Seq.empty
 
     override def toString: String = {
-        "enum" + qualifiedName
+        "enum constant: " + qualifiedName
     }
 }
 
