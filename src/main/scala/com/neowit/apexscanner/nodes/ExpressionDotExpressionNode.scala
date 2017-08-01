@@ -63,7 +63,11 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
             case _ => false
         }.map(_.asInstanceOf[AbstractExpression])
 
-        val res = expressions.foldLeft(Seq.empty[AbstractExpression])(_ ++ unpack(_))
+        val resUnordered = expressions.foldLeft(Seq.empty[AbstractExpression])(_ ++ unpack(_))
+        // due to nested FallThrough expressions nodes obtained above may be in the wrong logical order,
+        // i.e. not in the order they appear in the document
+        // make sure that expressions are returned in the same order as they appear in the document
+        val res = resUnordered.sortBy(_.range.start)
         res
     }
     /**

@@ -24,7 +24,7 @@ package com.neowit.apexscanner.nodes
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.RuleNode
 
-case class Position(line: Int, col: Int) {
+case class Position(line: Int, col: Int) extends Ordered[Position]{
     def isBefore(p: Position): Boolean = {
         isBefore(p.line, p.col)
     }
@@ -39,6 +39,16 @@ case class Position(line: Int, col: Int) {
         val lines = this.line - p.line
         val cols = this.col - p.col
         Distance(lines, cols)
+    }
+
+    override def compare(that: Position): Int = {
+        if (this.isBefore(that)) {
+            -1
+        } else if (this == that) {
+            0
+        } else {
+            1
+        }
     }
 }
 case class Distance(lines: Int, cols: Int)
