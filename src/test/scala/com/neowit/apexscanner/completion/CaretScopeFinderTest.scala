@@ -385,6 +385,106 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
 
     }
 
+    test("testFindCaretScope: String literal - `''.<CARET>`") {
+        val text =
+            """
+              |class CompletionTester {
+              | public void testCompletion() {
+              |     ''.<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = findCaretScope(text, "ignored", loadStdLib = true).futureValue
+        result match {
+            case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
+                assert(typeDefinition.getValueType.isDefined, "Value type not found")
+                val valueType = typeDefinition.getValueType.get
+                assert(QualifiedName(Array("System", "String")).couldBeMatch(valueType.qualifiedName), "Expected String, actual: " + valueType.qualifiedName)
+            case _ =>
+                assert(false, "Failed to identify caret type. Expected 'String'")
+        }
+    }
+
+    test("testFindCaretScope: Decimal literal - `1.23.<CARET>`") {
+        val text =
+            """
+              |class CompletionTester {
+              | public void testCompletion() {
+              |     1.23.<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = findCaretScope(text, "ignored", loadStdLib = true).futureValue
+        result match {
+            case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
+                assert(typeDefinition.getValueType.isDefined, "Value type not found")
+                val valueType = typeDefinition.getValueType.get
+                assert(QualifiedName(Array("System", "Decimal")).couldBeMatch(valueType.qualifiedName), "Expected Decimal, actual: " + valueType.qualifiedName)
+            case _ =>
+                assert(false, "Failed to identify caret type. Expected 'Decimal'")
+        }
+    }
+
+    test("testFindCaretScope: Integer literal - `123.<CARET>`") {
+        val text =
+            """
+              |class CompletionTester {
+              | public void testCompletion() {
+              |     123.<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = findCaretScope(text, "ignored", loadStdLib = true).futureValue
+        result match {
+            case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
+                assert(typeDefinition.getValueType.isDefined, "Value type not found")
+                val valueType = typeDefinition.getValueType.get
+                assert(QualifiedName(Array("System", "Integer")).couldBeMatch(valueType.qualifiedName), "Expected Integer, actual: " + valueType.qualifiedName)
+            case _ =>
+                assert(false, "Failed to identify caret type. Expected 'Integer'")
+        }
+    }
+
+    test("testFindCaretScope: Long literal - `123L.<CARET>`") {
+        val text =
+            """
+              |class CompletionTester {
+              | public void testCompletion() {
+              |     123L.<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = findCaretScope(text, "ignored", loadStdLib = true).futureValue
+        result match {
+            case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
+                assert(typeDefinition.getValueType.isDefined, "Value type not found")
+                val valueType = typeDefinition.getValueType.get
+                assert(QualifiedName(Array("System", "Long")).couldBeMatch(valueType.qualifiedName), "Expected Long, actual: " + valueType.qualifiedName)
+            case _ =>
+                assert(false, "Failed to identify caret type. Expected 'Long'")
+        }
+    }
+
+    test("testFindCaretScope: Long literal methods - `123L.intValue().<CARET>`") {
+        val text =
+            """
+              |class CompletionTester {
+              | public void testCompletion() {
+              |     123L.intValue().<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = findCaretScope(text, "ignored", loadStdLib = true).futureValue
+        result match {
+            case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
+                assert(typeDefinition.getValueType.isDefined, "Value type not found")
+                val valueType = typeDefinition.getValueType.get
+                assert(QualifiedName(Array("System", "Integer")).couldBeMatch(valueType.qualifiedName), "Expected Integer, actual: " + valueType.qualifiedName)
+            case _ =>
+                assert(false, "Failed to identify caret type. Expected 'Integer'")
+        }
+    }
+
     test("testCollectCandidates") {
 
     }

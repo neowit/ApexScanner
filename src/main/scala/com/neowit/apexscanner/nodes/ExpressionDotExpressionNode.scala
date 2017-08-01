@@ -130,6 +130,13 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
                                 case _ =>
                                     Seq.empty
                             }
+                        case n @ LiteralNode(_, _, _) =>
+                            n.resolveDefinition() match {
+                                case Some(_def: IsTypeDefinition) =>
+                                    resolveTailDefinitions(_def, tail)
+                                case _ =>
+                                    Seq.empty
+                            }
                         case n =>
                             //head of expression has not been resolved yet, find its definition going UPwards
                             val finder = new AscendingDefinitionFinder()
