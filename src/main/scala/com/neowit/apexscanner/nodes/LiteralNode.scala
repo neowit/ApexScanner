@@ -47,12 +47,16 @@ case class LiteralNode(literalType: Int, valueTerminal: TerminalNode, range: Ran
     def value: String = valueTerminal.getText
 
     override protected def resolveDefinitionImpl(): Option[AstNode] = {
+        getProject.flatMap(_.getByQualifiedName(getStandardNamespace(literalType)))
+        /*
         val stdLibOpt = getProject.map(_.getStandardLibrary)
         stdLibOpt match {
-          case Some(stdLib) => stdLib.findChild(getStandardNamespace(literalType))
+          case Some(stdLib) =>
+              stdLib.findChild(getStandardNamespace(literalType))
 
           case None => None
         }
+        */
     }
 
 }
