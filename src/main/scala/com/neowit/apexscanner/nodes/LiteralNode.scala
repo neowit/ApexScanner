@@ -32,6 +32,7 @@ object LiteralNode {
     private def getStandardNamespace(literalType: Int): QualifiedName = {
         literalType match {
             case IntegerLiteral => QualifiedName(Array("System", "Integer"))
+            case LongLiteral => QualifiedName(Array("System", "Long"))
             case StringLiteral => QualifiedName(Array("System", "String"))
             case FloatingPointLiteral => QualifiedName(Array("System", "Decimal"))
             case BooleanLiteral => QualifiedName(Array("System", "Boolean"))

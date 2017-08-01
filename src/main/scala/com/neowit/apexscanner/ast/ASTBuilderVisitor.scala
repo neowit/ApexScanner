@@ -290,6 +290,10 @@ class ASTBuilderVisitor(project: Project, documentOpt: Option[VirtualDocument]) 
         LiteralNode(IntegerLiteral, ctx.IntegerLiteral(), Range(ctx))
     }
 
+    override def visitLongLiteral(ctx: LongLiteralContext): AstNode = {
+        LiteralNode(LongLiteral, ctx.LongLiteral(), Range(ctx))
+    }
+
     override def visitFpLiteral(ctx: FpLiteralContext): AstNode = {
         LiteralNode(FloatingPointLiteral, ctx.FloatingPointLiteral(), Range(ctx))
     }
