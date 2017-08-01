@@ -38,16 +38,17 @@ class InitializeHandler extends MessageHandler with MessageJsonSupport {
                     json.as[InitializeParams]  match {
                         case Right(params) =>
                             // initialise project
-                            server.initialiseProject(params)
+                            server.initialiseProject(params).map{_ =>
+                                val serverCapabilities = ServerCapabilities()
+                                Right(ResponseMessage(messageIn.id, result = Option(Map("capabilities" -> serverCapabilities.asJson).asJson), error = None))
+                            }
 
-                            val serverCapabilities = ServerCapabilities()
-                            Right(ResponseMessage(messageIn.id, result = Option(Map("capabilities" -> serverCapabilities.asJson).asJson), error = None))
                         case Left(err) =>
-                            Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Error: $err"))
+                            Future.successful(Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Error: $err")))
                     }
                 case None =>
-                    Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Missing params."))
+                    Future.successful(Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Missing params.")))
             }
-        Future.successful(result)
+        result
     }
 }

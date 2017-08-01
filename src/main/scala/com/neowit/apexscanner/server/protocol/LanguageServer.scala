@@ -44,12 +44,15 @@ trait LanguageServer extends LazyLogging {
 
     def sendNotification(notification: NotificationMessage): Unit
 
-    def initialiseProject(params: InitializeParams): Unit = {
+    def initialiseProject(params: InitializeParams): Future[Option[Project]] = Future {
         params.rootUri.path match {
             case Some(path) =>
                 val project = Project(path)
                 _projectByPath += path -> project
+                project.getStandardLibrary
+                Option(project)
             case None =>
+                None
         }
     }
 
