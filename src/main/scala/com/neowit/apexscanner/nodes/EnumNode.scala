@@ -34,11 +34,6 @@ case class EnumNode(range: Range ) extends ClassLike {
 
     override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
 
-    /**
-      * find container of current class/interface
-      */
-    override def parentClassOrInterface: Option[ClassLike] = None
-
     override def extendsNode: Option[ExtendsNode] = None
 
     /**
