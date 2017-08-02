@@ -21,6 +21,7 @@
 
 package com.neowit.apexscanner.nodes
 
+import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.symbols.{Symbol, SymbolKind}
 
 case class EnumNode(range: Range ) extends ClassLike {
@@ -64,15 +65,18 @@ object EnumNode {
       */
     def addStandardMethods(node: EnumNode): Unit = {
         //values(): List<Enum-Type>
-        node.addChildToAst(
-            MethodNode.createMethodNode(
-                methodName = "values",
-                methodIsStatic = false,
-                methodIsAbstract = false,
-                methodReturnType = node.getValueType.getOrElse(ValueTypeVoid),
-                parameterTypes = Array.empty,
-                methodApexDoc = Option("This method returns the values of the Enum as a list of the same Enum type.")
-            ))
+        node.getValueType.map(valueType =>
+            node.addChildToAst(
+                MethodNode.createMethodNode(
+                    methodName = "values",
+                    methodIsStatic = false,
+                    methodIsAbstract = false,
+                    methodReturnType = ValueTypeComplex(QualifiedName(Array("List")), Seq(valueType)),
+                    parameterTypes = Array.empty,
+                    methodApexDoc = Option("This method returns the values of the Enum as a list of the same Enum type.")
+                ))
+
+        )
         ()
     }
 }
