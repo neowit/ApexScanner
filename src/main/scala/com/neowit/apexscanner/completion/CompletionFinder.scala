@@ -154,6 +154,7 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
             case ValueTypeInterface(qualifiedName) => getSymbolsOf(qualifiedName)
             case ValueTypeTrigger(qualifiedName) => getSymbolsOf(qualifiedName)
             case ValueTypeEnum(qualifiedName) => getSymbolsOf(qualifiedName)
+            case ValueTypeEnumConstant(qualifiedName) => getSymbolsOf(qualifiedName)
             case ValueTypeArray(qualifiedNameNode) => ???
             case ValueTypeVoid => Seq.empty
             case ValueTypeAny => ???
