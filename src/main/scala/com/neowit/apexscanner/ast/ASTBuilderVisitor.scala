@@ -108,9 +108,6 @@ class ASTBuilderVisitor(project: Project, documentOpt: Option[VirtualDocument]) 
 
     override def visitEnumDef(ctx: EnumDefContext): AstNode = {
         val enumNode = EnumNode(Range(ctx))
-        // add standard ENUM method
-        EnumNode.addStandardMethods(enumNode)
-
         visitChildren(enumNode, ctx)
 
         _classLikeListBuilder += enumNode

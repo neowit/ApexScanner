@@ -24,7 +24,7 @@ package com.neowit.apexscanner.ast
 import java.nio.file.{FileSystems, Path}
 
 import com.neowit.apexscanner.{FileBasedDocument, Project, VirtualDocument}
-import com.neowit.apexscanner.nodes.AstNode
+import com.neowit.apexscanner.nodes.{AstNode, EnumNode}
 import com.neowit.apexscanner.scanner.actions.SyntaxChecker
 import com.neowit.apexscanner.scanner.{FileScanResult, Scanner}
 import org.antlr.v4.runtime.atn.PredictionMode
@@ -70,6 +70,13 @@ class AstBuilder(project: Project) {
         fileNameCache += sourceDocument.getFileName.toString -> sourceDocument
         // record all ClassLike nodes in project
         visitor.getClassLikeNodes.foreach(project.addByQualifiedName(_))
+
+        // add standard ENUM method - have to do it here because need to make sure that full parent/child hierarchy is already in place
+        visitor.getClassLikeNodes.filter(_.isInstanceOf[EnumNode])
+            .foreach{
+                case enumNode: EnumNode => EnumNode.addStandardMethods(enumNode)
+            }
+
     }
     private def getDocument(fileName: String): Option[VirtualDocument] = {
         fileNameCache.result().get(fileName)
