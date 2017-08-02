@@ -93,6 +93,10 @@ class StdlibJsonVisitor(project: Project) extends StdlibJsonBaseVisitor[AstNode]
             val m = visitApexApiJsonMethod(n)
             enum.addChildToAst(m)
         }
+
+        // add standard ENUM method
+        EnumNode.addStandardMethods(enum)
+
         context.properties.foreach{n =>
             val m = visitApexApiJsonEnumConstant(n)
             enum.addChildToAst(m)
@@ -149,6 +153,7 @@ class StdlibJsonVisitor(project: Project) extends StdlibJsonBaseVisitor[AstNode]
     }
     def visitApexApiJsonEnumConstant(context: ApexApiJsonProperty): AstNode = {
         val node = EnumConstantNode(context.name, Range.INVALID_LOCATION)
+        EnumConstantNode.addStandardMethods(node)
         node
     }
 

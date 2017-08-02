@@ -63,3 +63,40 @@ case class EnumConstantNode (constantName: String, range: Range) extends Variabl
 
     override def parentSymbol: Option[Symbol] = Option(getClassOrInterfaceNode)
 }
+
+object EnumConstantNode {
+    /**
+      * add standard ENUM property methods
+      * @param node parent node
+      */
+    def addStandardMethods(node: EnumConstantNode): Unit = {
+
+        val qNameString = QualifiedName(Array("System", "String"))
+        val qNameInteger = QualifiedName(Array("System", "Integer"))
+
+        // name(): String
+        node.addChildToAst(
+            MethodNode.createMethodNode(
+                methodName = "name",
+                methodIsStatic = false,
+                methodIsAbstract = false,
+                methodReturnType = ValueTypeSimple(qNameString),
+                parameterTypes = Array.empty,
+                methodApexDoc = Option("Returns the name of the Enum item as a String.")
+            ))
+
+        // ordinal(): Integer
+        node.addChildToAst(
+            MethodNode.createMethodNode(
+                methodName = "ordinal",
+                methodIsStatic = false,
+                methodIsAbstract = false,
+                methodReturnType = ValueTypeSimple(qNameInteger),
+                parameterTypes = Array.empty,
+                methodApexDoc = Option("Returns the position of the item, as an Integer, in the list of Enum values starting with zero.")
+            ))
+
+        // add equals(Object) and hashCode()
+        MethodNode.addStandardMethods(node)
+    }
+}

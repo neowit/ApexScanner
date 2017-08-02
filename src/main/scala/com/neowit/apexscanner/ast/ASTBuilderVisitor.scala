@@ -108,6 +108,9 @@ class ASTBuilderVisitor(project: Project, documentOpt: Option[VirtualDocument]) 
 
     override def visitEnumDef(ctx: EnumDefContext): AstNode = {
         val enumNode = EnumNode(Range(ctx))
+        // add standard ENUM method
+        EnumNode.addStandardMethods(enumNode)
+
         visitChildren(enumNode, ctx)
 
         _classLikeListBuilder += enumNode
@@ -116,7 +119,9 @@ class ASTBuilderVisitor(project: Project, documentOpt: Option[VirtualDocument]) 
 
     override def visitEnumConstant(ctx: EnumConstantContext): AstNode = {
         if (null != ctx.Identifier()) {
-            EnumConstantNode(ctx.Identifier().getSymbol.getText, Range(ctx))
+            val node = EnumConstantNode(ctx.Identifier().getSymbol.getText, Range(ctx))
+            EnumConstantNode.addStandardMethods(node)
+            node
         } else {
             NullNode
         }

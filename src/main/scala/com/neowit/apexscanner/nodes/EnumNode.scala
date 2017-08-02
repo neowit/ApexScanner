@@ -61,3 +61,23 @@ case class EnumNode(range: Range ) extends ClassLike {
         symbols
     }
 }
+
+object EnumNode {
+    /**
+      * add standard ENUM method - values()
+      * @param node parent node
+      */
+    def addStandardMethods(node: EnumNode): Unit = {
+        //values(): List<Enum-Type>
+        node.addChildToAst(
+            MethodNode.createMethodNode(
+                methodName = "values",
+                methodIsStatic = false,
+                methodIsAbstract = false,
+                methodReturnType = node.getValueType.getOrElse(ValueTypeVoid),
+                parameterTypes = Array.empty,
+                methodApexDoc = Option("This method returns the values of the Enum as a list of the same Enum type.")
+            ))
+        ()
+    }
+}
