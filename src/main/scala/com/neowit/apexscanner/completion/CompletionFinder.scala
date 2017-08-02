@@ -148,7 +148,7 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
 
     private def getValueTypeMembers(valueType: ValueType): Seq[Symbol] = {
         valueType match {
-            case ValueTypeComplex(qualifiedName, typeArguments) => ???
+            case ValueTypeComplex(qualifiedName, typeArguments) => getSymbolsOf(qualifiedName)
             case ValueTypeSimple(qualifiedName) => getSymbolsOf(qualifiedName)
             case ValueTypeClass(qualifiedName) => getSymbolsOf(qualifiedName) //TODO - is this ever used ?
             case ValueTypeInterface(qualifiedName) => getSymbolsOf(qualifiedName)
