@@ -161,7 +161,8 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
     }
     private def getSymbolsOf(qualifiedName: QualifiedName): Seq[Symbol] = {
         project.getByQualifiedName(qualifiedName) match {
-            case Some(node) => node.findChildrenInAst(_.isSymbol).map(_.asInstanceOf[ClassOrInterfaceBodyMember])
+            case Some(node) =>
+                node.findChildrenInAst(_.isSymbol).map(_.asInstanceOf[com.neowit.apexscanner.symbols.Symbol])
             case None => Seq.empty
         }
 
