@@ -114,6 +114,14 @@ class ASTBuilderVisitor(project: Project, documentOpt: Option[VirtualDocument]) 
         enumNode
     }
 
+    override def visitEnumConstant(ctx: EnumConstantContext): AstNode = {
+        if (null != ctx.Identifier()) {
+            EnumConstantNode(ctx.Identifier().getSymbol.getText, Range(ctx))
+        } else {
+            NullNode
+        }
+    }
+
     override def visitClassName(ctx: ClassNameContext): AstNode = {
         IdentifierNode(ctx.getText, Range(ctx))
     }
