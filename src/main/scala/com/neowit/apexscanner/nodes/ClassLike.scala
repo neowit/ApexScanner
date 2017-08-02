@@ -76,8 +76,10 @@ trait ClassLike extends AstNode with HasApexDoc with IsTypeDefinition with Symbo
         val thisNameComponents = name.map(Array(_)).getOrElse(Array.empty[String])
         val thisName = QualifiedName(thisNameComponents)
         parentClassOrInterface match {
-          case Some(parent) => QualifiedName.fromOptions(parent.qualifiedName, Option(thisName))
-          case None => Option(thisName)
+          case Some(parent) =>
+              QualifiedName.fromOptions(parent.qualifiedName, Option(thisName))
+          case None =>
+              Option(thisName)
         }
     }
 
