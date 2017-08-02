@@ -498,7 +498,7 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
         val result = findCaretScope(text, "testFindCaretScope").futureValue
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
-                assertResult(Some("SEASONS"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName.getFirstComponent))
+                assertResult(Some("SEASONS"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName.getLastComponent))
             case _ =>
                 assert(false, "Failed to identify caret type. Expected 'Opportunity'")
         }
@@ -517,9 +517,28 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
         val result = findCaretScope(text, "testFindCaretScope").futureValue
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
-                assertResult(Some("SEASONS"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName.getFirstComponent))
+                assertResult(Some("Summer"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName.getLastComponent))
             case _ =>
                 assert(false, "Failed to identify caret type. Expected 'Opportunity'")
+        }
+    }
+
+    test("testFindCaretScope: enum values - `SEASONS.Summer.ordinal().<CARET>`") {
+        val text =
+            """
+              |class CompletionTester {
+              | enum SEASONS {Spring, Winter, Summer, Autumn}
+              | public void testCompletion() {
+              |     SEASONS.Summer.ordinal().<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = findCaretScope(text, "testFindCaretScope").futureValue
+        result match {
+            case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
+                assertResult(Some("Integer"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName.getLastComponent))
+            case _ =>
+                assert(false, "Failed to identify caret type. Expected 'Integer'")
         }
     }
 
