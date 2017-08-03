@@ -25,9 +25,7 @@ package com.neowit.apexscanner.stdlib.impl
 import java.io.File
 
 import com.neowit.apexscanner.Project
-import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.extlib.CodeLibrary
-import com.neowit.apexscanner.nodes.AstNode
 import io.circe.jawn._
 
 
@@ -37,13 +35,12 @@ import io.circe.jawn._
 object StdlibLocal {
     def apply(project: Project, fileOpt: Option[File] = None): CodeLibrary = {
         val lib = new StdlibLocal(project, fileOpt)
-        lib.load(project)
+        //lib.load(project)
         lib
     }
 }
 
 private class StdlibLocal(project: Project, fileOpt: Option[File] = None) extends CodeLibrary with StdlibLocalJsonSupport {
-    private var _apexAPI: Option[ApexApiJson] = None
     private var _isLoaded = false
 
 
@@ -51,35 +48,17 @@ private class StdlibLocal(project: Project, fileOpt: Option[File] = None) extend
 
     override def isLoaded: Boolean = _isLoaded
 
-    def find(name: QualifiedName): Option[AstNode] = {
-        println("Checking StdLib type: " + name)
-        if (!isLoaded) {
-            load(project)
-        }
-        //TODO - implement StdLib nodes
-        _apexAPI match {
-            case Some(api) =>
-                //TODO - resolve name step by step
-                //api.publicDeclarations.get()
-            case None => throw new IllegalStateException("Standard Apex library is not loaded. Call StdlibLocal.load() first")
-        }
-        None
-    }
-
     def load(project: Project): CodeLibrary = {
         if (!isLoaded) {
             val file = getSourceFile
             decodeFile[ApexApiJson](file) match {
                 case Left(failure) => throw new IllegalArgumentException("Failed to parse file: '" + file.getPath + "'; " + failure.getMessage)
                 case Right(apexAPI) =>
-                    val visitor = new StdlibJsonVisitor(project)
+                    val visitor = new StdlibJsonVisitor(this)
                     visitor.visit(apexAPI)
-                    _apexAPI = Option(apexAPI)
-                //println(apexAPI.publicDeclarations.keys)
             }
             _isLoaded = true
         }
-        //TODO visit resulting JSON Nodes and build proper AST
         this
     }
 

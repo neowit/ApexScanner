@@ -34,7 +34,6 @@ trait CodeLibrary {
     def getName: String
 
     def load(project: Project): CodeLibrary
-    def find(qualifiedName: QualifiedName): Option[AstNode]
     def isLoaded: Boolean
 
     private val _containerByQName = new mutable.HashMap[QualifiedName, AstNode with HasQualifiedName]()

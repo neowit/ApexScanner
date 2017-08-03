@@ -23,28 +23,28 @@ package com.neowit.apexscanner.stdlib.impl
 
 import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeParser}
 import com.neowit.apexscanner.ast.ASTBuilderVisitor
-import com.neowit.apexscanner.Project
+import com.neowit.apexscanner.extlib.CodeLibrary
 import com.neowit.apexscanner.nodes.{AstNode, ClassNode, DataTypeNode, DocNode, EnumConstantNode, EnumNode, IdentifierNode, MethodNodeBase, MethodParameterNode, NamespaceNode, Range, ValueType}
 import com.typesafe.scalalogging.LazyLogging
 
 /**
   * Created by Andrey Gavrikov 
   */
-class StdlibJsonVisitor(project: Project) extends StdlibJsonBaseVisitor[AstNode] with LazyLogging {
-    val astBuilderVisitor = new ASTBuilderVisitor(project, documentOpt = None)
+class StdlibJsonVisitor(lib: CodeLibrary) extends StdlibJsonBaseVisitor[AstNode] with LazyLogging {
+    val astBuilderVisitor = new ASTBuilderVisitor(projectOpt = None, documentOpt = None)
 
     /**
       * this is the main method which should be called after Apex API JSON file is parsed
       * @param apexApiJson root node of Apex API definition
       * @return
       */
-    def visit(apexApiJson: ApexApiJson): Project = {
+    def visit(apexApiJson: ApexApiJson): CodeLibrary = {
         apexApiJson.publicDeclarations.foreach{
             case (name, jsonNamespace) =>
                 val namespace = visitApexApiJsonNamespace(name, jsonNamespace)
-                project.addByQualifiedName(namespace.asInstanceOf[NamespaceNode])
+                lib.addByQualifiedName(namespace.asInstanceOf[NamespaceNode])
         }
-        project
+        lib
     }
 
     override def visitApexApiJsonNamespace(name: String, context: ApexApiJsonNamespace): AstNode = {
@@ -61,7 +61,7 @@ class StdlibJsonVisitor(project: Project) extends StdlibJsonBaseVisitor[AstNode]
                 val clsNode = visitApexApiJsonClass(clsName, cls)
                 //logger.debug(clsNode.toString)
                 namespace.addChildToAst(clsNode)
-                project.addByQualifiedName(clsNode.asInstanceOf[ClassNode])
+                lib.addByQualifiedName(clsNode.asInstanceOf[ClassNode])
         }
         namespace
     }

@@ -21,13 +21,13 @@
 
 package com.neowit.apexscanner.stdlib.impl
 
-import com.neowit.apexscanner.Project
+import com.neowit.apexscanner.extlib.CodeLibrary
 
 /**
   * Created by Andrey Gavrikov 
   */
 trait StdlibJsonBaseVisitor[T] {
-    def visit(context: ApexApiJson): Project
+    def visit(context: ApexApiJson): CodeLibrary
     def visitApexApiJsonNamespace(name: String, context: ApexApiJsonNamespace): T
     def visitApexApiJsonClass(name: String, context: ApexApiJsonClass): T
     def visitApexApiJsonProperty(context: ApexApiJsonProperty): T

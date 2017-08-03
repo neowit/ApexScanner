@@ -36,7 +36,7 @@ import scala.concurrent.Future
   * Created by Andrey Gavrikov 
   */
 class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstNode) {
-    private val _visitor = new ASTBuilderVisitor(project, documentOpt = None)
+    private val _visitor = new ASTBuilderVisitor(projectOpt = None, documentOpt = None)
 
     def resolveContext(context: ParseTree, tokens: TokenStream): Future[Option[IsTypeDefinition]] = {
         context match {

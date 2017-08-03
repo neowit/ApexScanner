@@ -28,7 +28,7 @@ import com.neowit.apexscanner.nodes._
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.{RuleNode, TerminalNode}
 
-class ASTBuilderVisitor(project: Project, documentOpt: Option[VirtualDocument]) extends ApexcodeBaseVisitor[AstNode] {
+class ASTBuilderVisitor(projectOpt: Option[Project], documentOpt: Option[VirtualDocument]) extends ApexcodeBaseVisitor[AstNode] {
     private val _classLikeListBuilder = List.newBuilder[ClassLike]
     def getClassLikeNodes: List[ClassLike] = _classLikeListBuilder.result()
 
@@ -66,7 +66,12 @@ class ASTBuilderVisitor(project: Project, documentOpt: Option[VirtualDocument]) 
     override def visitCompilationUnit(ctx: CompilationUnitContext): AstNode = {
         documentOpt match {
             case Some(document) =>
-                visitChildren(FileNode(project, document.file, Range(ctx)), ctx)
+                projectOpt match {
+                    case Some(project) =>
+                        visitChildren(FileNode(project, document.file, Range(ctx)), ctx)
+                    case None =>
+                        throw new IllegalArgumentException("When parsing whole file - Project must be provided.")
+                }
             case None =>
                 throw new IllegalArgumentException("fileOpt parameter of ASTBuilderVisitor must be defined when using visitor with CompilationUnitContext ")
         }

@@ -117,8 +117,6 @@ case class Project(path: Path)(implicit ex: ExecutionContext) extends CodeLibrar
 
     override def load(project: Project): CodeLibrary = this
 
-    override def find(qualifiedName: QualifiedName): Option[AstNode] = getByQualifiedName(qualifiedName)
-
     override def isLoaded: Boolean = true
 
     override def getByQualifiedName(qualifiedName: QualifiedName): Option[AstNode] = {
@@ -132,7 +130,11 @@ case class Project(path: Path)(implicit ex: ExecutionContext) extends CodeLibrar
         val stdLib =
             getExternalLibraries.find(_.getName == "StdLib") match {
                 case Some(_stdLib) => _stdLib
-                case None => StdlibLocal(this)
+                case None =>
+                    val lib = StdlibLocal(this)
+                    // looks like caller forgot to add StdLib to external libraries - add StdLib explicitly
+                    addExternalLibrary(lib)
+                    lib
             }
         stdLib.load(this)
     }
@@ -142,7 +144,7 @@ case class Project(path: Path)(implicit ex: ExecutionContext) extends CodeLibrar
             if (!lib.isLoaded) {
                 lib.load(this)
             }
-            lib.find(qualifiedName) match {
+            lib.getByQualifiedName(qualifiedName) match {
                 case Some(node) => return Option(node)
                 case None =>
             }
