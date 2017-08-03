@@ -27,8 +27,14 @@
         -->
         <!-- control if/when log to STDOUT is allowed -->
         <filter class="com.neowit.apexscanner.LogbackStdOutFilter" />
+        <!--
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36}.%M \(%L\) - %msg%n</pattern>
+        </encoder>
+        -->
+        <encoder>
+            <!-- https://logback.qos.ch/manual/layouts.html#conversionWord -->
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36}[%line] => %msg%n %ex</pattern>
         </encoder>
     </appender>
 
@@ -36,7 +42,7 @@
         <file>${log.path:-apexscanner.log}</file>
         <append>true</append>
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36}.%M %L - %msg%n %ex</pattern>
         </encoder>
     </appender>
 
