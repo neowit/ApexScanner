@@ -49,7 +49,7 @@ trait LanguageServer extends LazyLogging {
             case Some(path) =>
                 val project = Project(path)
                 _projectByPath += path -> project
-                project.getStandardLibrary
+                project.loadStdLib
                 Option(project)
             case None =>
                 None

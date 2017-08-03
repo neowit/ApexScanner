@@ -25,9 +25,9 @@ import java.io.File
 import java.nio.file._
 
 import com.neowit.apexscanner.ast.{AstBuilder, AstBuilderResult, QualifiedName}
-import com.neowit.apexscanner.nodes.{AstNode, HasQualifiedName, NamespaceNode}
+import com.neowit.apexscanner.extlib.CodeLibrary
+import com.neowit.apexscanner.nodes.AstNode
 import com.neowit.apexscanner.scanner.Scanner
-import com.neowit.apexscanner.stdlib.StandardLibrary
 import com.neowit.apexscanner.stdlib.impl.StdlibLocal
 
 import scala.annotation.tailrec
@@ -84,54 +84,21 @@ object Project {
   * @param path must point to Apex project root, @see also Project.findApexProjectRoot(path)
   *             no check is made to ensure that provided path points to correct folder
   */
-case class Project(path: Path)(implicit ex: ExecutionContext) {
+case class Project(path: Path)(implicit ex: ExecutionContext) extends CodeLibrary {
     private val astBuilder: AstBuilder = new AstBuilder(this)
-    private var _stdLibPath: Option[Path] = None
-    private var _stdLib: Option[StandardLibrary] = None
+    private val _externalLibraries = new collection.mutable.ListBuffer[CodeLibrary]
 
-    private val _containerByQName = new mutable.HashMap[QualifiedName, AstNode with HasQualifiedName]()
-    private val _namespaceByQName = new mutable.HashMap[QualifiedName, NamespaceNode]()
     private val _fileContentByPath = new mutable.HashMap[Path, VirtualDocument]()
 
-    def getStandardLibrary: StandardLibrary = {
-        _stdLib match {
-          case Some(lib) => lib
-          case None =>
-              val lib = loadStandardLibrary()
-              _stdLib = Option(lib)
-             lib
-        }
+
+    def addExternalLibrary(lib: CodeLibrary): Unit = {
+        _externalLibraries += lib
     }
-
-    /**
-      * @param path custom path to STD Lib JSON file
-      * val path = FileSystems.getDefault.getPath(stdLibDir)
-      */
-    def setStdLibPath(path: Path): Unit = {
-        if (!path.toFile.canRead) {
-            throw new IllegalArgumentException(s"Provided Standard Library path: '${path.toString}' is not readable. Default library will be used.")
-        }
-        _stdLibPath = Option(path)
+    def getExternalLibraries: List[CodeLibrary] = {
+        _externalLibraries.toList
     }
-
-    def getStdLibPath: Option[Path] = _stdLibPath
-
-    private def loadStandardLibrary(): StandardLibrary = {
-
-        val file =
-            _stdLibPath match {
-                case Some(providedPath) => providedPath.toFile
-                case None =>
-                    val url = getClass.getClassLoader.getResource("apex-api-v40.json")
-                    if (null != url) {
-                        new File(url.toURI)
-                    } else {
-                        throw new IllegalStateException("Standard Apex Library resource is not available")
-                    }
-                //val doc = scala.io.Source.fromInputStream(is.openStream())("UTF-8").getLines().mkString
-
-            }
-        StdlibLocal(file, this)
+    def loadExternalLibraries(): Unit = {
+        _externalLibraries.foreach(_.load(this))
     }
 
     def saveFileContent(document: VirtualDocument): Future[Unit] = {
@@ -146,49 +113,45 @@ case class Project(path: Path)(implicit ex: ExecutionContext) {
         Future.successful(())
     }
 
-    /**
-      * add given class/interface/trigger to global map of top level containers
-      * @param node usually class/interface/trigger
-      */
-    def addByQualifiedName(node: AstNode with HasQualifiedName): Unit = {
-        node.qualifiedName match {
-            case Some(qName) => _containerByQName += qName -> node
-            case None =>
-        }
-        // check if this node is a Namespace
-        node match {
-            case n @ NamespaceNode(Some(name)) =>
-                n.qualifiedName.foreach(qName => _namespaceByQName += qName -> n)
-            case _ => // do nothing
+    override def getName: String = "project"
+
+    override def load(project: Project): CodeLibrary = this
+
+    override def find(qualifiedName: QualifiedName): Option[AstNode] = getByQualifiedName(qualifiedName)
+
+    override def isLoaded: Boolean = true
+
+    override def getByQualifiedName(qualifiedName: QualifiedName): Option[AstNode] = {
+        super.getByQualifiedName(qualifiedName) match {
+            case nodeOpt @ Some(_) => nodeOpt
+            case None => findInExternalLibrary(qualifiedName)
         }
     }
 
-    /**
-      * NOTE: this method only finds nodes physically added via addByQualifiedName()
-      * It will not find class methods/variables or Enum constants,
-      * when target node type is not already known to be Namespace or Class - use QualifiedNameDefinitionFinder
-      */
-    def getByQualifiedName(qualifiedName: QualifiedName): Option[AstNode] = {
-        _containerByQName.get(qualifiedName).orElse{
-            //check if this name is in one of available namespaces
-            // first try to find namespace which contains class with name == qualifiedName
-            val namespaceQNameOpt =
-                _namespaceByQName.keySet.find{ qName =>
-                        val fullName = QualifiedName(qName, qualifiedName)
-                        _containerByQName.contains(fullName)
-                }
-            // retrieve class node fro namespace (if namespace found)
-            namespaceQNameOpt match {
-                case Some(namespaceQName) =>
-                    val fullName = QualifiedName(namespaceQName, qualifiedName)
-                    _containerByQName.get(fullName)
-                case None => None
+    def loadStdLib(): CodeLibrary = {
+        val stdLib =
+            getExternalLibraries.find(_.getName == "StdLib") match {
+                case Some(_stdLib) => _stdLib
+                case None => StdlibLocal(this)
+            }
+        stdLib.load(this)
+    }
+
+    private def findInExternalLibrary(qualifiedName: QualifiedName): Option[AstNode] = {
+        for (lib <- getExternalLibraries) {
+            if (!lib.isLoaded) {
+                lib.load(this)
+            }
+            lib.find(qualifiedName) match {
+                case Some(node) => return Option(node)
+                case None =>
             }
         }
+        None
     }
 
     /**
-      * @param forceRebuild set ti true in order to force AST re-build/re-cache for provided document
+      * @param forceRebuild set to true in order to force AST re-build/re-cache for provided document
       * @return
       */
     def getAst(document: VirtualDocument, forceRebuild: Boolean = false): Future[Option[AstBuilderResult]] = {

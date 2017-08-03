@@ -39,7 +39,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class StdlibLocalTest extends FunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
     private val projectPath = FileSystems.getDefault.getPath("/temp")
     private val project = Project(projectPath)
-    project.getStandardLibrary // force loading of StandardLibrary
+    project.loadStdLib // force loading of StandardLibrary
 
     test("test: System.String") {
         val qName = QualifiedName(Array("System", "String"))

@@ -560,7 +560,7 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
                     _project
                 case None =>
                     val _project = Project(projectPath)
-                    _project.getStandardLibrary // force loading of StandardLibrary
+                    _project.loadStdLib() // force loading of StandardLibrary
                     _projectWithStdLib = Option(_project)
                     _project
             }

@@ -26,24 +26,36 @@ import java.io.File
 
 import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.ast.QualifiedName
+import com.neowit.apexscanner.extlib.CodeLibrary
 import com.neowit.apexscanner.nodes.AstNode
-import com.neowit.apexscanner.stdlib.StandardLibrary
 import io.circe.jawn._
+
 
 /**
   * Created by Andrey Gavrikov 
   */
 object StdlibLocal {
-    def apply(file: File, project: Project): StandardLibrary = {
-        val lib = new StdlibLocal(file, project)
-        lib.load()
+    def apply(project: Project, fileOpt: Option[File] = None): CodeLibrary = {
+        val lib = new StdlibLocal(project, fileOpt)
+        lib.load(project)
         lib
     }
 }
-private class StdlibLocal(file: File, project: Project) extends StandardLibrary with StdlibLocalJsonSupport {
-    var _apexAPI: Option[ApexApiJson] = None
-    override def findChild(name: QualifiedName): Option[AstNode] = {
+
+private class StdlibLocal(project: Project, fileOpt: Option[File] = None) extends CodeLibrary with StdlibLocalJsonSupport {
+    private var _apexAPI: Option[ApexApiJson] = None
+    private var _isLoaded = false
+
+
+    override def getName: String = "StdLib"
+
+    override def isLoaded: Boolean = _isLoaded
+
+    def find(name: QualifiedName): Option[AstNode] = {
         println("Checking StdLib type: " + name)
+        if (!isLoaded) {
+            load(project)
+        }
         //TODO - implement StdLib nodes
         _apexAPI match {
             case Some(api) =>
@@ -53,17 +65,38 @@ private class StdlibLocal(file: File, project: Project) extends StandardLibrary 
         }
         None
     }
-    def load(): StdlibLocal = {
-        decodeFile[ApexApiJson](file) match {
-            case Left(failure) => throw new IllegalArgumentException("Failed to parse file: '" + file.getPath + "'; " + failure.getMessage)
-            case Right(apexAPI) =>
-                val visitor = new StdlibJsonVisitor(project)
-                visitor.visit(apexAPI)
-                _apexAPI = Option(apexAPI)
+
+    def load(project: Project): CodeLibrary = {
+        if (!isLoaded) {
+            val file = getSourceFile
+            decodeFile[ApexApiJson](file) match {
+                case Left(failure) => throw new IllegalArgumentException("Failed to parse file: '" + file.getPath + "'; " + failure.getMessage)
+                case Right(apexAPI) =>
+                    val visitor = new StdlibJsonVisitor(project)
+                    visitor.visit(apexAPI)
+                    _apexAPI = Option(apexAPI)
                 //println(apexAPI.publicDeclarations.keys)
+            }
+            _isLoaded = true
         }
         //TODO visit resulting JSON Nodes and build proper AST
         this
+    }
+
+    private def getSourceFile: File = {
+        fileOpt match {
+            case Some(providedFile) if providedFile.canRead => providedFile
+            case None => getDefaultFile
+        }
+    }
+
+    private def getDefaultFile: File = {
+        val url = getClass.getClassLoader.getResource("apex-api-v40.json")
+        if (null != url) {
+            new File(url.toURI)
+        } else {
+            throw new IllegalStateException("Standard Apex Library resource is not available")
+        }
     }
 }
 
