@@ -42,6 +42,10 @@ case class EnumConstantNode (constantName: String, range: Range) extends Variabl
 
     override def isSymbol = true
 
+    override def symbolIsStatic: Boolean = true
+
+    override def symbolValueType: Option[String] = getValueType.map(_.qualifiedName.toString)
+
     override def getValueType: Option[ValueType] = {
         qualifiedName.map(name => ValueTypeEnumConstant(name))
     }

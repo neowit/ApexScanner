@@ -48,20 +48,20 @@ trait MethodNodeBase extends AstNode with HasApexDoc with IsTypeDefinition with 
         }
     }
 
-    override def isSymbol: Boolean = true
-
     override def getClassOrInterfaceNode: ClassLike = {
         findParentInAst(p => p.nodeType == ClassNodeType || p.nodeType == InterfaceNodeType ) match {
             case Some(n: ClassLike) => n
             case n => throw new NotImplementedError("getClassOrInterfaceNode support for this element is not implemented: " + n)
         }
     }
+
+    override def isSymbol: Boolean = true
+    override def symbolIsStatic: Boolean = isStatic
+    override def symbolValueType: Option[String] = getValueType.map(_.qualifiedName.toString)
+    override def isMethodLike: Boolean = true
+    override def methodParameters: Seq[String] = getParameterTypes.map(_.toString)
     override def symbolName: String = qualifiedName.map(_.getLastComponent).getOrElse("")
-
     override def symbolKind: SymbolKind = SymbolKind.Method
-
-
-
     override def parentSymbol: Option[symbols.Symbol] = Option(getClassOrInterfaceNode)
 
     override def getDebugInfo: String = super.getDebugInfo + " Method: " + nameOpt

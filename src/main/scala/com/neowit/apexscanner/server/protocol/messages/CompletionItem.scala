@@ -98,9 +98,11 @@ case class CompletionItem(
 object CompletionItem {
     def apply(symbol: com.neowit.apexscanner.symbols.Symbol): CompletionItem = {
         new CompletionItem(
-            label = symbol.symbolName,
+            label = symbol.symbolLabel,
             kind = symbol.symbolKind,
-            documentation = symbol.documentation
+            documentation = symbol.documentation,
+            insertText = Option(symbol.symbolInsertText)
+
         )
 
     }

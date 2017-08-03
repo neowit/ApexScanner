@@ -60,6 +60,10 @@ case class ClassVariableNode(range: Range) extends VariableLike with ClassOrInte
 
     override def parentSymbol: Option[symbols.Symbol] = Option(getClassOrInterfaceNode)
 
+    override def symbolIsStatic: Boolean = modifiers.exists(_.modifierType == ModifierNode.STATIC)
+
+    override def symbolValueType: Option[String] = getValueType.map(_.qualifiedName.toString)
+
     /**
       * used for debug purposes
       *

@@ -135,6 +135,15 @@ class StdlibJsonVisitor(lib: CodeLibrary) extends StdlibJsonBaseVisitor[AstNode]
                 }
             }
 
+
+            override def isMethodLike: Boolean = true
+
+            override def methodParameters: Seq[String] = context.parameters.map(_.`type`)
+
+            override def symbolValueType: Option[String] = context.returnType
+
+            override def symbolIsStatic: Boolean = context.isStatic.getOrElse(false)
+
             override protected def getSelf: AstNode = self
         }
 
