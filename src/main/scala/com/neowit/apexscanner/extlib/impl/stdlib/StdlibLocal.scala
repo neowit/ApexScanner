@@ -19,8 +19,7 @@
  *
  */
 
-package com.neowit.apexscanner.stdlib.impl
-
+package com.neowit.apexscanner.extlib.impl.stdlib
 
 import java.io.File
 

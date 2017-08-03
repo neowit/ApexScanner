@@ -26,9 +26,9 @@ import java.nio.file._
 
 import com.neowit.apexscanner.ast.{AstBuilder, AstBuilderResult, QualifiedName}
 import com.neowit.apexscanner.extlib.CodeLibrary
+import com.neowit.apexscanner.extlib.impl.stdlib.StdlibLocal
 import com.neowit.apexscanner.nodes.AstNode
 import com.neowit.apexscanner.scanner.Scanner
-import com.neowit.apexscanner.stdlib.impl.StdlibLocal
 
 import scala.annotation.tailrec
 import scala.collection.mutable

@@ -19,7 +19,7 @@
  *
  */
 
-package com.neowit.apexscanner.stdlib.impl
+package com.neowit.apexscanner.extlib.impl.stdlib
 
 import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeParser}
 import com.neowit.apexscanner.ast.ASTBuilderVisitor

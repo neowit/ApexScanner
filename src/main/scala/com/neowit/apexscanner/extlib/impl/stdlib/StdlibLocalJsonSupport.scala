@@ -19,7 +19,7 @@
  *
  */
 
-package com.neowit.apexscanner.stdlib.impl
+package com.neowit.apexscanner.extlib.impl.stdlib
 
 import com.typesafe.scalalogging.LazyLogging
 import io.circe.Decoder
