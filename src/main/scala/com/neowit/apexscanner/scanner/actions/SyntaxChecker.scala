@@ -74,7 +74,10 @@ private class SyntaxCheckerErrorListener(document: VirtualDocument) extends Base
                              msg: String,
                              e: RecognitionException): Unit = {
         //super.syntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e)
-        val error = SyntaxError(offendingSymbol, line, charPositionInLine, msg)
+        // make sure msg does not include 'FIXER_TOKEN', end user has no use for it
+        val msgCleaned = msg.replace("'FIXER_TOKEN', ", "")
+
+        val error = SyntaxError(offendingSymbol, line, charPositionInLine, msgCleaned)
         errorBuilder += error
         //assert(false, "\n" + file.toString + s"\n=> ($line, $charPositionInLine): " + msg)
     }
