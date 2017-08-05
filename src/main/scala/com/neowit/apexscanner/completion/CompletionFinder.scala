@@ -30,10 +30,8 @@ import com.neowit.apexscanner.resolvers.QualifiedNameDefinitionFinder
 import com.typesafe.scalalogging.LazyLogging
 import org.antlr.v4.runtime._
 
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 import com.neowit.apexscanner.symbols._
-
-import scala.concurrent.duration.Duration
 
 case class FindCaretScopeResult(caretScope: Option[CaretScope], caretToken: Token)
 /**
@@ -62,19 +60,19 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
     def listCompletions(file: VirtualDocument, line: Int, column: Int): Future[Seq[Symbol]] = {
         val caret = new CaretInDocument(Position(line, column), file)
         val scopeFinder = new CaretScopeFinder(project)
-        scopeFinder.findCaretScope(caret).map{
+        scopeFinder.findCaretScope(caret).flatMap{
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 typeDefinition.getValueType match {
                     case Some(valueType) =>
                         logger.debug("Caret value type: " + valueType)
                         getValueTypeMembers(valueType)
-                    case None => Seq.empty
+                    case None => Future.successful(Seq.empty)
                 }
             case Some(FindCaretScopeResult(Some(CaretScope(scopeNode, None)), caretToken)) =>
                 // caret definition is not obvious, but we have an AST scope node
                 val (parser, _) = ApexParserUtils.createParserWithCommonTokenStream(caret)
                 val candidates = collectCandidates(caret, caretToken, parser)
-                getCandidateSymbols(scopeNode, candidates)
+                Future.successful(getCandidateSymbols(scopeNode, candidates))
 
             case Some(FindCaretScopeResult(None, caretToken)) =>
                 // caret definition is not obvious, and we do not even have an AST scope node
@@ -82,7 +80,7 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                 collectCandidates(caret, caretToken, parser)
                 ???
             case _ =>
-                Seq.empty
+                Future.successful(Seq.empty)
         }
     }
 
@@ -149,7 +147,7 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
         res
     }
 
-    private def getValueTypeMembers(valueType: ValueType): Seq[Symbol] = {
+    private def getValueTypeMembers(valueType: ValueType): Future[Seq[Symbol]] = {
         valueType match {
             case ValueTypeComplex(qualifiedName, typeArguments) => getSymbolsOf(qualifiedName)
             case ValueTypeSimple(qualifiedName) => getSymbolsOf(qualifiedName)
@@ -165,19 +163,16 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                         Seq(ValueTypeSimple(qualifiedNameNode.qualifiedName))
                     )
                 )
-            case ValueTypeVoid => Seq.empty
+            case ValueTypeVoid => Future.successful(Seq.empty)
             case ValueTypeAny => ???
         }
     }
-    private def getSymbolsOf(qualifiedName: QualifiedName): Seq[Symbol] = {
+    private def getSymbolsOf(qualifiedName: QualifiedName): Future[Seq[Symbol]] = {
         val qualifiedNameDefinitionFinder = new QualifiedNameDefinitionFinder(project)
-        val futureResult = qualifiedNameDefinitionFinder.findDefinition(qualifiedName)
-        val res = Await.result(futureResult, Duration.Inf) //TODO - implement proper future handling
-        res match {
+        qualifiedNameDefinitionFinder.findDefinition(qualifiedName).map{
             case Some(node) =>
                 node.findChildrenInAst(_.isSymbol).map(_.asInstanceOf[com.neowit.apexscanner.symbols.Symbol])
             case None => Seq.empty
         }
-
     }
 }
