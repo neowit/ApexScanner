@@ -145,7 +145,8 @@ case class Project(path: Path)(implicit ex: ExecutionContext) extends CodeLibrar
                 lib.load(this)
             }
             lib.getByQualifiedName(qualifiedName) match {
-                case Some(node) => return Option(node)
+                case Some(node) =>
+                    return Option(node)
                 case None =>
             }
         }

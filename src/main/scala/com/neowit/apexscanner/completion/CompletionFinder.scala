@@ -26,11 +26,14 @@ import com.neowit.apexscanner.{Project, VirtualDocument}
 import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, ApexcodeParser, CodeCompletionCore}
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes._
+import com.neowit.apexscanner.resolvers.QualifiedNameDefinitionFinder
 import com.typesafe.scalalogging.LazyLogging
 import org.antlr.v4.runtime._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import com.neowit.apexscanner.symbols._
+
+import scala.concurrent.duration.Duration
 
 case class FindCaretScopeResult(caretScope: Option[CaretScope], caretToken: Token)
 /**
@@ -167,7 +170,10 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
         }
     }
     private def getSymbolsOf(qualifiedName: QualifiedName): Seq[Symbol] = {
-        project.getByQualifiedName(qualifiedName) match {
+        val qualifiedNameDefinitionFinder = new QualifiedNameDefinitionFinder(project)
+        val futureResult = qualifiedNameDefinitionFinder.findDefinition(qualifiedName)
+        val res = Await.result(futureResult, Duration.Inf) //TODO - implement proper future handling
+        res match {
             case Some(node) =>
                 node.findChildrenInAst(_.isSymbol).map(_.asInstanceOf[com.neowit.apexscanner.symbols.Symbol])
             case None => Seq.empty

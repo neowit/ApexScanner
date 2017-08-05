@@ -62,7 +62,7 @@ trait Symbol {
       * A string that should be inserted a document when selecting
       * this completion. When None the label is used.
       */
-    val symbolInsertText: String = {
+    def symbolInsertText: String = {
         val paramStr = if (isMethodLike) "()"  else  ""
         symbolName + paramStr
     }

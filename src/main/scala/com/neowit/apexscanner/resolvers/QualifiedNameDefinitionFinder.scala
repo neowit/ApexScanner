@@ -34,11 +34,13 @@ class QualifiedNameDefinitionFinder(project: Project)(implicit ex: ExecutionCont
     def findDefinition(target: QualifiedName): Future[Option[AstNode]] = {
         // first try to find by full name
         project.getByQualifiedName(target)  match {
-            case nodeOpt @ Some(_) => Future.successful(nodeOpt)
+            case nodeOpt @ Some(_) =>
+                Future.successful(nodeOpt)
             case None =>
                 //go step by step
                 findDefinitionFromTop(target) match {
-                    case nodeOpt @ Some(_) => Future.successful(nodeOpt)
+                    case nodeOpt @ Some(_) =>
+                        Future.successful(nodeOpt)
                     case None =>
                         // check if given name matches one of existing project files (which has not been scanned into AST yet)
                         findByDocumentName(target)
