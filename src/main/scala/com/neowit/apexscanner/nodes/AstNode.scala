@@ -119,21 +119,21 @@ trait AstNode {
       * @return
       */
     def findChildInAst(filter: (AstNode) => Boolean): Option[AstNode] = {
-        val immediateChildren = _children.filter(filter(_))
+        val immediateChildren = children.filter(filter(_))
 
         if (immediateChildren.nonEmpty) {
             immediateChildren.headOption
         } else {
             // in case any of the children represent a FallThroughNode, query their children one step further
-            _children.filter(_.nodeType == FallThroughNodeType).flatMap(_.findChildInAst(filter)).headOption
+            children.filter(_.nodeType == FallThroughNodeType).flatMap(_.findChildInAst(filter)).headOption
         }
     }
 
     def findChildrenInAst(filter: (AstNode) => Boolean): Seq[AstNode] = {
-        val immediateChildren = _children.filter(filter(_))
+        val immediateChildren = children.filter(filter(_))
 
         // in case any of the children represent a FallThroughNode, query their children one step further
-        immediateChildren ++ _children.filter(_.nodeType == FallThroughNodeType).flatMap(_.findChildrenInAst(filter))
+        immediateChildren ++ children.filter(_.nodeType == FallThroughNodeType).flatMap(_.findChildrenInAst(filter))
 
     }
 
@@ -148,19 +148,19 @@ trait AstNode {
     def children: Seq[AstNode] = _children
 
     def getChildrenInAst[T <: AstNode](nodeType: AstNodeType, recursively: Boolean = false): Seq[T] = {
-        val immediateChildren = _children.filter(_.nodeType == nodeType)
+        val immediateChildren = children.filter(_.nodeType == nodeType)
 
         // in case any of the children represent a FallThroughNode, query their children one step further
         val childrenViaFallThroughNodes =
             if (FallThroughNodeType != nodeType && !recursively) {
-                _children.filter(_.nodeType == FallThroughNodeType).flatMap(_.getChildrenInAst(nodeType))
+                children.filter(_.nodeType == FallThroughNodeType).flatMap(_.getChildrenInAst(nodeType))
             } else {
                 Nil
             }
 
         val immediateAndRecursiveChildren =
             if (recursively) {
-                immediateChildren ++ _children.flatMap(_.getChildrenInAst(nodeType, recursively))
+                immediateChildren ++ children.flatMap(_.getChildrenInAst(nodeType, recursively))
             } else {
                 immediateChildren
             }
