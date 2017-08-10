@@ -55,6 +55,13 @@ trait CodeLibrary {
             case _ => // do nothing
         }
     }
+
+    def getByQualifiedName(qualifiedNameOpt: Option[QualifiedName]): Option[AstNode] = {
+        qualifiedNameOpt match {
+            case Some(qualifiedName) => getByQualifiedName(qualifiedName)
+            case None => None
+        }
+    }
     /**
       * NOTE: this method only finds nodes physically added via addByQualifiedName()
       * It will not find class methods/variables or Enum constants,

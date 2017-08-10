@@ -59,6 +59,13 @@ case class QualifiedName(components: Array[String]) {
         left.endsWith(right)
     }
 
+    def couldBeMatch(otherName: Option[QualifiedName]): Boolean = {
+        otherName match {
+            case Some(name) =>  couldBeMatch(name)
+            case None => false
+        }
+    }
+
     override def toString: String = components.mkString(".")
 
     override def canEqual(that: Any): Boolean = {
