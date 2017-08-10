@@ -133,8 +133,9 @@ object QualifiedName {
     }
 
     /**
-      * variable defined like so
+      * class variable defined like so
       *     InnerClass1 var1;
+      * - where InnerClass1 reside inside current outer class
       * should have qualified valuetype name OuterClass.InnerClass1
       * @param typeDefNode IsTypeDefinition node
       * @return
@@ -147,8 +148,15 @@ object QualifiedName {
                     case _ => false
                 } match {
                     case Some(parentClassNode: ClassLike) =>
-                        //check if parent does indeed contain childName node
-                        parentClassNode.findChildInAst(n => ClassLike.CLASS_LIKE_TYPES.contains(n.nodeType)) match {
+                        //check if parent does indeed contain InnerClass childName node
+                        val predicate: AstNode => Boolean = {
+                            case n: IsTypeDefinition =>
+                                ClassLike.CLASS_LIKE_TYPES.contains(n.nodeType) && childName.qualifiedName.couldBeMatch(n.qualifiedName)
+                            case _ => false
+
+                        }
+                        parentClassNode.findChildInAst( predicate ) match {
+                        //parentClassNode.findChildInAst(n => ClassLike.CLASS_LIKE_TYPES.contains(n.nodeType) ) match {
                           case Some(_) =>
                               parentClassNode.qualifiedName.map{outerClassName =>
                                   QualifiedName(outerClassName, childName.qualifiedName)
