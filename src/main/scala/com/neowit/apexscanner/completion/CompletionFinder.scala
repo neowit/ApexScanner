@@ -146,21 +146,39 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
         res
     }
 
-    private def getValueTypeMembers(valueType: ValueType): Future[Seq[Symbol]] = {
+    private def getValueTypeMembers(typeDefinition: IsTypeDefinition): Future[Seq[Symbol]] = {
+        typeDefinition.resolveDefinition() match {
+            case Some(defNode: AstNode with IsTypeDefinition) =>
+                val fullyQualifiedName = QualifiedName.getFullyQualifiedValueTypeName(defNode)
+                typeDefinition.getValueType match {
+                    case Some(valueType) =>
+                        logger.debug("Caret value type: " + valueType)
+                        // first try simple option, by "Value Type" as defined in the code
+                        getValueTypeMembers(valueType, fullyQualifiedName)
+                    case None =>
+                        Future.successful(Seq.empty)
+                }
+            case _ =>
+                throw new IllegalStateException("CompletionFinder.getValueTypeMembers: typeDefinition could not resolve its own definition")
+        }
+    }
+
+    private def getValueTypeMembers(valueType: ValueType, fullyQualifiedName: QualifiedName): Future[Seq[Symbol]] = {
         valueType match {
-            case ValueTypeComplex(qualifiedName, typeArguments) => getSymbolsOf(qualifiedName)
-            case ValueTypeSimple(qualifiedName) => getSymbolsOf(qualifiedName)
-            case ValueTypeClass(qualifiedName) => getSymbolsOf(qualifiedName) //TODO - is this ever used ?
-            case ValueTypeInterface(qualifiedName) => getSymbolsOf(qualifiedName)
-            case ValueTypeTrigger(qualifiedName) => getSymbolsOf(qualifiedName)
-            case ValueTypeEnum(qualifiedName) => getSymbolsOf(qualifiedName)
-            case ValueTypeEnumConstant(qualifiedName) => getSymbolsOf(qualifiedName)
+            case ValueTypeComplex(qualifiedName, typeArguments) => getSymbolsOf(fullyQualifiedName)
+            case ValueTypeSimple(qualifiedName) => getSymbolsOf(fullyQualifiedName)
+            case ValueTypeClass(qualifiedName) => getSymbolsOf(fullyQualifiedName) //TODO - is this ever used ?
+            case ValueTypeInterface(qualifiedName) => getSymbolsOf(fullyQualifiedName)
+            case ValueTypeTrigger(qualifiedName) => getSymbolsOf(fullyQualifiedName)
+            case ValueTypeEnum(qualifiedName) => getSymbolsOf(fullyQualifiedName)
+            case ValueTypeEnumConstant(qualifiedName) => getSymbolsOf(fullyQualifiedName)
             case ValueTypeArray(qualifiedNameNode) =>
                 getValueTypeMembers(
                     ValueTypeComplex(
                         QualifiedName(Array("List")),
                         Seq(ValueTypeSimple(qualifiedNameNode.qualifiedName))
-                    )
+                    ),
+                    fullyQualifiedName
                 )
             case ValueTypeVoid => Future.successful(Seq.empty)
             case ValueTypeAny => ???

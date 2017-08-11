@@ -59,6 +59,48 @@ private val filePath = getProperty("CompletionFinderTest.path")
         }
     }
 
+    test("testListCompletions: enum values - `SEASONS ss = SEASONS.<CARET>`") {
+        val text =
+            """
+              |class CompletionTester {
+              | enum SEASONS {Spring, Winter, Summer, Autumn}
+              | public void testCompletion() {
+              |     SEASONS ss = SEASONS.<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = listCompletions(text).futureValue
+        result match {
+            case symbols if symbols.nonEmpty =>
+                assert(symbols.length >= 4, "Result contains ,ess items than expected")
+                assert(symbols.exists(_.symbolName == "Spring"), "Missing expected symbol")
+            case _ =>
+                assert(false, "Expected non empty result")
+        }
+    }
+
+    test("testListCompletions: enum values - `SEASONS ss = SEASONS.Autumn.<CARET>`") {
+        val text =
+            """
+              |class CompletionTester {
+              | enum SEASONS {Spring, Winter, Summer, Autumn}
+              | public void testCompletion() {
+              |     SEASONS ss = SEASONS.Autumn.<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = listCompletions(text).futureValue
+        result match {
+            case symbols if symbols.nonEmpty =>
+                assert(symbols.length >= 2, "Result contains ,ess items than expected")
+                assert(symbols.exists(_.symbolName == "name"), "Missing expected symbol: name()")
+                assert(symbols.exists(_.symbolName == "ordinal"), "Missing expected symbol: ordinal()")
+                assert(symbols.exists(_.symbolName == "equals"), "Missing expected symbol: equals()")
+            case _ =>
+                assert(false, "Expected non empty result")
+        }
+    }
+
     test("testListCompletions: enum values - `SEASONS.Summer.<CARET>`") {
         val text =
             """
