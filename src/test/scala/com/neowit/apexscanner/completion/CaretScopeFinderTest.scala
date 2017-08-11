@@ -542,6 +542,24 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
         }
     }
 
+    test("testFindCaretScope: enum values - `SEASONS ss = SEASONS.<CARET>`") {
+        val text =
+            """
+              |class CompletionTester {
+              | enum SEASONS {Spring, Winter, Summer, Autumn}
+              | public void testCompletion() {
+              |     SEASONS ss = SEASONS.<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = findCaretScope(text, "testFindCaretScope").futureValue
+        result match {
+            case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
+                assertResult(Some("SEASONS"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName.getLastComponent))
+            case _ =>
+                assert(false, "Failed to identify caret type. Expected 'Opportunity'")
+        }
+    }
 
     test("testCollectCandidates") {
 
@@ -553,21 +571,21 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
     var _projectWithStdLib: Option[Project] = None
     private def findCaretScope(text: String, documentName: String, loadStdLib: Boolean = false): Future[Option[FindCaretScopeResult]] = {
         val project =
-        if (loadStdLib) {
-            _projectWithStdLib match {
-                case Some(_project) =>
-                    // re-use previously loaded project because loading StdLib takes a lot of time
-                    _project
-                case None =>
-                    val _project = Project(projectPath)
-                    _project.loadStdLib() // force loading of StandardLibrary
-                    _projectWithStdLib = Option(_project)
-                    _project
-            }
+            if (loadStdLib) {
+                _projectWithStdLib match {
+                    case Some(_project) =>
+                        // re-use previously loaded project because loading StdLib takes a lot of time
+                        _project
+                    case None =>
+                        val _project = Project(projectPath)
+                        _project.loadStdLib() // force loading of StandardLibrary
+                        _projectWithStdLib = Option(_project)
+                        _project
+                }
 
-        } else {
-            Project(projectPath)
-        }
+            } else {
+                Project(projectPath)
+            }
         val caretInDocument = getCaret(text, Paths.get(documentName))
 //        val document = caretInDocument.document
         val scopeFinder = new CaretScopeFinder(project)
