@@ -21,7 +21,7 @@
 
 package com.neowit.apexscanner.ast
 
-import com.neowit.apexscanner.nodes.{AstNode, ClassLike, HasQualifiedName, IsTypeDefinition}
+import com.neowit.apexscanner.nodes._
 
 /**
   * Created by Andrey Gavrikov
@@ -131,7 +131,7 @@ object QualifiedName {
         }
         QualifiedName(resultBuilder.result() ++ child.components)
     }
-
+    private val _CLASS_BODY_MEMBER_TYPES = ClassLike.CLASS_LIKE_TYPES + EnumNodeType
     /**
       * class variable defined like so
       *     InnerClass1 var1;
@@ -151,7 +151,7 @@ object QualifiedName {
                         //check if parent does indeed contain InnerClass childName node
                         val predicate: AstNode => Boolean = {
                             case n: IsTypeDefinition =>
-                                ClassLike.CLASS_LIKE_TYPES.contains(n.nodeType) && childName.qualifiedName.couldBeMatch(n.qualifiedName)
+                                _CLASS_BODY_MEMBER_TYPES.contains(n.nodeType) && childName.qualifiedName.couldBeMatch(n.qualifiedName)
                             case _ => false
 
                         }
