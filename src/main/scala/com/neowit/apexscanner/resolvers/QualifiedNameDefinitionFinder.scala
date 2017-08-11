@@ -88,7 +88,7 @@ class QualifiedNameDefinitionFinder(project: Project)(implicit ex: ExecutionCont
             case Some(target) if target.length > 0=>
                 val nextChildOpt =
                 containerNode.findChildInAst{
-                    case child: HasQualifiedName => child.qualifiedName.exists(_.equals(target.head))
+                    case child: HasQualifiedName => child.qualifiedName.exists(_.couldBeMatch(target.head))
                     case _ => false
                 }
                 nextChildOpt match {
