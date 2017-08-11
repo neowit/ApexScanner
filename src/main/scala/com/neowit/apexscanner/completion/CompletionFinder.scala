@@ -59,15 +59,14 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
 
     def listCompletions(file: VirtualDocument, line: Int, column: Int): Future[Seq[Symbol]] = {
         val caret = new CaretInDocument(Position(line, column), file)
+        listCompletions(caret)
+    }
+
+    def listCompletions(caret: CaretInDocument): Future[Seq[Symbol]] = {
         val scopeFinder = new CaretScopeFinder(project)
         scopeFinder.findCaretScope(caret).flatMap{
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
-                typeDefinition.getValueType match {
-                    case Some(valueType) =>
-                        logger.debug("Caret value type: " + valueType)
-                        getValueTypeMembers(valueType)
-                    case None => Future.successful(Seq.empty)
-                }
+                getValueTypeMembers(typeDefinition)
             case Some(FindCaretScopeResult(Some(CaretScope(scopeNode, None)), caretToken)) =>
                 // caret definition is not obvious, but we have an AST scope node
                 val (parser, _) = ApexParserUtils.createParserWithCommonTokenStream(caret)
