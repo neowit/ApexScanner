@@ -24,7 +24,7 @@ package com.neowit.apexscanner.nodes
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.symbols.{Symbol, SymbolKind}
 
-case class EnumNode(range: Range ) extends ClassLike {
+case class EnumNode(override val name: Option[String], range: Range ) extends ClassLike {
     override def nodeType: AstNodeType = EnumNodeType
 
     override def symbolKind: SymbolKind = SymbolKind.Enum

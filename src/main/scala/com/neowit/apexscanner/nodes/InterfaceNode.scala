@@ -23,7 +23,7 @@ package com.neowit.apexscanner.nodes
 
 import com.neowit.apexscanner.symbols.SymbolKind
 
-case class InterfaceNode(range: Range ) extends ClassLike {
+case class InterfaceNode(override val name: Option[String], range: Range ) extends ClassLike {
     override def nodeType: AstNodeType = InterfaceNodeType
 
     override def symbolKind: SymbolKind = SymbolKind.Interface

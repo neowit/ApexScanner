@@ -86,37 +86,57 @@ class ASTBuilderVisitor(projectOpt: Option[Project], documentOpt: Option[Virtual
     }
 
     override def visitClassDef(ctx: ClassDefContext): AstNode = {
-        val classNode = ClassNode(Range(ctx))
-        visitChildren(classNode, ctx)
-
-        _classLikeListBuilder += classNode
-        classNode
+        if (null != ctx.classDeclaration().className()) {
+            val nameOpt = Option(ctx.classDeclaration().className().getText)
+            val classNode = ClassNode(nameOpt, Range(ctx))
+            visitChildren(classNode, ctx)
+            _classLikeListBuilder += classNode
+            classNode
+        } else {
+            NullNode
+        }
     }
 
 
     override def visitInterfaceDef(ctx: InterfaceDefContext): AstNode = {
-        val interfaceNode = InterfaceNode(Range(ctx))
-        visitChildren(interfaceNode, ctx)
+        if (null != ctx.interfaceDeclaration().interfaceName()) {
+            val nameOpt = Option(ctx.interfaceDeclaration().interfaceName().getText)
+            val interfaceNode = InterfaceNode(nameOpt, Range(ctx))
+            visitChildren(interfaceNode, ctx)
 
-        _classLikeListBuilder += interfaceNode
-        interfaceNode
+            _classLikeListBuilder += interfaceNode
+            interfaceNode
+
+        } else {
+            NullNode
+        }
     }
 
     override def visitTriggerDef(ctx: TriggerDefContext): AstNode = {
-        val triggerNode = TriggerNode(Range(ctx))
-        visitChildren(triggerNode, ctx)
+        if (null != ctx.triggerDeclaration().triggerName()) {
+            val nameOpt = Option(ctx.triggerDeclaration().triggerName().getText)
+            val triggerNode = TriggerNode(nameOpt, Range(ctx))
+            visitChildren(triggerNode, ctx)
 
-        _classLikeListBuilder += triggerNode
-        triggerNode
+            _classLikeListBuilder += triggerNode
+            triggerNode
+        } else {
+            NullNode
+        }
     }
 
 
     override def visitEnumDef(ctx: EnumDefContext): AstNode = {
-        val enumNode = EnumNode(Range(ctx))
-        visitChildren(enumNode, ctx)
+        if (null != ctx.enumDeclaration().enumName()) {
+            val nameOpt = Option(ctx.enumDeclaration().enumName().getText)
+            val enumNode = EnumNode(nameOpt, Range(ctx))
+            visitChildren(enumNode, ctx)
 
-        _classLikeListBuilder += enumNode
-        enumNode
+            _classLikeListBuilder += enumNode
+            enumNode
+        } else {
+            NullNode
+        }
     }
 
     override def visitEnumConstant(ctx: EnumConstantContext): AstNode = {

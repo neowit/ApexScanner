@@ -67,7 +67,7 @@ class StdlibJsonVisitor(lib: CodeLibrary) extends StdlibJsonBaseVisitor[AstNode]
     }
 
     override def visitApexApiJsonClass(name: String, context: ApexApiJsonClass): AstNode = {
-        val cls = ClassNode(Range.INVALID_LOCATION)
+        val cls = ClassNode(Option(name), Range.INVALID_LOCATION)
         cls.addChildToAst(IdentifierNode(name, Range.INVALID_LOCATION))
         context.constructors.foreach{n =>
             val constructor = visitApexApiJsonMethod(n)
@@ -87,7 +87,7 @@ class StdlibJsonVisitor(lib: CodeLibrary) extends StdlibJsonBaseVisitor[AstNode]
     }
 
     def visitApexApiJsonEnum(name: String, context: ApexApiJsonClass): AstNode = {
-        val enum = EnumNode(Range.INVALID_LOCATION)
+        val enum = EnumNode(Option(name), Range.INVALID_LOCATION)
         enum.addChildToAst(IdentifierNode(name, Range.INVALID_LOCATION))
         context.methods.foreach{n =>
             val m = visitApexApiJsonMethod(n)

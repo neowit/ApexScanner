@@ -23,7 +23,7 @@ package com.neowit.apexscanner.nodes
 
 import com.neowit.apexscanner.symbols.SymbolKind
 
-case class TriggerNode(range: Range ) extends ClassLike {
+case class TriggerNode(override val name: Option[String], range: Range ) extends ClassLike {
     override def nodeType: AstNodeType = InterfaceNodeType
 
     override def symbolKind: SymbolKind = SymbolKind.Trigger
