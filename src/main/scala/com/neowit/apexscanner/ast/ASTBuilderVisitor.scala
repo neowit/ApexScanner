@@ -193,6 +193,7 @@ class ASTBuilderVisitor(projectOpt: Option[Project], documentOpt: Option[Virtual
             DataTypeNodeVoid(Range(ctx))
         } else {
             val qualifiedNameNode = visit(ctx.qualifiedName()).asInstanceOf[QualifiedNameNode]
+            val dataTypeNode =
             if (null != ctx.arrayType) {
                 DataTypeNodeArray(qualifiedNameNode, Range(ctx))
             } else if(null != ctx.typeArguments()) {
@@ -208,6 +209,9 @@ class ASTBuilderVisitor(projectOpt: Option[Project], documentOpt: Option[Virtual
                 //val qualifiedNameNode = visit(ctx.qualifiedName()).asInstanceOf[QualifiedNameNode]
                 DataTypeNodeGeneric(qualifiedNameNode, typeArgumentsOpt = None, Range(ctx))
             }
+            // add qualifiedNameNode as a child in order to be able to split type name by individual components/nodes
+            dataTypeNode.addChildToAst(qualifiedNameNode)
+            dataTypeNode
         }
     }
 
