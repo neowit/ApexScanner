@@ -290,10 +290,6 @@ class ASTBuilderVisitor(projectOpt: Option[Project], documentOpt: Option[Virtual
         visitChildren(ExpressionListNode(Range(ctx)), ctx)
     }
 
-    override def visitAssignmentRightExpr(ctx: AssignmentRightExprContext): AstNode = {
-        visitChildren(ctx.expression())
-    }
-
     override def visitExprDotExpression(ctx: ExprDotExpressionContext): AstNode = {
         visitChildren(ExpressionDotExpressionNode(Range(ctx)), ctx)
     }
