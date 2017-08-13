@@ -117,7 +117,7 @@ class AscendingDefinitionFinder() {
 
         startNode.getParentInAst(true) match {
             case Some(parent) =>
-                parent.findChildrenInAst(n => isMatching(n)) match {
+                parent.findChildrenInAst(n => isMatching(n) && n != target, recursively = true) match {
                     case definitionNodes if definitionNodes.nonEmpty =>
                         findDefinitionInternal(target, targetName, parent, isMatching, foundNodes ++ definitionNodes)
                     case _ =>

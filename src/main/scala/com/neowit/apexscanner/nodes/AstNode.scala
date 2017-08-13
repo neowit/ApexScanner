@@ -129,12 +129,28 @@ trait AstNode {
         }
     }
 
-    def findChildrenInAst(filter: (AstNode) => Boolean): Seq[AstNode] = {
+    def findChildrenInAst(filter: (AstNode) => Boolean, recursively: Boolean = false): Seq[AstNode] = {
         val immediateChildren = children.filter(filter(_))
 
         // in case any of the children represent a FallThroughNode, query their children one step further
-        immediateChildren ++ children.filter(_.nodeType == FallThroughNodeType).flatMap(_.findChildrenInAst(filter))
+        // immediateChildren ++ children.filter(_.nodeType == FallThroughNodeType).flatMap(_.findChildrenInAst(filter))
+        val childrenViaFallThroughNodes =
+            if (!recursively) {
+                children.filter(_.nodeType == FallThroughNodeType).flatMap(_.findChildrenInAst(filter))
+            } else {
+                Nil
+            }
 
+        val immediateAndRecursiveChildren =
+            if (recursively && immediateChildren.isEmpty) {
+                immediateChildren ++ children.flatMap(_.findChildrenInAst(filter, recursively))
+            } else {
+                immediateChildren
+            }
+
+        val allChildren = childrenViaFallThroughNodes ++ immediateAndRecursiveChildren
+
+        allChildren
     }
 
     def addChildToAst(node: AstNode): AstNode = {
