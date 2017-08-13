@@ -1,6 +1,5 @@
 public virtual class TypeFinder {
     
-    private String str; //result of findClassVariableType
     private Boolean bool; //result of findClassVariableTypeWithThis
     private TypeFinder classInstance;
 
@@ -11,16 +10,6 @@ public virtual class TypeFinder {
     public virtual Double caller1() {
         methodToCall();
         return .05;
-    } 
-
-    public void findLocalVariableType(String str) {
-        Integer int = 0; // result of findLocalVariableType
-        methodWith2Params(int, str); //#findLocalVariableType
-    } 
-
-    public void findClassVariableType(String str) {
-        Integer int = 0; 
-        methodWith2Params(int, str); //#findClassVariableType
     } 
 
     public void findMethodType(String str) {
