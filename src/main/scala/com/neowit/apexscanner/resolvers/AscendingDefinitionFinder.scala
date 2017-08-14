@@ -182,33 +182,15 @@ class AscendingDefinitionFinder() {
 
         startNode.getParentInAst(true) match {
             case Some(parent) =>
-                parent.findChildrenInAst(n => isMatching(n) && n != target, recursively = true) match {
+                parent.findChildrenInAst(n => isMatching(n) && n != target && !foundNodes.contains(n), recursively = true) match {
                     case definitionNodes if definitionNodes.nonEmpty =>
                         findDefinitionInternal(target, targetName, parent, isMatching, foundNodes ++ definitionNodes)
                     case _ =>
                         // go higher in parents hierarchy
                         findDefinitionInternal(target, targetName, parent, isMatching, foundNodes)
                 }
-            case None => foundNodes
+            case None =>
+                foundNodes
         }
     }
-
-    /*
-    private def resolveMethodCallParameters(methodCallNode: MethodCallNode): Seq[ValueType] = {
-        if (methodCallNode.isParameterTypesResolved) {
-            methodCallNode.getParameterTypes
-        } else {
-            methodCallNode.getParameterExpressionNodes.map{paramNode =>
-                findDefinition(paramNode, methodCallNode)
-                    .headOption
-                    .flatMap{
-                        case paramDefinitionNode: IsTypeDefinition =>
-                            paramDefinitionNode.getValueType
-                        case _ => None
-
-                    }.getOrElse(ValueTypeAny)
-            }
-        }
-    }
-    */
 }
