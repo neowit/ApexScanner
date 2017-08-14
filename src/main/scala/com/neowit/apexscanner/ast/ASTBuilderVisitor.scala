@@ -287,7 +287,15 @@ class ASTBuilderVisitor(projectOpt: Option[Project], documentOpt: Option[Virtual
     }
 
     override def visitExpressionList(ctx: ExpressionListContext): AstNode = {
-        visitChildren(ExpressionListNode(Range(ctx)), ctx)
+        import scala.collection.JavaConverters._
+        if (null != ctx.expression()) {
+            val expressions: Seq[AstNode] = ctx.expression().asScala.map(visit)
+            val expressionListNode = ExpressionListNode(expressions, Range(ctx))
+            expressions.map(_.setParentInAst(expressionListNode))
+            visitChildren(expressionListNode, ctx)
+        } else {
+            NullNode
+        }
     }
 
     override def visitExprDotExpression(ctx: ExprDotExpressionContext): AstNode = {

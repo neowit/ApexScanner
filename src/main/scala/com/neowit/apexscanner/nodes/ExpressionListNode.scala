@@ -24,13 +24,21 @@ package com.neowit.apexscanner.nodes
 /**
   * Created by Andrey Gavrikov 
   */
-case class ExpressionListNode(range: Range) extends AstNode {
+case class ExpressionListNode(expressions: Seq[AstNode], range: Range) extends AstNode {
     override def nodeType: AstNodeType = ExpressionListNodeType
 
+    def getExpressions: Seq[AbstractExpression] = {
+        expressions.flatMap{
+            case n: AbstractExpression => Option(n)
+            case n: FallThroughNode => n.getChildInAst[AbstractExpression](ExpressionNodeType)
+        }
+    }
+    /*
     def getExpressions: Seq[AbstractExpression] = findChildrenInAst{
         case n: AbstractExpression => true
         case _ => false
     }.map(_.asInstanceOf[AbstractExpression])
+    */
 
     override def getDebugInfo: String = super.getDebugInfo + getExpressions.map(_.getDebugInfo).mkString(", ")
 }

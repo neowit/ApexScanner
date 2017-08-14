@@ -88,7 +88,8 @@ case class MethodCallNode(methodName: QualifiedName, range: Range) extends Abstr
 
     def getParameterExpressionNodes: Seq[AbstractExpression] = {
         getChildInAst[ExpressionListNode](ExpressionListNodeType) match {
-            case Some( expressionList ) => expressionList.getExpressions
+            case Some( expressionList ) =>
+                expressionList.getExpressions
             case None => Seq.empty
         }
     }
