@@ -165,6 +165,31 @@ class AscendingDefinitionFinderTest2 extends FunSuite with TestConfigProvider wi
 
     }
 
+    test("findDefinition: `apex class property`") {
+        val text =
+            """
+              |class CompletionTester {
+              | public String prop1 {get; set;}
+              |
+              | public void method1(final Integer param1) {
+              |     pro<CARET>p1 = '';
+              | }
+              |}
+            """.stripMargin
+        //val resultNodes = findDefinition(text).futureValue
+        val resultNodes = Await.result(findDefinition(text), Duration.Inf)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName(Array("CompletionTester", "prop1"))), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                assertResult(Option(QualifiedName(Array("String"))), "Wrong caret type detected. Class variable")(typeDefinition.getValueType.map(_.qualifiedName))
+            case _ =>
+                assert(false, "Failed to locate correct node. Expected method1()")
+        }
+
+    }
+
     test("findDefinition: `method variable`") {
         val text =
             """
