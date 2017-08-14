@@ -21,11 +21,13 @@
 
 package com.neowit.apexscanner.resolvers
 
+import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.matchers.MethodMatcher
 import com.neowit.apexscanner.nodes._
 
 import scala.annotation.tailrec
+import scala.concurrent.{ExecutionContext, Future}
 
 object AscendingDefinitionFinder {
     type NodeMatcherFunc = AstNode => Boolean
@@ -55,21 +57,84 @@ object AscendingDefinitionFinder {
 class AscendingDefinitionFinder() {
     import AscendingDefinitionFinder._
 
-    def findDefinition(rootNode: AstNode, location: Position): Seq[AstNode] = {
+    /**
+      * this method returns closest definition
+      * e.g.
+      * 1.    MyType str;
+      * 2.    str = "";
+      * - definition for `str` is VariableNode in line 1 containing `MyType str;`
+      *
+      * However - if user requested definition for `MyType` in line 1 this method will return DataTypeNode containing `MyType`
+      * in line 1.
+      * In order to get an ultimate ClassNode defining MyClass use AscendingDefinitionFinder.findUltimateDefinition()
+      *
+      * @param rootNode where to start looking for definition of node residing in provided position
+      * @param position location of node which definition is requested
+      * @return
+      */
+    def findDefinition(rootNode: AstNode, position: Position): Seq[AstNode] = {
         // first find actual node which we need to find the definition for
-        val nodeFinder = new NodeByLocationFinder(location)
+        val nodeFinder = new NodeByLocationFinder(position)
         nodeFinder.findInside(rootNode) match {
-          case Some(targetNode: HasTypeDefinition)=>
-              //targetNode.resolveDefinition()
-              targetNode.resolveDefinition().map(Seq(_)).getOrElse(Seq.empty)
-          case Some(targetNode)=>
-              println("AscendingDefinitionFinder: " + targetNode)
-              // TODO - make sure we do not need this
-              //findDefinition(targetNode, targetNode)
-              throw new NotImplementedError("Handling of node without HasTypeDefinition is not implemented and should not be needed")
-          case None =>
-              Seq.empty
+            case Some(targetNode: HasTypeDefinition)=>
+                //targetNode.resolveDefinition()
+                targetNode.resolveDefinition().map(Seq(_)).getOrElse(Seq.empty)
+            case Some(targetNode)=>
+                println("AscendingDefinitionFinder: " + targetNode)
+                // TODO - make sure we do not need this
+                //findDefinition(targetNode, targetNode)
+                throw new NotImplementedError("Handling of node without HasTypeDefinition is not implemented and should not be needed")
+            case None =>
+                Seq.empty
         }
+    }
+
+    /**
+      * this method tries to find an ultimate defining node
+      * e.g.
+      * 1. MyClass cls;
+      * 2. cls = "";
+      * - user requested definition of `cls` in line 2
+      * findUltimateDefinition() will return ClassNode defining MyClass
+      *
+      * @param rootNode where to start looking for definition of node residing in provided position
+      * @param position location of node which definition is requested
+      * @param project current project
+      * @param ec execution context to run
+      * @return
+      */
+    def findUltimateDefinition(rootNode: AstNode, position: Position, project: Project)
+                              (implicit ec: ExecutionContext): Future[Seq[AstNode with IsTypeDefinition]] = {
+        val qualifiedNameDefinitionFinder = new QualifiedNameDefinitionFinder(project)
+        val nodes = findDefinition(rootNode, position)
+
+        val futureResults: Seq[Future[Option[AstNode]]] =
+            nodes.map{
+                case n: DataTypeNode =>
+                    //this is a type defining node
+                    //e.g. MyType where caret is placed like so MyT<Caret>ype
+                    // - check if this type is defined in available source
+                    n.qualifiedName match {
+                        case Some(qualifiedName) =>
+                            qualifiedNameDefinitionFinder.findDefinition(qualifiedName)
+                        case None => Future.successful(Option(n)) //do not really expect this
+                    }
+                case n => Future.successful(Option(n)) // assume this node is the target
+            }
+
+        // convert Seq[Future[Option[AstNode]]] to Future[Seq[Option[AstNode]]]
+        val res: Future[Seq[AstNode with IsTypeDefinition]] =
+            Future.sequence(futureResults).map{ nodeOpts =>
+                val allDefNodes = nodeOpts.filter(_.isDefined).map(_.get)
+                allDefNodes.filter {
+                    case defNode: AstNode with IsTypeDefinition => true
+                    case _ => false
+                }.map {
+                    case defNode: AstNode with IsTypeDefinition =>
+                        defNode
+                }
+            }
+        res
     }
 
     def findDefinition(target: AstNode, startNode: AstNode): Seq[AstNode] = {
