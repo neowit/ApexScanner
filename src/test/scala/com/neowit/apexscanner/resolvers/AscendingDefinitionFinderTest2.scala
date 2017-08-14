@@ -194,19 +194,21 @@ class AscendingDefinitionFinderTest2 extends FunSuite with TestConfigProvider wi
               |class CompletionTester {
               | String str1;
               | Integer int1;
+              | // find definition of method1(string)
               | met<CARET>hod1('some' + str1 + ' other ' + int1);
+              |
               | public void method1(String str) {
               | }
               |}
             """.stripMargin
         //val resultNodes = findDefinition(text).futureValue
-        val resultNodes = Await.result(findDefinition(text), Duration.Inf)
+        val resultNodes = Await.result(findDefinition(text, "TestDocument.cls", loadStdLib = true), Duration.Inf)
         assert(resultNodes.nonEmpty, "Expected to find non empty result")
         assertResult(1,"Wrong number of results found") (resultNodes.length)
         resultNodes.head match {
             case typeDefinition: IsTypeDefinition =>
-                assertResult(Option(QualifiedName(Array("int"))), "Wrong caret type detected.")(typeDefinition.qualifiedName)
-                assertResult(Option(QualifiedName(Array("Integer"))), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
+                assertResult(Option(QualifiedName(Array("CompletionTester", "method1"))), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                assertResult(Option(QualifiedName(Array("void"))), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
             case _ =>
                 assert(false, "Failed to locate correct node. Expected method1()")
         }
