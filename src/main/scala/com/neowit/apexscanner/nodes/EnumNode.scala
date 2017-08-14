@@ -50,7 +50,7 @@ case class EnumNode(override val name: Option[String], range: Range ) extends Cl
         val symbols: Seq[Symbol] =
             kind match {
                 case SymbolKind.Method => findChildrenInAst(_.nodeType == MethodNodeType).map(_.asInstanceOf[Symbol])
-                case SymbolKind.Variable => findChildrenInAst(_.nodeType == ClassVariableNodeType).map(_.asInstanceOf[Symbol])
+                case SymbolKind.Variable => findChildrenInAst(_.nodeType == EnumConstantNodeType).map(_.asInstanceOf[Symbol])
                 case SymbolKind.Property => findChildrenInAst(_.nodeType == EnumConstantNodeType).map(_.asInstanceOf[Symbol])
                 case _ => Seq.empty
             }
