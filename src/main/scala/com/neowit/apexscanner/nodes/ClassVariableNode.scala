@@ -21,53 +21,7 @@
 
 package com.neowit.apexscanner.nodes
 
-import com.neowit.apexscanner.ast.QualifiedName
-import com.neowit.apexscanner.symbols
-import com.neowit.apexscanner.symbols.SymbolKind
-
-case class ClassVariableNode(range: Range) extends VariableLike with ClassOrInterfaceBodyMember {self =>
+case class ClassVariableNode(range: Range) extends ClassVariableNodeBase {self =>
     override def nodeType: AstNodeType = ClassVariableNodeType
 
-    override def getValueType: Option[ValueType] = {
-        getChildInAst[DataTypeNode](DataTypeNodeType) .map(_.getDataType)
-    }
-
-    override def qualifiedName: Option[QualifiedName] = {
-        name match {
-          case Some(_name) =>
-              getClassOrInterfaceNode.qualifiedName match {
-                  case Some(className) => Option(QualifiedName(className.components ++ Array(_name)))
-                  case None => None
-              }
-          case None => None
-        }
-    }
-
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
-
-    override def getClassOrInterfaceNode: ClassLike = {
-        findParentInAst(p => p.nodeType == ClassNodeType || p.nodeType == InterfaceNodeType ) match {
-          case Some(n: ClassLike) => n
-          case n => throw new NotImplementedError("getClassOrInterfaceNode support for this element is not implemented: " + n)
-        }
-    }
-
-    override protected def getSelf: AstNode = this
-
-    override def symbolName: String = name.getOrElse("")
-
-    override def symbolKind: SymbolKind = SymbolKind.Field
-
-    override def parentSymbol: Option[symbols.Symbol] = Option(getClassOrInterfaceNode)
-
-    override def symbolIsStatic: Boolean = modifiers.exists(_.modifierType == ModifierNode.STATIC)
-
-    override def symbolValueType: Option[String] = getValueType.map(_.qualifiedName.toString)
-
-    /**
-      * used for debug purposes
-      *
-      * @return textual representation of this node and its children
-      */
-    override def getDebugInfo: String = super.getDebugInfo + " " + "TODO"
 }
