@@ -49,7 +49,7 @@ case class ClassNode(override val name: Option[String], range: Range) extends Cl
         val symbols: Seq[Symbol] =
             kind match {
                 case SymbolKind.Method => findChildrenInAst(_.nodeType == MethodNodeType).map(_.asInstanceOf[Symbol])
-                case SymbolKind.Variable => findChildrenInAst(_.nodeType == ClassVariableNodeType).map(_.asInstanceOf[Symbol])
+                case SymbolKind.Variable => findChildrenInAst(n => ClassVariableNodeType == n.nodeType || ClassPropertyNodeType == n.nodeType).map(_.asInstanceOf[Symbol])
                 case SymbolKind.Enum => findChildrenInAst(_.nodeType == EnumNodeType).map(_.asInstanceOf[Symbol])
                 case _ => Seq.empty
             }

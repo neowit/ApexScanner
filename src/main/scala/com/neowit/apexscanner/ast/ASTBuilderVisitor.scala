@@ -223,6 +223,10 @@ class ASTBuilderVisitor(projectOpt: Option[Project], documentOpt: Option[Virtual
         visitChildren(ClassVariableNode(Range(ctx)), ctx)
     }
 
+    override def visitClassProperty(ctx: ClassPropertyContext): AstNode = {
+        visitChildren(ClassPropertyNode(Range(ctx)), ctx)
+    }
+
     /////////////////// constructor ////////////////////////////////
 
     override def visitClassConstructor(ctx: ClassConstructorContext): AstNode = {

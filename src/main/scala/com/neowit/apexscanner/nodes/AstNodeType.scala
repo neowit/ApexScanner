@@ -33,6 +33,7 @@ case object AnnotationNodeType extends AstNodeType
 case object AnnotationParameterNodeType extends AstNodeType
 case object ClassNodeType extends AstNodeType
 case object ClassVariableNodeType extends AstNodeType
+case object ClassPropertyNodeType extends AstNodeType
 case object CreatorNodeType extends AstNodeType
 case object DataTypeNodeType extends AstNodeType
 case object DocNodeType extends AstNodeType
@@ -69,6 +70,7 @@ object AstNodeType {
         astNodeType match {
             case MethodNodeType => SymbolKind.Method
             case ClassVariableNodeType => SymbolKind.Variable
+            case ClassPropertyNodeType => SymbolKind.Property
             case EnumNodeType => SymbolKind.Enum
             case _ => ???
         }
