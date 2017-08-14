@@ -21,6 +21,8 @@
 
 package com.neowit.apexscanner.nodes
 
+import com.neowit.apexscanner.symbols.SymbolKind
+
 /**
   * Created by Andrey Gavrikov 
   */
@@ -41,6 +43,7 @@ case class ConstructorNode(range: Range) extends MethodNodeBase { self =>
         getClassOrInterfaceNode.getValueType
     }
 
+    override def symbolKind: SymbolKind = SymbolKind.Constructor
 
     override protected def getSelf: AstNode = self
 }
