@@ -114,6 +114,23 @@ trait AstNode {
         }
     }
     /**
+      * find Top Most parent matching specified condition
+      * i.e. there must be no parents matching same condition after that parent
+      * @param filter - condition
+      * @return
+      */
+    def findTopParentInAst(filter: (AstNode) => Boolean): Option[AstNode] = {
+        _findTopParentInAst(filter, None)
+    }
+
+    @tailrec
+    private def _findTopParentInAst(filter: (AstNode) => Boolean, lastParent: Option[AstNode]): Option[AstNode] = {
+        findParentInAst(filter) match {
+            case Some(parentMember) => parentMember._findTopParentInAst(filter, Option(parentMember))
+            case None => lastParent
+        }
+    }
+    /**
       * find child matching specified condition
       * @param filter - condition
       * @return

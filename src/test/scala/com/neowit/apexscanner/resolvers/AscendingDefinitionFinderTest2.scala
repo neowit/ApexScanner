@@ -282,6 +282,34 @@ class AscendingDefinitionFinderTest2 extends FunSuite with TestConfigProvider wi
                 assert(false, "Failed to locate correct node. Expected method1()")
         }
     }
+
+    test("findDefinition: `InnerClass param referencing Enum`") {
+        val text =
+            """
+              |class CompletionTester {
+              | Enum TestEnum {One, Two};
+              |
+              | InnerClass var;
+              | var.refEn<CARET>um;
+              |
+              | private class InnerClass {
+              |   TestEnum refEnum;
+              | }
+              |}
+            """.stripMargin
+        //val resultNodes = findDefinition(text).futureValue
+        val resultNodes = Await.result(findDefinition(text), Duration.Inf)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName(Array("CompletionTester", "InnerClass", "refEnum"))), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                assertResult(Option(QualifiedName(Array("CompletionTester", "TestEnum"))), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
+            case _ =>
+                assert(false, "Failed to locate correct node. Expected method1()")
+        }
+    }
+
     var _projectWithStdLib: Option[Project] = None
     private def findDefinition(text: String, documentName: String = "test", loadStdLib: Boolean = false): Future[scala.Seq[AstNode]] = {
         val project =

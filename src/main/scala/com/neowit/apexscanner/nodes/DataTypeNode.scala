@@ -42,7 +42,7 @@ case class DataTypeNodeGeneric(qualifiedNameNode: QualifiedNameNode, typeArgumen
         // and if its name needs to be concatenated with QualifiedName of outer class
 
         val fullQName =
-            findParentInAst{n =>
+            findTopParentInAst{n =>
                     CLASS_LIKE_TYPES.contains(n.nodeType) &&
                         !qName.couldBeMatch(n.asInstanceOf[ClassLike].qualifiedName)
             } match {
