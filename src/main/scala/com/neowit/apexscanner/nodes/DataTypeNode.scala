@@ -21,6 +21,7 @@
 
 package com.neowit.apexscanner.nodes
 import com.neowit.apexscanner.ast.QualifiedName
+import com.neowit.apexscanner.nodes.ClassLike.CLASS_LIKE_TYPES
 
 trait DataTypeNode extends AstNode with IsTypeDefinition {
     override def nodeType: AstNodeType = DataTypeNodeType
@@ -36,13 +37,30 @@ trait DataTypeNode extends AstNode with IsTypeDefinition {
 case class DataTypeNodeGeneric(qualifiedNameNode: QualifiedNameNode, typeArgumentsOpt: Option[TypeArgumentsNode], range: Range) extends DataTypeNode {
 
     def getDataType: ValueType = {
+        val qName = qualifiedNameNode.qualifiedName
+        // check if this data type represents inner ClassLike node
+        // and if its name needs to be concatenated with QualifiedName of outer class
+
+        val fullQName =
+            findParentInAst{n =>
+                    CLASS_LIKE_TYPES.contains(n.nodeType) &&
+                        !qName.couldBeMatch(n.asInstanceOf[ClassLike].qualifiedName)
+            } match {
+                case Some(parentClassLike: ClassLike) if parentClassLike.findClassLikeChild(qName).isDefined =>
+                    parentClassLike.qualifiedName match {
+                        case Some(parentQName) if !qName.contains(parentQName.getLastComponent)=> QualifiedName(parentQName, qName)
+                        case _ => qName
+                    }
+                case _ => qName
+            }
+
         typeArgumentsOpt match {
             case Some(typeArguments) if typeArguments.components.isEmpty =>
-                ValueTypeSimple(qualifiedNameNode.qualifiedName)
+                ValueTypeSimple(fullQName)
             case Some(typeArguments) =>
-                ValueTypeComplex(qualifiedNameNode.qualifiedName, typeArguments.components.map(_.getDataType))
+                ValueTypeComplex(fullQName, typeArguments.components.map(_.getDataType))
             case None =>
-                ValueTypeSimple(qualifiedNameNode.qualifiedName)
+                ValueTypeSimple(fullQName)
         }
     }
 }

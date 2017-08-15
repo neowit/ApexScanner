@@ -47,6 +47,18 @@ trait ClassLike extends AstNode with HasApexDoc with IsTypeDefinition with Symbo
     def parentClassOrInterface: Option[ClassLike] = findParentInAst(n => CLASS_LIKE_TYPES.contains(n.nodeType)).map(_.asInstanceOf[ClassLike])
 
     /**
+      * find child with given name which represents inner class or enum
+      * @param qualifiedName child name
+      * @return
+      */
+    def findClassLikeChild(qualifiedName: QualifiedName): Option[ClassLike] = {
+        findChildInAst{
+            case n: ClassLike => n != this && n.qualifiedName.exists(_.couldBeMatch(qualifiedName))
+            case _ => false
+        }.map(_.asInstanceOf[ClassLike])
+    }
+
+    /**
       * get super class of current class/interface
       * @return
       */

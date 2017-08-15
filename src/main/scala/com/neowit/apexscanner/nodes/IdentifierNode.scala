@@ -36,12 +36,26 @@ case class IdentifierNode(name: String, range: Range) extends AbstractExpression
                 // this identifier is part of expression1.expression2....
                 defOpt
             case _ =>
-                val finder = new AscendingDefinitionFinder()
-                val res = finder.findDefinition(this, this).headOption
-                res match {
-                    case resOpt @ Some(_) => resOpt
-                    case None => // finally check in global AST
-                        resolveDefinitionByQualifiedName()
+                // first check if this Identifier is part of DataTypeNode
+                val dataTypeNodeDef =
+                    findParentInAst{
+                        case n: DataTypeNode => n.qualifiedName.exists(_.endsWith(QualifiedName(Array(name))))
+                        case _ => false
+                    }.flatMap{
+                        case n: DataTypeNode => n.resolveDefinition()
+                    }
+
+                dataTypeNodeDef match {
+                    case defOpt @ Some(_) =>
+                        defOpt
+                    case None =>
+                        val finder = new AscendingDefinitionFinder()
+                        val res = finder.findDefinition(this, this).headOption
+                        res match {
+                            case resOpt @ Some(_) => resOpt
+                            case None => // finally check in global AST
+                                resolveDefinitionByQualifiedName()
+                        }
                 }
         }
 

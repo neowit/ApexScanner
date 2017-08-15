@@ -239,6 +239,49 @@ class AscendingDefinitionFinderTest2 extends FunSuite with TestConfigProvider wi
         }
     }
 
+    test("findDefinition: `InnerCla<CARET>ss var`") {
+        val text =
+            """
+              |class CompletionTester {
+              | InnerCla<CARET>ss var;
+              |
+              | private class InnerClass { }
+              |}
+            """.stripMargin
+        //val resultNodes = findDefinition(text).futureValue
+        val resultNodes = Await.result(findDefinition(text), Duration.Inf)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName(Array("CompletionTester", "InnerClass"))), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                assertResult(Option(QualifiedName(Array("CompletionTester", "InnerClass"))), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
+            case _ =>
+                assert(false, "Failed to locate correct node")
+        }
+    }
+
+    test("findDefinition: `InnerClass va<CARET>r`") {
+        val text =
+            """
+              |class CompletionTester {
+              | InnerClass va<CARET>r;
+              |
+              | private class InnerClass { }
+              |}
+            """.stripMargin
+        //val resultNodes = findDefinition(text).futureValue
+        val resultNodes = Await.result(findDefinition(text), Duration.Inf)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName(Array("CompletionTester", "var"))), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                assertResult(Option(QualifiedName(Array("CompletionTester", "InnerClass"))), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
+            case _ =>
+                assert(false, "Failed to locate correct node. Expected method1()")
+        }
+    }
     var _projectWithStdLib: Option[Project] = None
     private def findDefinition(text: String, documentName: String = "test", loadStdLib: Boolean = false): Future[scala.Seq[AstNode]] = {
         val project =
