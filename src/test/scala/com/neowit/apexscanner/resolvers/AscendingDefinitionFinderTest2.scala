@@ -23,12 +23,11 @@ package com.neowit.apexscanner.resolvers
 
 import java.nio.file.{Path, Paths}
 
-import com.neowit.apexscanner.{Project, TestConfigProvider}
+import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.antlr.CaretUtils
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes.{AstNode, IsTypeDefinition}
 import org.scalatest.FunSuite
-import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -36,7 +35,7 @@ import scala.concurrent.duration.Duration
 /**
   * Created by Andrey Gavrikov 
   */
-class AscendingDefinitionFinderTest2 extends FunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
+class AscendingDefinitionFinderTest2 extends FunSuite {
     //implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = Span(2, Seconds), interval = Span(20, Millis))
 
     // for cases when we do not really care about project path - get something random
