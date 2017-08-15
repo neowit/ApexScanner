@@ -72,7 +72,8 @@ class DescendingDefinitionFinder(project: Project) {
                                 _containerNode.getValueType match {
                                     case Some(typeDef) =>
                                         project.getByQualifiedName(QualifiedName.getFullyQualifiedValueTypeName(_containerNode)) match {
-                                            case Some(_container: IsTypeDefinition) =>
+                                            case Some(_container: IsTypeDefinition) if containerNode != _container=>
+                                                // above have to check containerNode != _container to make sure we do not get stuck in infinite loop
                                                 findDefinition(target, _container)
                                             case _ =>
                                                 Seq.empty
