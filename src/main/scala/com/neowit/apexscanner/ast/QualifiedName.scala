@@ -34,6 +34,7 @@ case class QualifiedName(components: Array[String]) {
 
     def getFirstComponent: String = components.head
     def getLastComponent: String = components.last
+
     lazy val head: QualifiedName = QualifiedName(Array(getFirstComponent))
     lazy val tailOption: Option[QualifiedName] = {
         if (length > 1) {
@@ -45,6 +46,9 @@ case class QualifiedName(components: Array[String]) {
 
     def endsWith(name: QualifiedName): Boolean = componentsLower.endsWith(name.componentsLower)
 
+    def contains(name: String): Boolean = {
+        null != name && componentsLower.contains(name.toLowerCase)
+    }
     /**
       * check if two Qualified Names may be match by assuming that if one ends with another then they may be matching
       * @param otherName name to compare with
