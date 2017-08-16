@@ -41,28 +41,52 @@ class SoqlGrammarTest extends FunSuite {
     private val dummyFile = Paths.get("")
     private val predictionMode: PredictionMode = PredictionMode.SLL
 
-    test("IN:ProductIds") {
+    test("IN :productIds") {
         val text =
             """
               |[Select Id,UnitPrice,Product2Id
               |                                From PricebookEntry
-              |                                Where Product2Id IN:ProductIds]
+              |                                Where Product2Id IN:productIds]
             """.stripMargin
-        val doc = new TextBasedDocument(text, dummyFile)
+        val doc = TextBasedDocument(text, dummyFile)
         val scanResult = soqlScanner.scan(doc, predictionMode)
         val errors = scanResult.errors
-        errors.foreach(e =>  assert(false, s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+        errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
 
-    test("IN:ProductIds") {
+    test("IN: myMap.keySet() ") {
         val text =
             """
-              |[Select Current__c, DBS_Certificate_Date__c, Member__c From DSB_Check__c
-              |Where Member__c IN: mMostRecent.keySet() And Id NOT IN: dsbIds And DBS_Certificate_Date__c <> null]
+              |[Select Field1__c, Some_Date__c, Field2__c From Some_Object__c
+              |Where Field1__c IN: myMap.keySet() And Id NOT IN: dsbIds And Some_Date__c != null]
             """.stripMargin
-        val doc = new TextBasedDocument(text, dummyFile)
+        val doc = TextBasedDocument(text, dummyFile)
         val scanResult = soqlScanner.scan(doc, predictionMode)
         val errors = scanResult.errors
-        errors.foreach(e =>  assert(false, s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+        errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+    }
+
+    test("Some_Date__c <> null") {
+        val text =
+            """
+              |[Select Field1__c, Some_Date__c, Field2__c From Some_Object__c
+              |Where Some_Date__c <> null]
+            """.stripMargin
+        val doc = TextBasedDocument(text, dummyFile)
+        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val errors = scanResult.errors
+        errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+    }
+
+    test("id=:ApexPages.currentPage().getParameters().get('Id')") {
+        val text =
+            """
+              |[Select Field1__c, Some_Date__c, Field2__c From Some_Object__c
+              |Where id=:ApexPages.currentPage().getParameters().get('Id')]
+            """.stripMargin
+        val doc = TextBasedDocument(text, dummyFile)
+        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val errors = scanResult.errors
+        errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
 }
