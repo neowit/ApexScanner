@@ -125,6 +125,16 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
                                 println(x)
                                 Future.successful(None)
                         }
+                    case n: ExpressionListNode =>
+                        // this may be something like new Account(Field1 = 'a', <CARET>)
+                        // check if parent of expression list is CreatorNode
+                        n.getParentInAst(skipFallThroughNodes = true) match {
+                            case Some(_node: CreatorNode) =>
+                                Future.successful(Option(_node))
+                            case _ =>
+                                println(n)
+                                ??? //should we give up ?
+                        }
                     case n =>
                         println(n)
                         ??? //should we give up ?
