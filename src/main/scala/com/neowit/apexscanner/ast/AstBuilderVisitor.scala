@@ -19,23 +19,20 @@
  *
  */
 
-package com.neowit.apexscanner
+package com.neowit.apexscanner.ast
 
-import java.io.{ByteArrayInputStream, InputStream}
-import java.nio.charset.StandardCharsets
-import java.nio.file.Path
-
-import org.antlr.v4.runtime.{CharStream, CharStreams}
+import com.neowit.apexscanner.nodes.AstNode
+import com.neowit.apexscanner.{Project, VirtualDocument}
+import org.antlr.v4.runtime.tree.ParseTree
 
 /**
   * Created by Andrey Gavrikov 
   */
-case class TextBasedDocument (text: String, file: Path) extends VirtualDocument {
-    override def inputStream: InputStream = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))
+trait AstBuilderVisitor {
+    def projectOpt: Option[Project]
+    def documentOpt: Option[VirtualDocument]
 
-    override def getTextContent: Option[String] = Option(text)
+    def visit(tree: ParseTree): AstNode
 
-    override def getCharStream: CharStream = {
-        CharStreams.fromString(this.text)
-    }
+    def onComplete(): Unit
 }

@@ -28,7 +28,10 @@ import com.neowit.apexscanner.nodes._
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.{RuleNode, TerminalNode}
 
-class ASTBuilderVisitor(projectOpt: Option[Project], documentOpt: Option[VirtualDocument]) extends ApexcodeBaseVisitor[AstNode] {
+object ApexAstBuilderVisitor {
+    val VISITOR_CREATOR_FUN: AstBuilder.VisitorCreatorFun = (projectOpt, documentOpt) => new ApexAstBuilderVisitor(projectOpt, documentOpt)
+}
+class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override val documentOpt: Option[VirtualDocument]) extends ApexcodeBaseVisitor[AstNode] with AstBuilderVisitor {
     private val _classLikeListBuilder = List.newBuilder[ClassLike]
     def getClassLikeNodes: List[ClassLike] = _classLikeListBuilder.result()
 
@@ -56,6 +59,21 @@ class ASTBuilderVisitor(projectOpt: Option[Project], documentOpt: Option[Virtual
             }
         }
         parent
+    }
+
+    override def onComplete(): Unit = {
+        // record all ClassLike nodes in project
+        projectOpt match {
+            case Some(project) =>
+                getClassLikeNodes.foreach(project.addByQualifiedName(_))
+            case None =>
+        }
+
+        // add standard ENUM method - have to do it here because need to make sure that full parent/child hierarchy is already in place
+        getClassLikeNodes.filter(_.isInstanceOf[EnumNode])
+            .foreach{
+                case enumNode: EnumNode => EnumNode.addStandardMethods(enumNode)
+            }
     }
 
     /**

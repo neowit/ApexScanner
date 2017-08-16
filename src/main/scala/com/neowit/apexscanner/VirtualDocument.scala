@@ -25,6 +25,7 @@ import java.io.InputStream
 import java.nio.file.Path
 
 import com.neowit.apexscanner.VirtualDocument.DocumentId
+import org.antlr.v4.runtime.CharStream
 
 
 /**
@@ -36,6 +37,7 @@ trait VirtualDocument {
     def getTextContent: Option[String]
     def getId: DocumentId = file.getFileName.toString
     def getFileName: Path = file.getFileName
+    def getCharStream: CharStream
 }
 
 object VirtualDocument {

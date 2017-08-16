@@ -19,23 +19,18 @@
  *
  */
 
-package com.neowit.apexscanner
+package com.neowit.apexscanner.ast
 
-import java.io.{ByteArrayInputStream, InputStream}
-import java.nio.charset.StandardCharsets
-import java.nio.file.Path
-
-import org.antlr.v4.runtime.{CharStream, CharStreams}
+import com.neowit.apexscanner.antlr.SoqlBaseVisitor
+import com.neowit.apexscanner.nodes.AstNode
+import com.neowit.apexscanner.{Project, VirtualDocument}
 
 /**
   * Created by Andrey Gavrikov 
   */
-case class TextBasedDocument (text: String, file: Path) extends VirtualDocument {
-    override def inputStream: InputStream = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))
-
-    override def getTextContent: Option[String] = Option(text)
-
-    override def getCharStream: CharStream = {
-        CharStreams.fromString(this.text)
-    }
+object SoqlAstBuilderVisitor {
+    val VISITOR_CREATOR_FUN: AstBuilder.VisitorCreatorFun = (projectOpt, documentOpt) => new SoqlAstBuilderVisitor(projectOpt, documentOpt)
+}
+class SoqlAstBuilderVisitor(override val projectOpt: Option[Project], override val documentOpt: Option[VirtualDocument]) extends SoqlBaseVisitor[AstNode] with AstBuilderVisitor {
+    override def onComplete(): Unit = ???
 }

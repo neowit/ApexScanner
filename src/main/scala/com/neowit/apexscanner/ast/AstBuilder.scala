@@ -21,12 +21,12 @@
 
 package com.neowit.apexscanner.ast
 
-import java.nio.file.{FileSystems, Path}
+import java.nio.file.Path
 
-import com.neowit.apexscanner.{FileBasedDocument, Project, VirtualDocument}
-import com.neowit.apexscanner.nodes.{AstNode, EnumNode}
+import com.neowit.apexscanner.{Project, VirtualDocument}
+import com.neowit.apexscanner.nodes.AstNode
 import com.neowit.apexscanner.scanner.actions.SyntaxChecker
-import com.neowit.apexscanner.scanner.{FileScanResult, Scanner}
+import com.neowit.apexscanner.scanner.{ApexcodeScanner, FileScanResult, Scanner}
 import org.antlr.v4.runtime.atn.PredictionMode
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -34,20 +34,10 @@ import scala.concurrent.{ExecutionContext, Future}
 case class AstBuilderResult(fileScanResult: FileScanResult, rootNode: AstNode)
 
 object AstBuilder {
-
-    def main(args: Array[String]): Unit = {
-        import scala.concurrent.ExecutionContext.Implicits.global
-
-        val path = FileSystems.getDefault.getPath(args(0))
-        val document = FileBasedDocument(path)
-        val builder = new AstBuilder(Project(path))
-        builder.build(document)
-        ()
-    }
+    type VisitorCreatorFun = (Option[Project], Option[VirtualDocument]) => AstBuilderVisitor
 }
-
-class AstBuilder(project: Project) {
-    val DEFAULT_SCANNER = new Scanner(Scanner.defaultIsIgnoredPath, onEachFileScanResult, SyntaxChecker.errorListenerCreator)
+class AstBuilder(project: Project, visitorCreator: AstBuilder.VisitorCreatorFun = ApexAstBuilderVisitor.VISITOR_CREATOR_FUN) {
+    val DEFAULT_SCANNER = new ApexcodeScanner(Scanner.defaultIsIgnoredPath, onEachFileScanResult, SyntaxChecker.errorListenerCreator)
 
     private val astCache = new collection.mutable.HashMap[VirtualDocument.DocumentId, AstBuilderResult]
     private val fileNameCache = Map.newBuilder[String, VirtualDocument]
@@ -62,21 +52,15 @@ class AstBuilder(project: Project) {
     }
 
     private def onEachFileScanResult(result: FileScanResult): Unit = {
-        val visitor = new ASTBuilderVisitor(Option(project), Option(result.document))
+        //val visitor = new ApexAstBuilderVisitor(Option(project), Option(result.document))
+        val visitor = visitorCreator(Option(project), Option(result.document))
         val compileUnit = visitor.visit(result.parseContext)
         //new AstWalker().walk(compileUnit, new DebugVisitor)
         val sourceDocument = result.document
         astCache += sourceDocument.getId -> AstBuilderResult(result, compileUnit)
         fileNameCache += sourceDocument.getFileName.toString -> sourceDocument
-        // record all ClassLike nodes in project
-        visitor.getClassLikeNodes.foreach(project.addByQualifiedName(_))
-
-        // add standard ENUM method - have to do it here because need to make sure that full parent/child hierarchy is already in place
-        visitor.getClassLikeNodes.filter(_.isInstanceOf[EnumNode])
-            .foreach{
-                case enumNode: EnumNode => EnumNode.addStandardMethods(enumNode)
-            }
-
+        // finalise
+        visitor.onComplete()
     }
     private def getDocument(fileName: String): Option[VirtualDocument] = {
         fileNameCache.result().get(fileName)

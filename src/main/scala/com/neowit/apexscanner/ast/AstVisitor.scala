@@ -25,7 +25,7 @@ import java.nio.file.FileSystems
 
 import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.nodes.AstNode
-import com.neowit.apexscanner.scanner.{FileScanResult, Scanner}
+import com.neowit.apexscanner.scanner.{ApexcodeScanner, FileScanResult, Scanner}
 import com.neowit.apexscanner.scanner.actions.SyntaxChecker
 
 /**
@@ -48,7 +48,7 @@ object DebugVisitor {
     def main(args: Array[String]): Unit = {
         import scala.concurrent.ExecutionContext.Implicits.global
 
-        val scanner = new Scanner(Scanner.defaultIsIgnoredPath, onEachFileScanResult, SyntaxChecker.errorListenerCreator)
+        val scanner = new ApexcodeScanner(Scanner.defaultIsIgnoredPath, onEachFileScanResult, SyntaxChecker.errorListenerCreator)
 
         val path = FileSystems.getDefault.getPath(args(0))
         project = Project(path)
@@ -56,7 +56,7 @@ object DebugVisitor {
         ()
     }
     def onEachFileScanResult(result: FileScanResult): Unit = {
-        val visitor = new ASTBuilderVisitor(Option(project), Option(result.document))
+        val visitor = new ApexAstBuilderVisitor(Option(project), Option(result.document))
         val compileUnit = visitor.visit(result.parseContext)
         new AstWalker().walk(compileUnit, new DebugVisitor)
     }

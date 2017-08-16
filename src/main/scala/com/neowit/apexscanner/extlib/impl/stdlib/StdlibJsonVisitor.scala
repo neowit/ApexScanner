@@ -22,7 +22,7 @@
 package com.neowit.apexscanner.extlib.impl.stdlib
 
 import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeParser}
-import com.neowit.apexscanner.ast.ASTBuilderVisitor
+import com.neowit.apexscanner.ast.ApexAstBuilderVisitor
 import com.neowit.apexscanner.extlib.CodeLibrary
 import com.neowit.apexscanner.nodes.{AstNode, ClassNode, DataTypeNode, DocNode, EnumConstantNode, EnumNode, IdentifierNode, MethodNodeBase, MethodParameterNode, NamespaceNode, Range, ValueType}
 import com.typesafe.scalalogging.LazyLogging
@@ -31,7 +31,7 @@ import com.typesafe.scalalogging.LazyLogging
   * Created by Andrey Gavrikov 
   */
 class StdlibJsonVisitor(lib: CodeLibrary) extends StdlibJsonBaseVisitor[AstNode] with LazyLogging {
-    val astBuilderVisitor = new ASTBuilderVisitor(projectOpt = None, documentOpt = None)
+    val astBuilderVisitor = new ApexAstBuilderVisitor(projectOpt = None, documentOpt = None)
 
     /**
       * this is the main method which should be called after Apex API JSON file is parsed

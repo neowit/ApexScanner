@@ -55,7 +55,7 @@ object CaretScopeFinder extends LazyLogging {
       * @return updated document (if caret found)
       */
     def injectFixerToken(caret: CaretInDocument): VirtualDocument = {
-        val lexer = ApexParserUtils.getDefaultLexer(caret.document)
+        val lexer = new ApexcodeLexer(caret.document.getCharStream)
         val tokens = new CommonTokenStream(lexer)
         val rewriter = new TokenStreamRewriter(tokens)
         val fixerTokenText = lexer.getVocabulary.getSymbolicName(ApexcodeLexer.FIXER_TOKEN)

@@ -24,7 +24,7 @@ package com.neowit.apexscanner
 import java.io.File
 import java.nio.file._
 
-import com.neowit.apexscanner.ast.{AstBuilder, AstBuilderResult, QualifiedName}
+import com.neowit.apexscanner.ast.{ApexAstBuilderVisitor, AstBuilder, AstBuilderResult, QualifiedName}
 import com.neowit.apexscanner.extlib.CodeLibrary
 import com.neowit.apexscanner.extlib.impl.stdlib.StdlibLocal
 import com.neowit.apexscanner.nodes.AstNode
@@ -85,7 +85,7 @@ object Project {
   *             no check is made to ensure that provided path points to correct folder
   */
 case class Project(path: Path)(implicit ex: ExecutionContext) extends CodeLibrary {
-    private val astBuilder: AstBuilder = new AstBuilder(this)
+    private val astBuilder: AstBuilder = new AstBuilder(this, ApexAstBuilderVisitor.VISITOR_CREATOR_FUN)
     private val _externalLibraries = new collection.mutable.ListBuffer[CodeLibrary]
 
     private val _fileContentByPath = new mutable.HashMap[Path, VirtualDocument]()

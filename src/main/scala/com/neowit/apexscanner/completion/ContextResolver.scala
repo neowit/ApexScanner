@@ -24,7 +24,7 @@ package com.neowit.apexscanner.completion
 import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeParser}
 import com.neowit.apexscanner.antlr.ApexcodeParser._
-import com.neowit.apexscanner.ast.ASTBuilderVisitor
+import com.neowit.apexscanner.ast.ApexAstBuilderVisitor
 import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.resolvers.{AscendingDefinitionFinder, NodeBySymbolTextFinder}
 import org.antlr.v4.runtime.tree.{ErrorNode, ParseTree}
@@ -36,7 +36,7 @@ import scala.concurrent.Future
   * Created by Andrey Gavrikov 
   */
 class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstNode) {
-    private val _visitor = new ASTBuilderVisitor(projectOpt = None, documentOpt = None)
+    private val _visitor = new ApexAstBuilderVisitor(projectOpt = None, documentOpt = None)
 
     def resolveContext(context: ParseTree, tokens: TokenStream): Future[Option[IsTypeDefinition]] = {
         context match {

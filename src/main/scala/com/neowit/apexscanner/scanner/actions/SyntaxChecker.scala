@@ -56,7 +56,7 @@ class SyntaxChecker {
             resultBuilder += res
             onEachResult(result)
         }
-        val scanner = new Scanner(isIgnoredPath, onFileCheckResult, errorListenerCreator)
+        val scanner = new ApexcodeScanner(isIgnoredPath, onFileCheckResult, errorListenerCreator)
         scanner.scan(path).map(ignored => resultBuilder.result())
     }
 }

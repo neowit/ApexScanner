@@ -25,6 +25,8 @@ import java.io._
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
+import org.antlr.v4.runtime.{CharStream, CharStreams}
+
 import scala.util.Try
 
 /**
@@ -38,5 +40,9 @@ case class FileBasedDocument(file: Path) extends VirtualDocument {
             val source = scala.io.Source.fromFile(file.toFile)(StandardCharsets.UTF_8)
             source.getLines().mkString("\\n")
         }.toOption
+    }
+
+    override def getCharStream: CharStream = {
+        CharStreams.fromStream(this.inputStream, StandardCharsets.UTF_8)
     }
 }

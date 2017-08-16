@@ -21,11 +21,9 @@
 
 package com.neowit.apexscanner.antlr
 
-import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
 
 import com.neowit.apexscanner.completion.CaretInDocument
-import com.neowit.apexscanner.{FileBasedDocument, TextBasedDocument, VirtualDocument}
 import org.antlr.v4.runtime._
 import org.antlr.v4.runtime.misc.Interval
 /**
@@ -52,22 +50,7 @@ object ApexParserUtils {
         parser.getErrorListeners.removeIf(p => p.isInstanceOf[ConsoleErrorListener])
         ()
     }
-    /**
-      * default case insensitive ApexCode lexer
-      * @param document - file to parse
-      * @return case insensitive ApexcodeLexer
-      */
-    def getDefaultLexer(document: VirtualDocument): ApexcodeLexer = {
-        val input:CharStream =
-        document match {
-            case doc: FileBasedDocument =>
-                CharStreams.fromStream(doc.inputStream, StandardCharsets.UTF_8)
-            case doc: TextBasedDocument =>
-                CharStreams.fromString(doc.text)
-        }
-        val lexer = new ApexcodeLexer(input)
-        lexer
-    }
+
     def getPrevTokenOnChannel(startTokenIndex: Int, tokens: TokenStream, predicate: Token => Boolean): Option[Token] = {
         var i = startTokenIndex - 1
         while (i >=0) {
@@ -173,7 +156,7 @@ object ApexParserUtils {
       */
     def createParserWithCommonTokenStream(caret: CaretInDocument,
                                           errorHandlerOpt: Option[ANTLRErrorStrategy] = Option(new BailErrorStrategy)): (ApexcodeParser, CommonTokenStream) = {
-        val lexer = ApexParserUtils.getDefaultLexer(caret.document)
+        val lexer = new ApexcodeLexer(caret.document.getCharStream)
         val tokens = new CommonTokenStream(lexer)
         val parser = new ApexcodeParser(tokens)
         // do not dump parse errors into console (or any other default listeners)

@@ -24,7 +24,7 @@ package com.neowit.apexscanner.resolvers
 import java.nio.file.FileSystems
 
 import com.neowit.apexscanner.{FileBasedDocument, Project}
-import com.neowit.apexscanner.ast.{AstBuilder, AstVisitor, AstWalker}
+import com.neowit.apexscanner.ast._
 import com.neowit.apexscanner.nodes.{AstNode, Position}
 
 /**
@@ -57,7 +57,8 @@ object NodeByLocationFinder {
         val path = FileSystems.getDefault.getPath ("/Users/andrey/development/scala/projects/ApexScanner/GrammarTests/TypeFinder.cls")
         val document = FileBasedDocument(path)
         val position = Position(18, 25)
-        val astBuilder = new AstBuilder(Project(path))
+
+        val astBuilder = new AstBuilder(Project(path), ApexAstBuilderVisitor.VISITOR_CREATOR_FUN)
         astBuilder.build(document).map{ ignore =>
 
             astBuilder.getAst(document) match {
