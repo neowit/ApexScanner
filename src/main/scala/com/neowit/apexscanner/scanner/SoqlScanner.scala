@@ -24,7 +24,7 @@ package com.neowit.apexscanner.scanner
 import java.nio.file.Path
 
 import com.neowit.apexscanner.VirtualDocument
-import com.neowit.apexscanner.antlr.{ApexcodeLexer, ApexcodeParser}
+import com.neowit.apexscanner.antlr.{ SoqlLexer, SoqlParser}
 import org.antlr.v4.runtime.{BailErrorStrategy, CommonTokenStream, DefaultErrorStrategy, ParserRuleContext}
 import org.antlr.v4.runtime.atn.PredictionMode
 import org.antlr.v4.runtime.misc.ParseCancellationException
@@ -34,15 +34,15 @@ import scala.util.{Failure, Success, Try}
 /**
   * Created by Andrey Gavrikov 
   */
-class ApexcodeScanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath,
-                      onEachResult: FileScanResult => Unit = Scanner.emptyOnEachResult,
-                      errorListenerFactory: VirtualDocument => ApexErrorListener) extends Scanner(isIgnoredPath, onEachResult, errorListenerFactory) {
+class SoqlScanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath,
+                  val onEachResult: FileScanResult => Unit = Scanner.emptyOnEachResult,
+                  errorListenerFactory: VirtualDocument => ApexErrorListener) extends Scanner(isIgnoredPath, onEachResult, errorListenerFactory) {
 
-    def scan(document: VirtualDocument, predictionMode: PredictionMode): FileScanResult = {
-        val lexer = new ApexcodeLexer(document.getCharStream)
+    override def scan(document: VirtualDocument, predictionMode: PredictionMode): FileScanResult = {
+        val lexer = new SoqlLexer(document.getCharStream)
 
         val tokenStream = new CommonTokenStream(lexer)
-        val parser = new ApexcodeParser(tokenStream)
+        val parser = new SoqlParser(tokenStream)
         // do not dump parse errors into console (or any other default listeners)
         parser.removeErrorListeners()
         val errorListener = errorListenerFactory(document)
@@ -69,5 +69,4 @@ class ApexcodeScanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredP
         val errors = errorListener.result()
         FileScanResult(document, errors, compilationUnit, tokenStream)
     }
-
 }

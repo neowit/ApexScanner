@@ -3,8 +3,11 @@ package com.neowit.apexscanner.scanner
 import java.io.File
 import java.nio.file.{FileSystems, Files, Path}
 
-import com.neowit.apexscanner.TestConfigProvider
+import com.neowit.apexscanner.{TestConfigProvider, TextBasedDocument}
+import com.neowit.apexscanner.antlr.ApexcodeLexer
 import com.neowit.apexscanner.scanner.actions.SyntaxChecker
+import org.antlr.v4.runtime.CommonTokenStream
+import org.antlr.v4.runtime.atn.PredictionMode
 import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
@@ -12,6 +15,8 @@ import scala.collection.mutable
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
+
+//import scala.collection.JavaConverters._
 
 class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
 
@@ -63,18 +68,41 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
         val path = FileSystems.getDefault.getPath(projectPath)
         val fileNameSetBuilder = Set.newBuilder[String]
 
-        def onFileCheckResult(scanResult: FileScanResult):Unit = {
+        def onSoqlScanResult(scanResult: FileScanResult):Unit = {
+            val file: Path = scanResult.document.file
+            val soqlStr = scanResult.document.getTextContent.getOrElse("")
+            val errors = scanResult.errors
+            //val fileName = file.getName(file.getNameCount-1).toString
+            //fileNameSetBuilder += fileName
+            if (errors.nonEmpty) {
+                print("\n     Error in Soql: \n" + soqlStr)
+                errors.foreach(e =>  assert(false, "\n" + file.toString + s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+            }
+        }
+
+        val soqlScanner = new SoqlScanner(
+            p => true,
+            onEachResult = onSoqlScanResult,
+            errorListenerFactory = SyntaxChecker.errorListenerCreator
+        )
+
+        def onApexFileCheckResult(scanResult: FileScanResult):Unit = {
             val file: Path = scanResult.document.file
             recordProcessedFile(file)
             val errors = scanResult.errors
             val fileName = file.getName(file.getNameCount-1).toString
             fileNameSetBuilder += fileName
-            println("Checking " + fileName)
+            print("Checked " + fileName)
             errors.foreach(e =>  assert(false, "\n" + file.toString + s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+            // test SOQL
+            testSoqlStatements(soqlScanner, scanResult)
+
+            println() // new line
+            // SOQL syntax check
         }
 
         val start = System.currentTimeMillis
-        val res = checker.check(path, isIgnoredPath, onFileCheckResult)
+        val res = checker.check(path, isIgnoredPath, onApexFileCheckResult)
         Await.result(res, Duration.Inf)
         val diff = System.currentTimeMillis - start
         println("==================================================")
@@ -82,4 +110,33 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
         println(s"Total ${fileNameSet.size} unique file names tested (actual number of tested files may be much higher)")
         println("# Time taken: " + diff / 1000.0 +  "s")
     }
+
+    private def testSoqlStatement(soqlScanner: SoqlScanner, file: Path, soqlStr: String): Unit = {
+        //println("SOQL: " + soqlStr)
+        val scanResult = soqlScanner.scan(TextBasedDocument(soqlStr, file), PredictionMode.SLL)
+        soqlScanner.onEachResult(scanResult)
+    }
+    private def testSoqlStatements(soqlScanner: SoqlScanner, scanResult: FileScanResult): Unit = {
+        var count = 0
+        val file = scanResult.document.getFileName
+        getSoqlStatements(scanResult.tokenStream).foreach{soqlStr =>
+            testSoqlStatement(soqlScanner, file, soqlStr)
+            count += 1
+        }
+        if (count > 0) {
+            print("; SOQL=" + count)
+        }
+    }
+
+    private def getSoqlStatements(tokenStream: CommonTokenStream): List[String] = {
+        val listBuilder = List.newBuilder[String]
+        for ( i <- Range(0, tokenStream.getNumberOfOnChannelTokens) ) {
+            val token = tokenStream.get(i)
+            if (ApexcodeLexer.SoqlLiteral == token.getType) {
+                listBuilder += token.getText
+            }
+        }
+        listBuilder.result()
+    }
+
 }

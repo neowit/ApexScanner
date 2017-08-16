@@ -75,7 +75,7 @@ abstract class Scanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnored
       * @param predictionMode necessary prediction mode
       * @return
       */
-    def scan( document: VirtualDocument, predictionMode: PredictionMode): FileScanResult
+    def scan(document: VirtualDocument, predictionMode: PredictionMode): FileScanResult
 
     /**
       * Parse & Check syntax in files residing in specified path/location
