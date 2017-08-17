@@ -174,4 +174,15 @@ class SoqlGrammarTest extends FunSuite {
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
+
+    test(" NOT in front of field name ") {
+        val text =
+            """
+              | select Id from RecordType where Name like 'Some%' and (NOT Name like '%Other%')
+            """.stripMargin
+        val doc = TextBasedDocument(text, dummyFile)
+        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val errors = scanResult.errors
+        errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+    }
 }
