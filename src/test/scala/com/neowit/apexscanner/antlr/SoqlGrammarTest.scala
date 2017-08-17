@@ -89,4 +89,21 @@ class SoqlGrammarTest extends FunSuite {
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
+
+    test("where lon__c > account.Lon__c + 2") {
+        val text =
+            """
+              | SELECT Id, Name, OwnerId
+              | from Account
+              | WHERE
+              | lon__c < :account.Lon__c + 2
+              | and lon__c > :account.Lon__c / 2
+              | and lat__c < :account.Lat__c + 2
+              | and lat__c > :account.Lat__c * 2
+            """.stripMargin
+        val doc = TextBasedDocument(text, dummyFile)
+        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val errors = scanResult.errors
+        errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+    }
 }
