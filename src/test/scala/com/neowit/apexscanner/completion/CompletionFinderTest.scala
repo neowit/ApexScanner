@@ -55,7 +55,7 @@ private val filePath = getProperty("CompletionFinderTest.path")
                 assert(symbols.length >= 4, "Result contains ,ess items than expected")
                 assert(symbols.exists(_.symbolName == "Spring"), "Missing expected symbol")
             case _ =>
-                assert(false, "Expected non empty result")
+                fail("Expected non empty result")
         }
     }
 
@@ -75,7 +75,7 @@ private val filePath = getProperty("CompletionFinderTest.path")
                 assert(symbols.length >= 4, "Result contains ,ess items than expected")
                 assert(symbols.exists(_.symbolName == "Spring"), "Missing expected symbol")
             case _ =>
-                assert(false, "Expected non empty result")
+                fail("Expected non empty result")
         }
     }
 
@@ -97,7 +97,7 @@ private val filePath = getProperty("CompletionFinderTest.path")
                 assert(symbols.exists(_.symbolName == "ordinal"), "Missing expected symbol: ordinal()")
                 assert(symbols.exists(_.symbolName == "equals"), "Missing expected symbol: equals()")
             case _ =>
-                assert(false, "Expected non empty result")
+                fail("Expected non empty result")
         }
     }
 
@@ -119,7 +119,7 @@ private val filePath = getProperty("CompletionFinderTest.path")
                 assert(symbols.exists(_.symbolName == "ordinal"), "Missing expected symbol: ordinal()")
                 assert(symbols.exists(_.symbolName == "equals"), "Missing expected symbol: equals()")
             case _ =>
-                assert(false, "Expected non empty result")
+                fail("Expected non empty result")
         }
     }
 
