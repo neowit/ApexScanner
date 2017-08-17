@@ -33,6 +33,7 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
     private val ignoredDirs = Set("resources_unpacked", "Referenced Packages", "_ProjectTemplate")
 
     private val processedKeys: mutable.HashSet[String] = new mutable.HashSet[String]()
+    private var _testedSoqlCount = 0
 
     private def recordProcessedFile(path: Path): Unit = {
         processedKeys += getFileKey(path.toFile)
@@ -75,8 +76,11 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
             //val fileName = file.getName(file.getNameCount-1).toString
             //fileNameSetBuilder += fileName
             if (errors.nonEmpty) {
+                println("\n\n# successful SOQL statements: " + _testedSoqlCount)
                 print("\n     Error in Soql: \n" + soqlStr)
                 errors.foreach(e =>  assert(false, "\n" + file.toString + s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+            } else {
+                _testedSoqlCount += 1
             }
         }
 
@@ -108,6 +112,7 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
         println("==================================================")
         val fileNameSet = fileNameSetBuilder.result()
         println(s"Total ${fileNameSet.size} unique file names tested (actual number of tested files may be much higher)")
+        println("# successful SOQL statements: " + _testedSoqlCount)
         println("# Time taken: " + diff / 1000.0 +  "s")
     }
 
