@@ -128,4 +128,17 @@ class SoqlGrammarTest extends FunSuite {
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
+
+    test("where ( Id in :config.productIds or ParentId in :config.productIds )") {
+        val text =
+            """
+              | select Id from Object
+              |where ( Id in :config.productIds or ParentId in :config.productIds )
+              |and Active__c = true
+            """.stripMargin
+        val doc = TextBasedDocument(text, dummyFile)
+        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val errors = scanResult.errors
+        errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+    }
 }
