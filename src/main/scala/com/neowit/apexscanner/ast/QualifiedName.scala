@@ -148,7 +148,7 @@ object QualifiedName {
         val resNameOpt =
             typeDefNode.getValueType.flatMap{childName =>
                 typeDefNode.findParentInAst{
-                    case _:ClassLike => true
+                    case n:ClassLike if n.supportsInnerClasses => true
                     case _ => false
                 } match {
                     case Some(parentClassNode: ClassLike) =>

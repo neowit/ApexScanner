@@ -37,6 +37,8 @@ case class EnumNode(override val name: Option[String], range: Range ) extends Cl
 
     override def extendsNode: Option[ExtendsNode] = None
 
+    override def supportsInnerClasses: Boolean = false
+
     /**
       * get super class of current class/interface
       *

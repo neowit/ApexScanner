@@ -41,6 +41,7 @@ trait ClassLike extends AstNode with HasApexDoc with IsTypeDefinition with Symbo
 
     override def symbolValueType: Option[String] = getValueType.map(_.qualifiedName.toString)
 
+    def supportsInnerClasses: Boolean = true
     /**
       * find container of current class/interface
       */
