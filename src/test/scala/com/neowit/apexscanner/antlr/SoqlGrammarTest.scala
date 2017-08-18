@@ -185,4 +185,28 @@ class SoqlGrammarTest extends FunSuite {
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
+
+    test(" :Date.today() in WHERE ") {
+        val text =
+            """
+              | SELECT Id FROM Object WHERE SomeDate < :Date.today()
+            """.stripMargin
+        val doc = TextBasedDocument(text, dummyFile)
+        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val errors = scanResult.errors
+        errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+    }
+
+    test(" WHERE Id =: [SELECT Id FROM Account]") {
+        val text =
+            """
+              | [SELECT ID FROM Account
+              |  WHERE Id =: [SELECT Id FROM Account WHERE Name = '' LIMIT 1]
+              |      AND Name <> 'some']
+            """.stripMargin
+        val doc = TextBasedDocument(text, dummyFile)
+        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val errors = scanResult.errors
+        errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+    }
 }
