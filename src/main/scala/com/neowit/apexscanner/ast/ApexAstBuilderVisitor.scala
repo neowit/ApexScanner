@@ -324,6 +324,24 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
         visitChildren(ExpressionDotExpressionNode(Range(ctx)), ctx)
     }
 
+
+    override def visitEnhancedForControl(ctx: EnhancedForControlContext): AstNode = {
+        if (null != ctx.dataType() && null != ctx.variableName()) {
+            val dataType = visitDataType(ctx.dataType()).asInstanceOf[DataTypeNode]
+            EnhancedForVariableNode(dataType, Option(ctx.variableName().getText), Range(ctx))
+        } else {
+            NullNode
+        }
+    }
+
+    override def visitForInit(ctx: ForInitContext): AstNode  = {
+        if (null != ctx.localVariableDeclaration()) {
+            visitChildren(LocalVariableNode(Range(ctx.localVariableDeclaration())), ctx.localVariableDeclaration())
+        } else {
+            NullNode
+        }
+    }
+
     override def visitPrimaryExpr(ctx: PrimaryExprContext): AstNode = {
         val primary = ctx.primary()
         if (null != primary.Identifier()) {

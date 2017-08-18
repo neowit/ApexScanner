@@ -29,8 +29,9 @@ import com.neowit.apexscanner.symbols.Symbol
 import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
 
 /**
   * Created by Andrey Gavrikov 
@@ -52,7 +53,7 @@ private val filePath = getProperty("CompletionFinderTest.path")
         val result = listCompletions(text).futureValue
         result match {
             case symbols if symbols.nonEmpty =>
-                assert(symbols.length >= 4, "Result contains ,ess items than expected")
+                assert(symbols.length >= 4, "Result contains less items than expected")
                 assert(symbols.exists(_.symbolName == "Spring"), "Missing expected symbol")
             case _ =>
                 fail("Expected non empty result")
@@ -72,7 +73,7 @@ private val filePath = getProperty("CompletionFinderTest.path")
         val result = listCompletions(text).futureValue
         result match {
             case symbols if symbols.nonEmpty =>
-                assert(symbols.length >= 4, "Result contains ,ess items than expected")
+                assert(symbols.length >= 4, "Result contains less items than expected")
                 assert(symbols.exists(_.symbolName == "Spring"), "Missing expected symbol")
             case _ =>
                 fail("Expected non empty result")
@@ -92,7 +93,7 @@ private val filePath = getProperty("CompletionFinderTest.path")
         val result = listCompletions(text).futureValue
         result match {
             case symbols if symbols.nonEmpty =>
-                assert(symbols.length >= 2, "Result contains ,ess items than expected")
+                assert(symbols.length >= 2, "Result contains less items than expected")
                 assert(symbols.exists(_.symbolName == "name"), "Missing expected symbol: name()")
                 assert(symbols.exists(_.symbolName == "ordinal"), "Missing expected symbol: ordinal()")
                 assert(symbols.exists(_.symbolName == "equals"), "Missing expected symbol: equals()")
@@ -114,7 +115,7 @@ private val filePath = getProperty("CompletionFinderTest.path")
         val result = listCompletions(text).futureValue
         result match {
             case symbols if symbols.nonEmpty =>
-                assert(symbols.length >= 2, "Result contains ,ess items than expected")
+                assert(symbols.length >= 2, "Result contains less items than expected")
                 assert(symbols.exists(_.symbolName == "name"), "Missing expected symbol: name()")
                 assert(symbols.exists(_.symbolName == "ordinal"), "Missing expected symbol: ordinal()")
                 assert(symbols.exists(_.symbolName == "equals"), "Missing expected symbol: equals()")
@@ -123,6 +124,53 @@ private val filePath = getProperty("CompletionFinderTest.path")
         }
     }
 
+    test("testListCompletions: enhanced for - `for (String str: strings)`") {
+        val text =
+            """
+              |class CompletionTester {
+              |
+              | public void testCompletion() {
+              |     for (String str: strings) {
+              |         str.<CARET>
+              |     }
+              | }
+              |}
+            """.stripMargin
+        val result = Await.result(listCompletions(text, "", loadStdLib = true), Duration.Inf)
+        result match {
+            case symbols if symbols.nonEmpty =>
+                assert(symbols.length >= 2, "Result contains less items than expected")
+                assert(symbols.exists(_.symbolName == "center"), "Missing expected symbol: name()")
+                assert(symbols.exists(_.symbolName == "capitalize"), "Missing expected symbol: ordinal()")
+                assert(symbols.exists(_.symbolName == "equals"), "Missing expected symbol: equals()")
+            case _ =>
+                fail("Expected non empty result")
+        }
+    }
+
+    test("testListCompletions: for - `for (Integer i = 0; i < 10; i++)`") {
+        val text =
+            """
+              |class CompletionTester {
+              |
+              | public void testCompletion() {
+              |     for (Integer i = 0; i < 10; i++) {
+              |         i.<CARET>
+              |     }
+              | }
+              |}
+            """.stripMargin
+        val result = Await.result(listCompletions(text, "", loadStdLib = true), Duration.Inf)
+        result match {
+            case symbols if symbols.nonEmpty =>
+                assert(symbols.length >= 2, "Result contains less items than expected")
+                assert(symbols.exists(_.symbolName == "format"), "Missing expected symbol: name()")
+                assert(symbols.exists(_.symbolName == "valueOf"), "Missing expected symbol: ordinal()")
+            case _ =>
+                fail("Expected non empty result")
+        }
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     var _projectWithStdLib: Option[Project] = None
     def listCompletions(text: String, documentName: String = "test", loadStdLib: Boolean = false): Future[scala.Seq[Symbol]] = {
         val project =
