@@ -148,6 +148,30 @@ private val filePath = getProperty("CompletionFinderTest.path")
         }
     }
 
+    test("testListCompletions: enhanced for - `for (String str: stringsByKey.<CARET>)`") {
+        val text =
+            """
+              |class CompletionTester {
+              |
+              | public void testCompletion() {
+              |     Map<String, List<String>> stringsByKey;
+              |     for (String str: stringsByKey.<CARET>) {
+              |     }
+              | }
+              |}
+            """.stripMargin
+        val result = Await.result(listCompletions(text, "", loadStdLib = true), Duration.Inf)
+        result match {
+            case symbols if symbols.nonEmpty =>
+                assert(symbols.length >= 2, "Result contains less items than expected")
+                assert(symbols.exists(_.symbolName == "get"), "Missing expected symbol: name()")
+                assert(symbols.exists(_.symbolName == "containsKey"), "Missing expected symbol: ordinal()")
+                assert(symbols.exists(_.symbolName == "keySet"), "Missing expected symbol: equals()")
+            case _ =>
+                fail("Expected non empty result")
+        }
+    }
+
     test("testListCompletions: for - `for (Integer i = 0; i < 10; i++)`") {
         val text =
             """
@@ -166,6 +190,30 @@ private val filePath = getProperty("CompletionFinderTest.path")
                 assert(symbols.length >= 2, "Result contains less items than expected")
                 assert(symbols.exists(_.symbolName == "format"), "Missing expected symbol: name()")
                 assert(symbols.exists(_.symbolName == "valueOf"), "Missing expected symbol: ordinal()")
+            case _ =>
+                fail("Expected non empty result")
+        }
+    }
+
+    test("testListCompletions: for - `for (Integer i = 0; i < lst.<CARET>; i++)`") {
+        val text =
+            """
+              |class CompletionTester {
+              |
+              | public void testCompletion() {
+              |     List<String> lst;
+              |     for (Integer i = 0; i < lst.<CARET>; i++) {
+              |     }
+              | }
+              |}
+            """.stripMargin
+        val result = Await.result(listCompletions(text, "", loadStdLib = true), Duration.Inf)
+        result match {
+            case symbols if symbols.nonEmpty =>
+                assert(symbols.length >= 2, "Result contains less items than expected")
+                assert(symbols.exists(_.symbolName == "get"), "Missing expected symbol: name()")
+                assert(symbols.exists(_.symbolName == "clear"), "Missing expected symbol: ordinal()")
+                assert(symbols.exists(_.symbolName == "addAll"), "Missing expected symbol: equals()")
             case _ =>
                 fail("Expected non empty result")
         }

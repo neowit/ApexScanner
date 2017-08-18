@@ -325,18 +325,34 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     }
 
 
-    override def visitEnhancedForControl(ctx: EnhancedForControlContext): AstNode = {
-        if (null != ctx.dataType() && null != ctx.variableName()) {
-            val dataType = visitDataType(ctx.dataType()).asInstanceOf[DataTypeNode]
-            EnhancedForVariableNode(dataType, Option(ctx.variableName().getText), Range(ctx))
+    override def visitForControl(ctx: ForControlContext): AstNode = {
+        if (null != ctx.enhancedForControl()) {
+            visitEnhancedForControl(ctx.enhancedForControl())
+        } else if (null != ctx.forInit()) {
+            val forControlNode = ForControlNode(Range(ctx))
+            visitChildren(forControlNode, ctx)
         } else {
             NullNode
         }
     }
 
+    override def visitEnhancedForControl(ctx: EnhancedForControlContext): AstNode = {
+        val forControlNode = ForControlNode(Range(ctx))
+        if (null != ctx.dataType() && null != ctx.variableName()) {
+            val dataType = visitDataType(ctx.dataType()).asInstanceOf[DataTypeNode]
+            forControlNode.addChildToAst(EnhancedForVariableNode(dataType, Option(ctx.variableName().getText), Range(ctx)))
+            visitChildren(forControlNode, ctx.expression())
+        } else {
+            NullNode
+        }
+        forControlNode
+    }
+
     override def visitForInit(ctx: ForInitContext): AstNode  = {
         if (null != ctx.localVariableDeclaration()) {
             visitChildren(LocalVariableNode(Range(ctx.localVariableDeclaration())), ctx.localVariableDeclaration())
+        } else if (null != ctx.expressionList()) {
+            visitChildren(ctx.expressionList())
         } else {
             NullNode
         }

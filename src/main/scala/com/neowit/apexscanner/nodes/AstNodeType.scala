@@ -43,6 +43,7 @@ case object ExpressionListNodeType extends AstNodeType
 case object ExpressionNodeType extends AstNodeType
 case object ExpressionStatementNodeType extends AstNodeType
 case object ExtendsNodeType extends AstNodeType
+case object ForControlNodeType extends AstNodeType
 case object FallThroughNodeType extends AstNodeType
 case object FileNodeType extends AstNodeType
 case object IdentifierNodeType extends AstNodeType
