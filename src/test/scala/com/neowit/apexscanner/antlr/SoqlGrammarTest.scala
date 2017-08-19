@@ -269,6 +269,22 @@ class SoqlGrammarTest extends FunSuite {
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
+
+    test("limit :( isTest ? 5 : 1000 )") {
+        val text =
+            """
+              |[select id from Object
+              |where ownerid = :userinfo.getuserid()
+              |order by some.field lastname asc
+              |limit :( isTest ? 5 : 1000 )]
+              |
+            """.stripMargin
+        val doc = TextBasedDocument(text, dummyFile)
+        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val errors = scanResult.errors
+        errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+    }
+
     test(" (Id)article.get('Id') ") {
         val text =
             """
