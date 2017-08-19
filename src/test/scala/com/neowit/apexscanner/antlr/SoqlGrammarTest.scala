@@ -222,4 +222,20 @@ class SoqlGrammarTest extends FunSuite {
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
+
+    test("Date literals e.g. 1970-12-31T22:16:30.000Z, ") {
+        val text =
+            """
+              | select Id From Opportunity
+              | where
+              |    CreatedDate >= 2015-01-01
+              |    or CreatedDate < 1970-12-31T22:16:30.000Z
+              |    or CreatedDate <> 1970-12-31T10:00:00-08:00
+              |
+            """.stripMargin
+        val doc = TextBasedDocument(text, dummyFile)
+        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val errors = scanResult.errors
+        errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+    }
 }
