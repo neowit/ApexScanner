@@ -44,9 +44,7 @@ class SoqlGrammarTest extends FunSuite {
     test("IN :productIds") {
         val text =
             """
-              |[Select Id,UnitPrice,Product2Id
-              |                                From PricebookEntry
-              |                                Where Product2Id IN:productIds]
+              |[Select Id,UnitPrice,Product2Id From PricebookEntry Where Product2Id IN:productIds]
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
         val scanResult = soqlScanner.scan(doc, predictionMode)
@@ -256,7 +254,7 @@ class SoqlGrammarTest extends FunSuite {
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
 
-    test("Date literals e.g. 1970-12-31T22:16:30.000Z, ") {
+    test("Date literals e.g. 1970-12-31T22:16:30.000Z ") {
         val text =
             """
               | select Id From Opportunity
