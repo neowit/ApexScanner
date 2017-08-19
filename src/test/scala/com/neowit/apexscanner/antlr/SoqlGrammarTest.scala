@@ -209,4 +209,17 @@ class SoqlGrammarTest extends FunSuite {
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
+
+    test("group by f1, f2, f3 having count(Id) > 1 ") {
+        val text =
+            """
+              | [SELECT Id FROM Object
+              |WHERE Field in : finalizedProposalIds
+              |group by f1, f2, f3 having count(Id) > 1 ]
+            """.stripMargin
+        val doc = TextBasedDocument(text, dummyFile)
+        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val errors = scanResult.errors
+        errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+    }
 }
