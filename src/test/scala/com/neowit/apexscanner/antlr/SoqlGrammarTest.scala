@@ -219,6 +219,17 @@ class SoqlGrammarTest extends FunSuite {
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
 
+    test(" where Id in :trigger.new ") {
+        val text =
+            """
+              | [Select id from Case where Id in :trigger.new ]
+            """.stripMargin
+        val doc = TextBasedDocument(text, dummyFile)
+        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val errors = scanResult.errors
+        errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+    }
+
     test(" WHERE Id =: [SELECT Id FROM Account]") {
         val text =
             """
