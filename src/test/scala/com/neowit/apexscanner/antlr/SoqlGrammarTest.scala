@@ -208,6 +208,17 @@ class SoqlGrammarTest extends FunSuite {
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
 
+    test(" :System.today().addDays((-1) * someDays) ") {
+        val text =
+            """
+              | [Select id from Case where ClosedDate <= :System.today().addDays((-1) * someDays)]
+            """.stripMargin
+        val doc = TextBasedDocument(text, dummyFile)
+        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val errors = scanResult.errors
+        errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+    }
+
     test(" WHERE Id =: [SELECT Id FROM Account]") {
         val text =
             """
