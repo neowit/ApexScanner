@@ -49,7 +49,7 @@ object SyntaxChecker {
     }
 
     private def checkSoqlStatement(soqlScanner: SoqlScanner, file: Path, soqlToken: Token): Unit = {
-        println("SOQL: " + soqlToken.getText)
+        //println("SOQL: " + soqlToken.getText)
         val scanResult = soqlScanner.scan(TokenBasedDocument(soqlToken, file), PredictionMode.SLL)
 
         soqlScanner.onEachResult(scanResult)
