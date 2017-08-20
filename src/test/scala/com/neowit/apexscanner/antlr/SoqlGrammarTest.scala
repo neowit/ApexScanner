@@ -203,6 +203,11 @@ class SoqlGrammarTest extends FunSuite {
               |or SomeDate >= :Date.today() or SomeAt = : at or SomeTeam = :team
               |or Some = :some.get(team)
               |or Some = :some.get(Yesterday)
+              |or Some = :count
+              |or Some = :count()
+              |or Some = :count_distinct
+              |or Some = :avg()
+              |or Some = :avg
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
         val scanResult = soqlScanner.scan(doc, predictionMode)
