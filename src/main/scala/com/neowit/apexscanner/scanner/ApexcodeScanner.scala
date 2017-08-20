@@ -35,10 +35,10 @@ import scala.util.{Failure, Success, Try}
   * Created by Andrey Gavrikov 
   */
 class ApexcodeScanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath,
-                      onEachResult: FileScanResult => Unit = Scanner.emptyOnEachResult,
+                      onEachResult: DocumentScanResult => Unit = Scanner.emptyOnEachResult,
                       errorListenerFactory: VirtualDocument => ApexErrorListener) extends Scanner(isIgnoredPath, onEachResult, errorListenerFactory) {
 
-    def scan(document: VirtualDocument, predictionMode: PredictionMode): FileScanResult = {
+    def scan(document: VirtualDocument, predictionMode: PredictionMode): DocumentScanResult = {
         val lexer = new ApexcodeLexer(document.getCharStream)
 
         val tokenStream = new CommonTokenStream(lexer)
@@ -67,7 +67,7 @@ class ApexcodeScanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredP
             }
 
         val errors = errorListener.result()
-        FileScanResult(document, errors, compilationUnit, tokenStream)
+        DocumentScanResult(document, errors, compilationUnit, tokenStream)
     }
 
 }

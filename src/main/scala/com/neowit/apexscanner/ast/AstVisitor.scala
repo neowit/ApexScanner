@@ -25,7 +25,7 @@ import java.nio.file.FileSystems
 
 import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.nodes.AstNode
-import com.neowit.apexscanner.scanner.{ApexcodeScanner, FileScanResult, Scanner}
+import com.neowit.apexscanner.scanner.{ApexcodeScanner, DocumentScanResult, Scanner}
 import com.neowit.apexscanner.scanner.actions.SyntaxChecker
 
 /**
@@ -55,7 +55,7 @@ object DebugVisitor {
         scanner.scan(path)
         ()
     }
-    def onEachFileScanResult(result: FileScanResult): Unit = {
+    def onEachFileScanResult(result: DocumentScanResult): Unit = {
         val visitor = new ApexAstBuilderVisitor(Option(project), Option(result.document))
         val compileUnit = visitor.visit(result.parseContext)
         new AstWalker().walk(compileUnit, new DebugVisitor)

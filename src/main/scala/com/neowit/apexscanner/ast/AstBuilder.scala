@@ -26,12 +26,12 @@ import java.nio.file.Path
 import com.neowit.apexscanner.{Project, VirtualDocument}
 import com.neowit.apexscanner.nodes.AstNode
 import com.neowit.apexscanner.scanner.actions.SyntaxChecker
-import com.neowit.apexscanner.scanner.{ApexcodeScanner, FileScanResult, Scanner}
+import com.neowit.apexscanner.scanner.{ApexcodeScanner, DocumentScanResult, Scanner}
 import org.antlr.v4.runtime.atn.PredictionMode
 
 import scala.concurrent.{ExecutionContext, Future}
 
-case class AstBuilderResult(fileScanResult: FileScanResult, rootNode: AstNode)
+case class AstBuilderResult(fileScanResult: DocumentScanResult, rootNode: AstNode)
 
 object AstBuilder {
     type VisitorCreatorFun = (Option[Project], Option[VirtualDocument]) => AstBuilderVisitor
@@ -51,7 +51,7 @@ class AstBuilder(project: Project, visitorCreator: AstBuilder.VisitorCreatorFun 
         Future.successful(())
     }
 
-    private def onEachFileScanResult(result: FileScanResult): Unit = {
+    private def onEachFileScanResult(result: DocumentScanResult): Unit = {
         //val visitor = new ApexAstBuilderVisitor(Option(project), Option(result.document))
         val visitor = visitorCreator(Option(project), Option(result.document))
         val compileUnit = visitor.visit(result.parseContext)

@@ -76,7 +76,7 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
         val fileNameSetBuilder = Set.newBuilder[String]
 
 
-        def onSoqlScanResult(scanResult: FileScanResult):Unit = {
+        def onSoqlScanResult(scanResult: DocumentScanResult):Unit = {
             val file: Path = scanResult.document.file
             val soqlStr = scanResult.document.getTextContent.getOrElse("")
             val errors = scanResult.errors
@@ -103,7 +103,7 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
             errorListenerFactory = SyntaxChecker.errorListenerCreator
         )
 
-        def onApexFileCheckResult(scanResult: FileScanResult):Unit = {
+        def onApexFileCheckResult(scanResult: DocumentScanResult):Unit = {
             val file: Path = scanResult.document.file
             recordProcessedFile(file)
             val errors = scanResult.errors
@@ -153,10 +153,11 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
         val scanResult = soqlScanner.scan(TextBasedDocument(soqlStr, file), PredictionMode.SLL)
         soqlScanner.onEachResult(scanResult)
     }
-    private def testSoqlStatements(soqlScanner: SoqlScanner, scanResult: FileScanResult): Unit = {
+    private def testSoqlStatements(soqlScanner: SoqlScanner, scanResult: DocumentScanResult): Unit = {
         var count = 0
         val file = scanResult.document.getFileName
-        getSoqlStatements(scanResult.tokenStream).foreach{soqlStr =>
+        SyntaxChecker.getSoqlStatements(scanResult.tokenStream).foreach{soqlToken =>
+            val soqlStr = soqlToken.getText
             testSoqlStatement(soqlScanner, file, soqlStr)
             count += 1
         }

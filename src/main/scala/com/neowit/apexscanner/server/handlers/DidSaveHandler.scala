@@ -25,7 +25,7 @@ package com.neowit.apexscanner.server.handlers
 import java.nio.file.{Files, Path}
 
 import com.neowit.apexscanner.Project
-import com.neowit.apexscanner.scanner.FileScanResult
+import com.neowit.apexscanner.scanner.DocumentScanResult
 import com.neowit.apexscanner.scanner.actions.{SyntaxChecker, SyntaxError}
 import com.neowit.apexscanner.server.protocol.{Diagnostic, DocumentUri, LanguageServer, PublishDiagnosticsParams}
 import com.neowit.apexscanner.server.protocol.messages.MessageParams.DidSaveParams
@@ -75,7 +75,7 @@ class DidSaveHandler extends NotificationHandler with MessageJsonSupport with La
     private def checkSyntax(project: Project, file: Path)(implicit ex: ExecutionContext): Future[Map[Path, Seq[SyntaxError]]] = {
         val errorBuilder = Map.newBuilder[Path, Seq[SyntaxError]]
 
-        def onFileCheckResult(scanResult: FileScanResult):Unit = {
+        def onFileCheckResult(scanResult: DocumentScanResult):Unit = {
             val file: Path = scanResult.document.file
             val errors = scanResult.errors
             //even if there were no errors we still need to return: file -> Seq.empty
