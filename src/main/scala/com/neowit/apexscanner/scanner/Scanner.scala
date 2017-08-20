@@ -29,7 +29,7 @@ import org.antlr.v4.runtime.atn.PredictionMode
 
 import scala.concurrent.{ExecutionContext, Future}
 
-case class FileScanResult(document: VirtualDocument, errors: Seq[SyntaxError], parseContext: ParserRuleContext, tokenStream: CommonTokenStream)
+case class DocumentScanResult(document: VirtualDocument, errors: Seq[SyntaxError], parseContext: ParserRuleContext, tokenStream: CommonTokenStream)
 
 object Scanner{
 
@@ -37,7 +37,7 @@ object Scanner{
       * dummy method which can be used in Scanner.onEachResult parameter when nothing needs to be done on each result
       * @param result
       */
-    def emptyOnEachResult(result: FileScanResult): Unit = ()
+    def emptyOnEachResult(result: DocumentScanResult): Unit = ()
 
     private val ignoredDirs = Set("resources_unpacked", "Referenced Packages")
     def defaultIsIgnoredPath(path: Path): Boolean = {
@@ -66,8 +66,8 @@ object Scanner{
   * @return
   */
 abstract class Scanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath,
-              onEachResult: FileScanResult => Unit = Scanner.emptyOnEachResult,
-              errorListenerFactory: VirtualDocument => ApexErrorListener) {
+                       onEachResult: DocumentScanResult => Unit = Scanner.emptyOnEachResult,
+                       errorListenerFactory: VirtualDocument => ApexErrorListener) {
 
     /**
       * implement this method with logic needed to scan single document
@@ -75,7 +75,7 @@ abstract class Scanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnored
       * @param predictionMode necessary prediction mode
       * @return
       */
-    def scan(document: VirtualDocument, predictionMode: PredictionMode): FileScanResult
+    def scan(document: VirtualDocument, predictionMode: PredictionMode): DocumentScanResult
 
     /**
       * Parse & Check syntax in files residing in specified path/location

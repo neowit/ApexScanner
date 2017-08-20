@@ -24,7 +24,7 @@ package com.neowit.apexscanner.scanner
 import java.nio.file.Path
 
 import com.neowit.apexscanner.VirtualDocument
-import com.neowit.apexscanner.antlr.{ SoqlLexer, SoqlParser}
+import com.neowit.apexscanner.antlr.{SoqlLexer, SoqlParser}
 import org.antlr.v4.runtime.{BailErrorStrategy, CommonTokenStream, DefaultErrorStrategy, ParserRuleContext}
 import org.antlr.v4.runtime.atn.PredictionMode
 import org.antlr.v4.runtime.misc.ParseCancellationException
@@ -35,10 +35,10 @@ import scala.util.{Failure, Success, Try}
   * Created by Andrey Gavrikov 
   */
 class SoqlScanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath,
-                  val onEachResult: FileScanResult => Unit = Scanner.emptyOnEachResult,
+                  val onEachResult: DocumentScanResult => Unit = Scanner.emptyOnEachResult,
                   errorListenerFactory: VirtualDocument => ApexErrorListener) extends Scanner(isIgnoredPath, onEachResult, errorListenerFactory) {
 
-    override def scan(document: VirtualDocument, predictionMode: PredictionMode): FileScanResult = {
+    override def scan(document: VirtualDocument, predictionMode: PredictionMode): DocumentScanResult = {
         val lexer = new SoqlLexer(document.getCharStream)
 
         val tokenStream = new CommonTokenStream(lexer)
@@ -67,6 +67,6 @@ class SoqlScanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath,
             }
 
         val errors = errorListener.result()
-        FileScanResult(document, errors, compilationUnit, tokenStream)
+        DocumentScanResult(document, errors, compilationUnit, tokenStream)
     }
 }

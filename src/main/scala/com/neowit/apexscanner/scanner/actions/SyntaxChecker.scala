@@ -23,19 +23,52 @@ package com.neowit.apexscanner.scanner.actions
 
 import java.nio.file.Path
 
-import com.neowit.apexscanner.VirtualDocument
+import com.neowit.apexscanner.antlr.ApexcodeLexer
+import com.neowit.apexscanner.{TokenBasedDocument, VirtualDocument}
+import com.neowit.apexscanner.nodes.{Language, Position}
 import com.neowit.apexscanner.scanner._
-import org.antlr.v4.runtime.{BaseErrorListener, RecognitionException, Recognizer}
+import org.antlr.v4.runtime.atn.PredictionMode
+import org.antlr.v4.runtime._
 
 import scala.concurrent.{ExecutionContext, Future}
+import collection.JavaConverters._
 
 object SyntaxChecker {
     def errorListenerCreator(document: VirtualDocument): ApexErrorListener = {
         new SyntaxCheckerErrorListener(document)
     }
+
+    private def checkSoqlStatements(soqlScanner: SoqlScanner, scanResult: DocumentScanResult): Int = {
+        var count = 0
+        val file = scanResult.document.getFileName
+        getSoqlStatements(scanResult.tokenStream).foreach{soqlToken =>
+            checkSoqlStatement(soqlScanner, file, soqlToken)
+            count += 1
+        }
+        count
+    }
+
+    private def checkSoqlStatement(soqlScanner: SoqlScanner, file: Path, soqlToken: Token): Unit = {
+        println("SOQL: " + soqlToken.getText)
+        val scanResult = soqlScanner.scan(TokenBasedDocument(soqlToken, file), PredictionMode.SLL)
+
+        soqlScanner.onEachResult(scanResult)
+    }
+
+    def getSoqlStatements(tokenStream: CommonTokenStream): List[Token] = {
+        val listBuilder = List.newBuilder[Token]
+        for ( token <- tokenStream.getTokens.asScala ) {
+            if (Token.DEFAULT_CHANNEL == token.getChannel && ApexcodeLexer.SoqlLiteral == token.getType) {
+                listBuilder += token
+            }
+        }
+        listBuilder.result()
+    }
 }
-class SyntaxChecker {
+
+class SyntaxChecker(secondaryLanguages: Set[Language] = Set(Language.ApexCode)) {
     import SyntaxChecker._
+
     /**
       * Parse & Check syntax in files residing in specified path/location
       * @param path file or folder with eligible apex files to check syntax
@@ -45,29 +78,79 @@ class SyntaxChecker {
       */
     def check(path: Path,
              isIgnoredPath: Path => Boolean,
-             onEachResult: FileScanResult => Unit)(implicit ex: ExecutionContext): Future[Seq[SyntaxCheckResult]] = {
+             onEachResult: DocumentScanResult => Unit)(implicit ex: ExecutionContext): Future[Seq[SyntaxCheckResult]] = {
 
         val resultBuilder = Seq.newBuilder[SyntaxCheckResult]
 
-        def onFileCheckResult(result: FileScanResult):Unit = {
-            val sourceFile = result.document.file
-            //val fileName = result.sourceFile.getName(sourceFile.getNameCount-1).toString
-            val res = SyntaxCheckResult(sourceFile, result.errors)
+        def onSoqlStatementCheckResult(scanResult: DocumentScanResult):Unit = {
+            scanResult.document match {
+                case _doc @ TokenBasedDocument(token, _) =>
+                    val res = SyntaxCheckResult(_doc, scanResult.errors, language = Language.SOQL)
+                    resultBuilder += res
+                    onEachResult(scanResult)
+                case _ => // do not expect any other document types here, do nothing
+            }
+        }
+
+        val soqlScanner = new SoqlScanner(
+            p => true,
+            onEachResult = onSoqlStatementCheckResult,
+            errorListenerFactory = errorListenerCreator
+        )
+
+        def onApexFileCheckResult(result: DocumentScanResult):Unit = {
+            val res = SyntaxCheckResult(result.document, result.errors, language = Language.ApexCode)
             resultBuilder += res
             onEachResult(result)
+            if (secondaryLanguages.contains(Language.SOQL)) {
+                checkSoqlStatements(soqlScanner, result)
+            }
+            ()
         }
-        val scanner = new ApexcodeScanner(isIgnoredPath, onFileCheckResult, errorListenerCreator)
-        scanner.scan(path).map(ignored => resultBuilder.result())
+
+        val apexScanner = new ApexcodeScanner(isIgnoredPath, onApexFileCheckResult, errorListenerCreator)
+        apexScanner.scan(path).map(ignored => resultBuilder.result())
+
     }
+
 }
 
+/**
+  *
+  * @param offset if document is inside another document (e.g. SOQL statement inside Apex class)
+  *               then error position in the outer document needs to be adjusted
+  */
 case class SyntaxError(offendingSymbol: scala.Any,
                        line: Int,
                        charPositionInLine: Int,
-                       msg: String)
+                       msg: String,
+                       offset: Option[Position] = None
+                      ) {
+
+    def getAdjustedLine: Int = {
+        offset match {
+            case Some(Position(offsetLine, _)) =>
+                offsetLine + line - 1
+            case None => line
+        }
+    }
+
+    def getAdjustedCharPositionInLine: Int = {
+        offset match {
+            case Some(Position(_, offsetCol)) =>
+                if (1 == line) {
+                    offsetCol + charPositionInLine
+                } else {
+                    charPositionInLine
+                }
+            case None => charPositionInLine
+        }
+    }
+}
 
 private class SyntaxCheckerErrorListener(document: VirtualDocument) extends BaseErrorListener with ApexErrorListener {
     private val errorBuilder = Seq.newBuilder[SyntaxError]
+
     override def syntaxError(recognizer: Recognizer[_, _],
                              offendingSymbol: scala.Any,
                              line: Int, charPositionInLine: Int,
@@ -76,8 +159,14 @@ private class SyntaxCheckerErrorListener(document: VirtualDocument) extends Base
         //super.syntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e)
         // make sure msg does not include 'FIXER_TOKEN', end user has no use for it
         val msgCleaned = msg.replace("'FIXER_TOKEN', ", "")
-
-        val error = SyntaxError(offendingSymbol, line, charPositionInLine, msgCleaned)
+        val error =
+        document match {
+            case _doc @ TokenBasedDocument(token, _) => // adjust error location
+                val offset = Position(token.getLine, token.getCharPositionInLine)
+                SyntaxError(offendingSymbol, line, charPositionInLine, msgCleaned, Option(offset))
+            case _ => // return as is
+                SyntaxError(offendingSymbol, line, charPositionInLine, msgCleaned)
+        }
         errorBuilder += error
         //assert(false, "\n" + file.toString + s"\n=> ($line, $charPositionInLine): " + msg)
     }

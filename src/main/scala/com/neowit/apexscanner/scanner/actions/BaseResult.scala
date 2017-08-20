@@ -23,8 +23,11 @@ package com.neowit.apexscanner.scanner.actions
 
 import java.nio.file.Path
 
+import com.neowit.apexscanner.VirtualDocument
+import com.neowit.apexscanner.nodes.Language
+
 
 sealed trait BaseResult
 
-case class SyntaxCheckResult(sourceFile: Path, errors: Seq[SyntaxError]) extends BaseResult
+case class SyntaxCheckResult(document: VirtualDocument, errors: Seq[SyntaxError], language: Language = Language.ApexCode) extends BaseResult
 case class ListCompletionsResult(sourceFile: Path, options: Seq[com.neowit.apexscanner.symbols.Symbol]) extends BaseResult

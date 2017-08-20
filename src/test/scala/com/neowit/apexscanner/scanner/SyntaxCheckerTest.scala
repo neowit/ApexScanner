@@ -4,9 +4,7 @@ import java.io.File
 import java.nio.file.{FileSystems, Files, Path}
 
 import com.neowit.apexscanner.{TestConfigProvider, TextBasedDocument}
-import com.neowit.apexscanner.antlr.ApexcodeLexer
 import com.neowit.apexscanner.scanner.actions.SyntaxChecker
-import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.atn.PredictionMode
 import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -86,6 +84,7 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
                 println("\n\n# successful SOQL statements: " + _testedSoqlCount)
                 if (failOnError) {
                     print("Checked " + fileName)
+                    print("\n     Error in Soql: \n" + soqlStr)
                     errors.foreach(e =>  fail("\n" + file.toString + s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
                 } else {
                     // only report SOQL error, but not fail the whole test
@@ -166,17 +165,6 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
                 print("; SOQL=" + count)
             }
         }
-    }
-
-    private def getSoqlStatements(tokenStream: CommonTokenStream): List[String] = {
-        val listBuilder = List.newBuilder[String]
-        for ( i <- Range(0, tokenStream.getNumberOfOnChannelTokens) ) {
-            val token = tokenStream.get(i)
-            if (ApexcodeLexer.SoqlLiteral == token.getType) {
-                listBuilder += token.getText
-            }
-        }
-        listBuilder.result()
     }
 
 }
