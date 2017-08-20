@@ -195,10 +195,14 @@ class SoqlGrammarTest extends FunSuite {
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
 
-    test(" :Date.today() in WHERE ") {
+    test(" SOQL keywords in :apexExpression ") {
         val text =
             """
-              | SELECT Id FROM Object WHERE SomeDate < :Date.today()
+              |SELECT Id FROM Object
+              |WHERE SomeDate < :today
+              |or SomeDate >= :Date.today() or SomeAt = : at or SomeTeam = :team
+              |or Some = :some.get(team)
+              |or Some = :some.get(Yesterday)
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
         val scanResult = soqlScanner.scan(doc, predictionMode)
