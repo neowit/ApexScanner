@@ -20,6 +20,11 @@ import scala.concurrent.duration.Duration
 
 class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
 
+    // TEST OUTPUT CONFIGURATION
+    private val failOnError = true
+    private val printSuccessfulFileNames = true
+    // END TEST OUTPUT CONFIGURATION
+
     //private val matcher = FileSystems.getDefault.getPathMatcher("glob:*.cls")
     private val projectPath = getProperty("SyntaxCheckerTest.path")
 
@@ -33,6 +38,7 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
     private val ignoredDirs = Set("resources_unpacked", "Referenced Packages", "_ProjectTemplate")
 
     private val processedKeys: mutable.HashSet[String] = new mutable.HashSet[String]()
+    private var _testedApexFileCount = 0
     private var _testedSoqlCount = 0
 
     private def recordProcessedFile(path: Path): Unit = {
@@ -69,16 +75,23 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
         val path = FileSystems.getDefault.getPath(projectPath)
         val fileNameSetBuilder = Set.newBuilder[String]
 
+
         def onSoqlScanResult(scanResult: FileScanResult):Unit = {
             val file: Path = scanResult.document.file
             val soqlStr = scanResult.document.getTextContent.getOrElse("")
             val errors = scanResult.errors
-            //val fileName = file.getName(file.getNameCount-1).toString
+            val fileName = file.getName(file.getNameCount-1).toString
             //fileNameSetBuilder += fileName
             if (errors.nonEmpty) {
                 println("\n\n# successful SOQL statements: " + _testedSoqlCount)
-                print("\n     Error in Soql: \n" + soqlStr)
-                errors.foreach(e =>  assert(false, "\n" + file.toString + s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+                if (failOnError) {
+                    print("Checked " + fileName)
+                    errors.foreach(e =>  fail("\n" + file.toString + s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+                } else {
+                    // only report SOQL error, but not fail the whole test
+                    print("Checked " + fileName)
+                    print("\n     Error in Soql: \n" + soqlStr)
+                }
             } else {
                 _testedSoqlCount += 1
             }
@@ -96,13 +109,32 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
             val errors = scanResult.errors
             val fileName = file.getName(file.getNameCount-1).toString
             fileNameSetBuilder += fileName
-            print("Checked " + fileName)
-            errors.foreach(e =>  assert(false, "\n" + file.toString + s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+            var printNewLine = false
+            if (errors.nonEmpty) {
+                if (failOnError) {
+                    print("Checked " + fileName)
+                    errors.foreach(e => fail("\n" + file.toString + s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+                    printNewLine = true
+                } else {
+                    // only report an error, but not fail the whole test
+                    print("Checked " + fileName)
+                    errors.foreach(e => println("  \n" + file.toString + s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
+                    printNewLine = true
+                }
+            } else if (printSuccessfulFileNames) {
+                print("Checked " + fileName)
+                printNewLine = true
+            }
             // test SOQL
             testSoqlStatements(soqlScanner, scanResult)
 
-            println() // new line
-            // SOQL syntax check
+            if (printNewLine) {
+                println() // new line
+            }
+            _testedApexFileCount += 1
+            if (0 == _testedApexFileCount % 100) {
+                println("# Tested apex file count: " + _testedApexFileCount)
+            }
         }
 
         val start = System.currentTimeMillis
@@ -129,7 +161,9 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
             count += 1
         }
         if (count > 0) {
-            print("; SOQL=" + count)
+            if (scanResult.errors.isEmpty && printSuccessfulFileNames) {
+                print("; SOQL=" + count)
+            }
         }
     }
 
