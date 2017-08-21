@@ -23,94 +23,39 @@ package com.neowit.apexscanner.scanner.actions
 
 import java.nio.file.Path
 
-import com.neowit.apexscanner.antlr.ApexcodeLexer
 import com.neowit.apexscanner.{TokenBasedDocument, VirtualDocument}
 import com.neowit.apexscanner.nodes.{Language, Position}
 import com.neowit.apexscanner.scanner._
-import org.antlr.v4.runtime.atn.PredictionMode
 import org.antlr.v4.runtime._
 
 import scala.concurrent.{ExecutionContext, Future}
-import collection.JavaConverters._
 
 object SyntaxChecker {
     def errorListenerCreator(document: VirtualDocument): ApexErrorListener = {
         new SyntaxCheckerErrorListener(document)
     }
 
-    private def checkSoqlStatements(soqlScanner: SoqlScanner, scanResult: DocumentScanResult): Int = {
-        var count = 0
-        val file = scanResult.document.getFileName
-        getSoqlStatements(scanResult.tokenStream).foreach{soqlToken =>
-            checkSoqlStatement(soqlScanner, file, soqlToken)
-            count += 1
-        }
-        count
-    }
-
-    private def checkSoqlStatement(soqlScanner: SoqlScanner, file: Path, soqlToken: Token): Unit = {
-        //println("SOQL: " + soqlToken.getText)
-        val scanResult = soqlScanner.scan(TokenBasedDocument(soqlToken, file), PredictionMode.SLL)
-
-        soqlScanner.onEachResult(scanResult)
-    }
-
-    def getSoqlStatements(tokenStream: CommonTokenStream): List[Token] = {
-        val listBuilder = List.newBuilder[Token]
-        for ( token <- tokenStream.getTokens.asScala ) {
-            if (Token.DEFAULT_CHANNEL == token.getChannel && ApexcodeLexer.SoqlLiteral == token.getType) {
-                listBuilder += token
-            }
-        }
-        listBuilder.result()
-    }
 }
 
-class SyntaxChecker(secondaryLanguages: Set[Language] = Set(Language.ApexCode)) {
-    import SyntaxChecker._
+class SyntaxChecker(scanner: Scanner) {
 
     /**
       * Parse & Check syntax in files residing in specified path/location
       * @param path file or folder with eligible apex files to check syntax
-      * @param isIgnoredPath - provide this function if path points to a folder and certain paths inside need to be ignored
-      * @param onEachResult - provide this function if additional action is required when result for each individual file is available
       * @return sequence of syntax check results
       */
-    def check(path: Path,
-             isIgnoredPath: Path => Boolean,
-             onEachResult: DocumentScanResult => Unit)(implicit ex: ExecutionContext): Future[Seq[SyntaxCheckResult]] = {
+    def check(path: Path)(implicit ex: ExecutionContext): Future[Seq[SyntaxCheckResult]] = {
 
         val resultBuilder = Seq.newBuilder[SyntaxCheckResult]
 
-        def onSoqlStatementCheckResult(scanResult: DocumentScanResult):Unit = {
-            scanResult.document match {
-                case _doc @ TokenBasedDocument(token, _) =>
-                    val res = SyntaxCheckResult(_doc, scanResult.errors, language = Language.SOQL)
-                    resultBuilder += res
-                    onEachResult(scanResult)
-                case _ => // do not expect any other document types here, do nothing
-            }
-        }
-
-        val soqlScanner = new SoqlScanner(
-            p => true,
-            onEachResult = onSoqlStatementCheckResult,
-            errorListenerFactory = errorListenerCreator
-        )
-
-        def onApexFileCheckResult(result: DocumentScanResult):Unit = {
+        def onFileCheckResult (result: DocumentScanResult): DocumentScanResult = {
             val res = SyntaxCheckResult(result.document, result.errors, language = Language.ApexCode)
             resultBuilder += res
-            onEachResult(result)
-            if (secondaryLanguages.contains(Language.SOQL)) {
-                checkSoqlStatements(soqlScanner, result)
-            }
-            ()
+            scanner.onEachResult(result)
+            result
         }
 
-        val apexScanner = new ApexcodeScanner(isIgnoredPath, onApexFileCheckResult, errorListenerCreator)
-        apexScanner.scan(path).map(ignored => resultBuilder.result())
-
+        scanner.scan(path, onFileCheckResult).map(ignored => resultBuilder.result())
     }
 
 }

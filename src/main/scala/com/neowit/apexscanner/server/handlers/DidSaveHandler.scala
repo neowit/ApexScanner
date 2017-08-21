@@ -25,7 +25,7 @@ package com.neowit.apexscanner.server.handlers
 import java.nio.file.{Files, Path}
 
 import com.neowit.apexscanner.Project
-import com.neowit.apexscanner.scanner.DocumentScanResult
+import com.neowit.apexscanner.scanner._
 import com.neowit.apexscanner.scanner.actions.{SyntaxChecker, SyntaxError}
 import com.neowit.apexscanner.server.protocol.{Diagnostic, DocumentUri, LanguageServer, PublishDiagnosticsParams}
 import com.neowit.apexscanner.server.protocol.messages.MessageParams.DidSaveParams
@@ -75,16 +75,27 @@ class DidSaveHandler extends NotificationHandler with MessageJsonSupport with La
     private def checkSyntax(project: Project, file: Path)(implicit ex: ExecutionContext): Future[Map[Path, Seq[SyntaxError]]] = {
         val errorBuilder = Map.newBuilder[Path, Seq[SyntaxError]]
 
-        def onFileCheckResult(scanResult: DocumentScanResult):Unit = {
+        def onFileCheckResult(scanResult: DocumentScanResult):DocumentScanResult = {
             val file: Path = scanResult.document.file
             val errors = scanResult.errors
             //even if there were no errors we still need to return: file -> Seq.empty
             // otherwise client will not "know" that previously reported errors are now gone
             errorBuilder += file -> errors
+            scanResult
         }
-        val checker = new SyntaxChecker()
-        checker.check(file, file => !DidSaveHandler.isSupportedPath(file), onFileCheckResult)
-            .map(_ => errorBuilder.result())
+        val apexcodeScanner = new ApexcodeScanner(
+            file => !DidSaveHandler.isSupportedPath(file),
+            onFileCheckResult,
+            SyntaxChecker.errorListenerCreator)
+
+        val soqlScanner = new SoqlScanner(
+            p => true,
+            Scanner.defaultOnEachResult,
+            SyntaxChecker.errorListenerCreator
+        )
+        val scanner = new SyntaxCheckScanner(Seq(apexcodeScanner, soqlScanner))
+        val checker = new SyntaxChecker(scanner)
+        checker.check(file) .map(_ => errorBuilder.result())
 
     }
 

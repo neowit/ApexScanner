@@ -46,12 +46,12 @@ class AstBuilder(project: Project, visitorCreator: AstBuilder.VisitorCreatorFun 
         scanner.scan(path)
     }
     def build(document: VirtualDocument, scanner: Scanner = DEFAULT_SCANNER, predictionMode: PredictionMode = PredictionMode.SLL): Future[Unit] = {
-        val scanResult = scanner.scan(document, predictionMode)
+        val scanResult = scanner.scan(document, predictionMode, None)
         onEachFileScanResult(scanResult)
         Future.successful(())
     }
 
-    private def onEachFileScanResult(result: DocumentScanResult): Unit = {
+    private def onEachFileScanResult(result: DocumentScanResult): DocumentScanResult = {
         //val visitor = new ApexAstBuilderVisitor(Option(project), Option(result.document))
         val visitor = visitorCreator(Option(project), Option(result.document))
         val compileUnit = visitor.visit(result.parseContext)
@@ -61,6 +61,7 @@ class AstBuilder(project: Project, visitorCreator: AstBuilder.VisitorCreatorFun 
         fileNameCache += sourceDocument.getFileName.toString -> sourceDocument
         // finalise
         visitor.onComplete()
+        result
     }
     private def getDocument(fileName: String): Option[VirtualDocument] = {
         fileNameCache.result().get(fileName)

@@ -55,9 +55,10 @@ object DebugVisitor {
         scanner.scan(path)
         ()
     }
-    def onEachFileScanResult(result: DocumentScanResult): Unit = {
+    def onEachFileScanResult(result: DocumentScanResult): DocumentScanResult = {
         val visitor = new ApexAstBuilderVisitor(Option(project), Option(result.document))
         val compileUnit = visitor.visit(result.parseContext)
         new AstWalker().walk(compileUnit, new DebugVisitor)
+        result
     }
 }

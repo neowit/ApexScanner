@@ -35,8 +35,8 @@ import org.scalatest.FunSuite
 class SoqlGrammarTest extends FunSuite {
     private val soqlScanner = new SoqlScanner(
         p => true,
-        onEachResult = Scanner.emptyOnEachResult,
-        errorListenerFactory = SyntaxChecker.errorListenerCreator
+        Scanner.defaultOnEachResult,
+        SyntaxChecker.errorListenerCreator
     )
     private val dummyFile = Paths.get("")
     private val predictionMode: PredictionMode = PredictionMode.SLL
@@ -47,7 +47,7 @@ class SoqlGrammarTest extends FunSuite {
               |[Select Id,UnitPrice,Product2Id From PricebookEntry Where Product2Id IN:productIds]
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
@@ -59,7 +59,7 @@ class SoqlGrammarTest extends FunSuite {
               |Where Field1__c IN: myMap.keySet() And Id NOT IN: dsbIds And Some_Date__c != null]
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
@@ -71,7 +71,7 @@ class SoqlGrammarTest extends FunSuite {
               |Where Some_Date__c <> null]
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
@@ -83,7 +83,7 @@ class SoqlGrammarTest extends FunSuite {
               |Where id=:ApexPages.currentPage().getParameters().get('Id')]
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
@@ -100,7 +100,7 @@ class SoqlGrammarTest extends FunSuite {
               | and lat__c > :account.Lat__c * 2
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
@@ -111,7 +111,7 @@ class SoqlGrammarTest extends FunSuite {
               | select count(Id) sum from Account
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
@@ -122,7 +122,7 @@ class SoqlGrammarTest extends FunSuite {
               | select id,(select id from OpenActivities order by ActivityDate DESC, LastModifiedDate DESC limit 500) from Opportunity
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
@@ -135,7 +135,7 @@ class SoqlGrammarTest extends FunSuite {
               |and Active__c = true
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
@@ -146,7 +146,7 @@ class SoqlGrammarTest extends FunSuite {
               | SELECT Id, Name FROM Account WHERE ID IN (:someId, :originId, :destinationId)
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
@@ -157,7 +157,7 @@ class SoqlGrammarTest extends FunSuite {
               | [select Id from Object where Id in: new Id[] {item1.Id, item2.Id, item2_1.Id} ]
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
@@ -168,7 +168,7 @@ class SoqlGrammarTest extends FunSuite {
               | [Select Id From Group]
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
@@ -179,7 +179,7 @@ class SoqlGrammarTest extends FunSuite {
               | select Id from RecordType where Name like 'Some%' and (NOT Name like '%Other%')
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
@@ -190,7 +190,7 @@ class SoqlGrammarTest extends FunSuite {
               | select Id from RecordType where Name like 'Some%' and NOT (Name like '%Other%' or Name = 'Some')
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
@@ -210,7 +210,7 @@ class SoqlGrammarTest extends FunSuite {
               |or Some = :avg
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
@@ -221,7 +221,7 @@ class SoqlGrammarTest extends FunSuite {
               | [Select id from Case where ClosedDate <= :System.today().addDays((-1) * someDays)]
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
@@ -232,7 +232,7 @@ class SoqlGrammarTest extends FunSuite {
               | [Select id from Case where Id in :trigger.new ]
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
@@ -245,7 +245,7 @@ class SoqlGrammarTest extends FunSuite {
               |      AND Name <> 'some']
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
@@ -258,7 +258,7 @@ class SoqlGrammarTest extends FunSuite {
               |group by f1, f2, f3 having count(Id) > 1 ]
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
@@ -274,7 +274,7 @@ class SoqlGrammarTest extends FunSuite {
               |
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
@@ -289,7 +289,7 @@ class SoqlGrammarTest extends FunSuite {
               |
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }
@@ -303,7 +303,7 @@ class SoqlGrammarTest extends FunSuite {
               |
             """.stripMargin
         val doc = TextBasedDocument(text, dummyFile)
-        val scanResult = soqlScanner.scan(doc, predictionMode)
+        val scanResult = soqlScanner.scan(doc, predictionMode, None)
         val errors = scanResult.errors
         errors.foreach(e =>  fail(s"\n=> (${e.line}, ${e.charPositionInLine}): " + e.msg))
     }

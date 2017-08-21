@@ -35,9 +35,8 @@ object Scanner{
 
     /**
       * dummy method which can be used in Scanner.onEachResult parameter when nothing needs to be done on each result
-      * @param result
       */
-    def emptyOnEachResult(result: DocumentScanResult): Unit = ()
+    def defaultOnEachResult(result: DocumentScanResult): DocumentScanResult = result
 
     private val ignoredDirs = Set("resources_unpacked", "Referenced Packages")
     def defaultIsIgnoredPath(path: Path): Boolean = {
@@ -60,29 +59,43 @@ object Scanner{
 
 /**
   * Parse & Check syntax in files residing in specified path/location
-  * @param isIgnoredPath - provide this function if path points to a folder and certain paths inside need to be ignored
-  * @param onEachResult - provide this function if additional action is required when result for each individual file is available
-  * @param errorListenerFactory - factory method creating syntax error listener
-  * @return
   */
-abstract class Scanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath,
-                       onEachResult: DocumentScanResult => Unit = Scanner.emptyOnEachResult,
-                       errorListenerFactory: VirtualDocument => ApexErrorListener) {
+abstract class Scanner() {
+    /**
+      * checks if path points to a folder and certain paths inside need to be ignored
+      * @return
+      */
+    def isIgnoredPath(path: Path): Boolean
+
+    /**
+      * implement this function if additional action is required when result for each individual file is available
+      * @return
+      */
+    def onEachResult(result: DocumentScanResult): DocumentScanResult
+
+    /**
+      * factory method creating syntax error listener
+      * @return
+      */
+    def errorListenerFactory(document: VirtualDocument): ApexErrorListener
 
     /**
       * implement this method with logic needed to scan single document
       * @param document VirtualDocument to scan
       * @param predictionMode necessary prediction mode
+      * @param documentTokenStreamOpt this option is provided if document token stream is already available
       * @return
       */
-    def scan(document: VirtualDocument, predictionMode: PredictionMode): DocumentScanResult
+    def scan(document: VirtualDocument, predictionMode: PredictionMode, documentTokenStreamOpt: Option[CommonTokenStream]): DocumentScanResult
 
     /**
       * Parse & Check syntax in files residing in specified path/location
       * @param path file or folder with eligible apex files to check syntax
       * @return
       */
-    def scan(path: Path, predictionMode: PredictionMode = PredictionMode.SLL)(implicit ex: ExecutionContext): Future[Unit] = Future {
+    def scan(path: Path,
+             onEachResult: DocumentScanResult => DocumentScanResult = Scanner.defaultOnEachResult,
+             predictionMode: PredictionMode = PredictionMode.SLL)(implicit ex: ExecutionContext): Future[Unit] = Future {
         val fileListBuilder = List.newBuilder[Path]
 
         val apexFileVisitor = new SimpleFileVisitor[Path]() {
@@ -107,7 +120,7 @@ abstract class Scanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnored
 
         files.foreach{ file =>
             val document = FileBasedDocument(file)
-            val scanResult = scan(document, predictionMode)
+            val scanResult = scan(document, predictionMode, documentTokenStreamOpt = None)
             onEachResult(scanResult)
         }
     }

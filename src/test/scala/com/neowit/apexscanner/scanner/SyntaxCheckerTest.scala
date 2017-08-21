@@ -3,9 +3,8 @@ package com.neowit.apexscanner.scanner
 import java.io.File
 import java.nio.file.{FileSystems, Files, Path}
 
-import com.neowit.apexscanner.{TestConfigProvider, TextBasedDocument}
+import com.neowit.apexscanner.TestConfigProvider
 import com.neowit.apexscanner.scanner.actions.SyntaxChecker
-import org.antlr.v4.runtime.atn.PredictionMode
 import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
@@ -69,16 +68,17 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
     }
 
     test("test syntax of sample apex classes") {
-        val checker = new SyntaxChecker()
         val path = FileSystems.getDefault.getPath(projectPath)
         val fileNameSetBuilder = Set.newBuilder[String]
 
+        var countOfSoqlStatementsInFile = 0
 
-        def onSoqlScanResult(scanResult: DocumentScanResult):Unit = {
+        def onSoqlScanResult(scanResult: DocumentScanResult):DocumentScanResult = {
             val file: Path = scanResult.document.file
             val soqlStr = scanResult.document.getTextContent.getOrElse("")
             val errors = scanResult.errors
             val fileName = file.getName(file.getNameCount-1).toString
+            countOfSoqlStatementsInFile += 1
             //fileNameSetBuilder += fileName
             if (errors.nonEmpty) {
                 println("\n\n# successful SOQL statements: " + _testedSoqlCount)
@@ -94,15 +94,16 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
             } else {
                 _testedSoqlCount += 1
             }
+            scanResult
         }
 
         val soqlScanner = new SoqlScanner(
             p => true,
-            onEachResult = onSoqlScanResult,
-            errorListenerFactory = SyntaxChecker.errorListenerCreator
+            onSoqlScanResult,
+            SyntaxChecker.errorListenerCreator
         )
 
-        def onApexFileCheckResult(scanResult: DocumentScanResult):Unit = {
+        def onApexFileCheckResult(scanResult: DocumentScanResult):DocumentScanResult = {
             val file: Path = scanResult.document.file
             recordProcessedFile(file)
             val errors = scanResult.errors
@@ -122,10 +123,13 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
                 }
             } else if (printSuccessfulFileNames) {
                 print("Checked " + fileName)
+                if (countOfSoqlStatementsInFile > 0) {
+                    print("; SOQL=" + countOfSoqlStatementsInFile)
+                }
                 printNewLine = true
             }
             // test SOQL
-            testSoqlStatements(soqlScanner, scanResult)
+            //testSoqlStatements(soqlScanner, scanResult)
 
             if (printNewLine) {
                 println() // new line
@@ -134,10 +138,21 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
             if (0 == _testedApexFileCount % 100) {
                 println("# Tested apex file count: " + _testedApexFileCount)
             }
+            countOfSoqlStatementsInFile = 0
+            scanResult
         }
 
+        val apexcodeScanner = new ApexcodeScanner(
+            isIgnoredPath,
+            onApexFileCheckResult,
+            SyntaxChecker.errorListenerCreator)
+
+        val scanner = new SyntaxCheckScanner(Seq(apexcodeScanner, soqlScanner))
+        val checker = new SyntaxChecker(scanner)
+
+
         val start = System.currentTimeMillis
-        val res = checker.check(path, isIgnoredPath, onApexFileCheckResult)
+        val res = checker.check(path)
         Await.result(res, Duration.Inf)
         val diff = System.currentTimeMillis - start
         println("==================================================")
@@ -145,26 +160,6 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
         println(s"Total ${fileNameSet.size} unique file names tested (actual number of tested files may be much higher)")
         println("# successful SOQL statements: " + _testedSoqlCount)
         println("# Time taken: " + diff / 1000.0 +  "s")
-    }
-
-    private def testSoqlStatement(soqlScanner: SoqlScanner, file: Path, soqlStr: String): Unit = {
-        //println("SOQL: " + soqlStr)
-        val scanResult = soqlScanner.scan(TextBasedDocument(soqlStr, file), PredictionMode.SLL)
-        soqlScanner.onEachResult(scanResult)
-    }
-    private def testSoqlStatements(soqlScanner: SoqlScanner, scanResult: DocumentScanResult): Unit = {
-        var count = 0
-        val file = scanResult.document.getFileName
-        SyntaxChecker.getSoqlStatements(scanResult.tokenStream).foreach{soqlToken =>
-            val soqlStr = soqlToken.getText
-            testSoqlStatement(soqlScanner, file, soqlStr)
-            count += 1
-        }
-        if (count > 0) {
-            if (scanResult.errors.isEmpty && printSuccessfulFileNames) {
-                print("; SOQL=" + count)
-            }
-        }
     }
 
 }

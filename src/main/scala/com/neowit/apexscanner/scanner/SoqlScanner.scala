@@ -23,22 +23,73 @@ package com.neowit.apexscanner.scanner
 
 import java.nio.file.Path
 
-import com.neowit.apexscanner.VirtualDocument
-import com.neowit.apexscanner.antlr.{SoqlLexer, SoqlParser}
-import org.antlr.v4.runtime.{BailErrorStrategy, CommonTokenStream, DefaultErrorStrategy, ParserRuleContext}
+import com.neowit.apexscanner.{TokenBasedDocument, VirtualDocument}
+import com.neowit.apexscanner.antlr.{ApexcodeLexer, SoqlLexer, SoqlParser}
+import org.antlr.v4.runtime._
 import org.antlr.v4.runtime.atn.PredictionMode
 import org.antlr.v4.runtime.misc.ParseCancellationException
 
 import scala.util.{Failure, Success, Try}
+import collection.JavaConverters._
 
 /**
   * Created by Andrey Gavrikov 
   */
-class SoqlScanner(isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath,
-                  val onEachResult: DocumentScanResult => Unit = Scanner.emptyOnEachResult,
-                  errorListenerFactory: VirtualDocument => ApexErrorListener) extends Scanner(isIgnoredPath, onEachResult, errorListenerFactory) {
+object SoqlScanner {
+    def getSoqlStatements(tokenStream: CommonTokenStream): List[Token] = {
+        val listBuilder = List.newBuilder[Token]
+        for ( token <- tokenStream.getTokens.asScala ) {
+            if (Token.DEFAULT_CHANNEL == token.getChannel && ApexcodeLexer.SoqlLiteral == token.getType) {
+                listBuilder += token
+            }
+        }
+        listBuilder.result()
+    }
+    def defaultIsIgnoredPath(path: Path): Boolean = {
+        true
+    }
+}
 
-    override def scan(document: VirtualDocument, predictionMode: PredictionMode): DocumentScanResult = {
+class SoqlScanner(_isIgnoredPath: Path => Boolean = SoqlScanner.defaultIsIgnoredPath,
+                  _onEachResult: DocumentScanResult => DocumentScanResult = Scanner.defaultOnEachResult,
+                  _errorListenerFactory: VirtualDocument => ApexErrorListener) extends Scanner() {
+
+    override def isIgnoredPath(path: Path): Boolean = _isIgnoredPath(path)
+
+    override def onEachResult(result: DocumentScanResult):DocumentScanResult = _onEachResult(result)
+
+    override def errorListenerFactory(document: VirtualDocument): ApexErrorListener = _errorListenerFactory(document)
+    /**
+      *
+      * @param document VirtualDocument to scan
+      * @param predictionMode necessary prediction mode
+      * @param documentTokenStreamOpt if this option is provided then document token stream is already available
+      *                               e.g. if ApexClass was previously scanned by apex scanner then
+      *                               documentTokenStreamOpt will contain tokenStream of apex class
+      *                               and SOQL statements may be found inside this tokenStream
+      * @return
+      */
+    override def scan(document: VirtualDocument, predictionMode: PredictionMode, documentTokenStreamOpt: Option[CommonTokenStream]): DocumentScanResult = {
+        documentTokenStreamOpt match {
+            case Some(tokenStream) =>
+                val file = document.getFileName
+                var totalScanResult = DocumentScanResult(document, errors = Seq.empty, null, tokenStream)
+
+                SoqlScanner.getSoqlStatements(tokenStream).foreach{soqlToken =>
+                    //println("SOQL: " + soqlToken.getText)
+                    val scanResult = scan(TokenBasedDocument(soqlToken, file), PredictionMode.SLL)
+                    totalScanResult = scanResult.copy(errors = totalScanResult.errors ++ scanResult.errors)
+                    onEachResult(totalScanResult)
+                }
+
+                totalScanResult
+            case None =>
+                scan(document, predictionMode)
+        }
+
+    }
+
+    private def scan(document: VirtualDocument, predictionMode: PredictionMode): DocumentScanResult = {
         val lexer = new SoqlLexer(document.getCharStream)
 
         val tokenStream = new CommonTokenStream(lexer)
