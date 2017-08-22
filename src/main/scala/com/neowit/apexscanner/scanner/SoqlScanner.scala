@@ -50,15 +50,13 @@ object SoqlScanner {
     }
 }
 
-class SoqlScanner(_isIgnoredPath: Path => Boolean = SoqlScanner.defaultIsIgnoredPath,
-                  _onEachResult: DocumentScanResult => DocumentScanResult = Scanner.defaultOnEachResult,
-                  _errorListenerFactory: VirtualDocument => ApexErrorListener) extends Scanner() {
+abstract class SoqlScanner() extends Scanner() {
 
-    override def isIgnoredPath(path: Path): Boolean = _isIgnoredPath(path)
+    override def isIgnoredPath(path: Path): Boolean
 
-    override def onEachResult(result: DocumentScanResult):DocumentScanResult = _onEachResult(result)
+    override def onEachResult(result: DocumentScanResult):DocumentScanResult
 
-    override def errorListenerFactory(document: VirtualDocument): ApexErrorListener = _errorListenerFactory(document)
+    override def errorListenerFactory(document: VirtualDocument): ApexErrorListener
     /**
       *
       * @param document VirtualDocument to scan

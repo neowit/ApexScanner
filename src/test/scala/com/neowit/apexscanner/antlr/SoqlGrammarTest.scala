@@ -21,10 +21,10 @@
 
 package com.neowit.apexscanner.antlr
 
-import java.nio.file.Paths
+import java.nio.file.{Path, Paths}
 
-import com.neowit.apexscanner.TextBasedDocument
-import com.neowit.apexscanner.scanner.{Scanner, SoqlScanner}
+import com.neowit.apexscanner.{TextBasedDocument, VirtualDocument}
+import com.neowit.apexscanner.scanner.{ApexErrorListener, DocumentScanResult, Scanner, SoqlScanner}
 import com.neowit.apexscanner.scanner.actions.SyntaxChecker
 import org.antlr.v4.runtime.atn.PredictionMode
 import org.scalatest.FunSuite
@@ -33,11 +33,11 @@ import org.scalatest.FunSuite
   * Created by Andrey Gavrikov 
   */
 class SoqlGrammarTest extends FunSuite {
-    private val soqlScanner = new SoqlScanner(
-        p => true,
-        Scanner.defaultOnEachResult,
-        SyntaxChecker.errorListenerCreator
-    )
+    private val soqlScanner = new SoqlScanner(){
+        override def isIgnoredPath(path: Path) = true
+        override def onEachResult(result: DocumentScanResult): DocumentScanResult = Scanner.defaultOnEachResult(result)
+        override def errorListenerFactory(document: VirtualDocument): ApexErrorListener = SyntaxChecker.errorListenerCreator(document)
+    }
     private val dummyFile = Paths.get("")
     private val predictionMode: PredictionMode = PredictionMode.SLL
 

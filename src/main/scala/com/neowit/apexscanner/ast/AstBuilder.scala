@@ -26,7 +26,7 @@ import java.nio.file.Path
 import com.neowit.apexscanner.{Project, VirtualDocument}
 import com.neowit.apexscanner.nodes.AstNode
 import com.neowit.apexscanner.scanner.actions.SyntaxChecker
-import com.neowit.apexscanner.scanner.{ApexcodeScanner, DocumentScanResult, Scanner}
+import com.neowit.apexscanner.scanner.{ApexErrorListener, ApexcodeScanner, DocumentScanResult, Scanner}
 import org.antlr.v4.runtime.atn.PredictionMode
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -36,8 +36,12 @@ case class AstBuilderResult(fileScanResult: DocumentScanResult, rootNode: AstNod
 object AstBuilder {
     type VisitorCreatorFun = (Option[Project], Option[VirtualDocument]) => AstBuilderVisitor
 }
-class AstBuilder(project: Project, visitorCreator: AstBuilder.VisitorCreatorFun = ApexAstBuilderVisitor.VISITOR_CREATOR_FUN) {
-    val DEFAULT_SCANNER = new ApexcodeScanner(Scanner.defaultIsIgnoredPath, onEachFileScanResult, SyntaxChecker.errorListenerCreator)
+class AstBuilder(project: Project, visitorCreator: AstBuilder.VisitorCreatorFun = ApexAstBuilderVisitor.VISITOR_CREATOR_FUN) {self =>
+    val DEFAULT_SCANNER = new ApexcodeScanner() {
+        override def isIgnoredPath(path: Path): Boolean = Scanner.defaultIsIgnoredPath(path)
+        override def onEachResult(result: DocumentScanResult): DocumentScanResult = self.onEachFileScanResult(result)
+        override def errorListenerFactory(document: VirtualDocument): ApexErrorListener = SyntaxChecker.errorListenerCreator(document)
+    }
 
     private val astCache = new collection.mutable.HashMap[VirtualDocument.DocumentId, AstBuilderResult]
     private val fileNameCache = Map.newBuilder[String, VirtualDocument]

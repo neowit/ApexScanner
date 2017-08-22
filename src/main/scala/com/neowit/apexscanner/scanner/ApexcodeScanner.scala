@@ -34,16 +34,14 @@ import scala.util.{Failure, Success, Try}
 /**
   * Created by Andrey Gavrikov 
   */
-class ApexcodeScanner(_isIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath,
-                      _onEachResult: DocumentScanResult => DocumentScanResult = Scanner.defaultOnEachResult,
-                      _errorListenerFactory: VirtualDocument => ApexErrorListener) extends Scanner() {
+abstract class ApexcodeScanner() extends Scanner() {
 
 
-    override def isIgnoredPath(path: Path): Boolean = _isIgnoredPath(path)
+    override def isIgnoredPath(path: Path): Boolean
 
-    override def onEachResult(result: DocumentScanResult):DocumentScanResult = _onEachResult(result)
+    override def onEachResult(result: DocumentScanResult):DocumentScanResult
 
-    override def errorListenerFactory(document: VirtualDocument): ApexErrorListener = _errorListenerFactory(document)
+    override def errorListenerFactory(document: VirtualDocument): ApexErrorListener
 
     def scan(document: VirtualDocument, predictionMode: PredictionMode,
              documentTokenStreamOpt: Option[CommonTokenStream]): DocumentScanResult = {

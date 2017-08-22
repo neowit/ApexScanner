@@ -24,7 +24,7 @@ package com.neowit.apexscanner.server.handlers
 
 import java.nio.file.{Files, Path}
 
-import com.neowit.apexscanner.Project
+import com.neowit.apexscanner.{Project, VirtualDocument}
 import com.neowit.apexscanner.scanner._
 import com.neowit.apexscanner.scanner.actions.{SyntaxChecker, SyntaxError}
 import com.neowit.apexscanner.server.protocol.{Diagnostic, DocumentUri, LanguageServer, PublishDiagnosticsParams}
@@ -83,19 +83,21 @@ class DidSaveHandler extends NotificationHandler with MessageJsonSupport with La
             errorBuilder += file -> errors
             scanResult
         }
-        val apexcodeScanner = new ApexcodeScanner(
-            file => !DidSaveHandler.isSupportedPath(file),
-            onFileCheckResult,
-            SyntaxChecker.errorListenerCreator)
 
-        val soqlScanner = new SoqlScanner(
-            p => true,
-            Scanner.defaultOnEachResult,
-            SyntaxChecker.errorListenerCreator
-        )
-        val scanner = new SyntaxCheckScanner(Seq(apexcodeScanner, soqlScanner))
-        val checker = new SyntaxChecker(scanner)
-        checker.check(file) .map(_ => errorBuilder.result())
+        val apexcodeScanner = new ApexcodeScanner( ) {
+            override def isIgnoredPath(path: Path): Boolean = !DidSaveHandler.isSupportedPath(file)
+            override def onEachResult(result: DocumentScanResult): DocumentScanResult = onFileCheckResult(result)
+            override def errorListenerFactory(document: VirtualDocument): ApexErrorListener = SyntaxChecker.errorListenerCreator(document)
+        }
+
+        val soqlScanner = new SoqlScanner() {
+            override def isIgnoredPath(path: Path): Boolean = true
+            override def onEachResult(result: DocumentScanResult): DocumentScanResult = Scanner.defaultOnEachResult(result)
+            override def errorListenerFactory(document: VirtualDocument): ApexErrorListener = SyntaxChecker.errorListenerCreator(document)
+        }
+        val checker = new SyntaxCheckScanner(Seq(apexcodeScanner, soqlScanner))
+        //val checker = new SyntaxChecker(scanner)
+        checker.scan(file) .map(_ => errorBuilder.result())
 
     }
 

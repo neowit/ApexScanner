@@ -28,7 +28,9 @@ import com.neowit.apexscanner.ast.AstBuilder
 import com.neowit.apexscanner.nodes.AstNode
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
+import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
 /**
   * Created by Andrey Gavrikov 
   */
@@ -66,7 +68,7 @@ object ResolverTestUtils extends TestConfigProvider with ScalaFutures with Integ
         val project = existingProject.getOrElse(Project(path))
         val astBuilder = new AstBuilder(project)
         val document = FileBasedDocument(path)
-        astBuilder.build(path, astBuilder.DEFAULT_SCANNER).futureValue
+        Await.result(astBuilder.build(path, astBuilder.DEFAULT_SCANNER), Duration.Inf)
 
         astBuilder.getAst(document) match {
             case None =>

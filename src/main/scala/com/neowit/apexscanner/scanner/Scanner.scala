@@ -93,9 +93,7 @@ abstract class Scanner() {
       * @param path file or folder with eligible apex files to check syntax
       * @return
       */
-    def scan(path: Path,
-             onEachResult: DocumentScanResult => DocumentScanResult = Scanner.defaultOnEachResult,
-             predictionMode: PredictionMode = PredictionMode.SLL)(implicit ex: ExecutionContext): Future[Unit] = Future {
+    def scan(path: Path, predictionMode: PredictionMode = PredictionMode.SLL)(implicit ex: ExecutionContext): Future[Unit] = Future {
         val fileListBuilder = List.newBuilder[Path]
 
         val apexFileVisitor = new SimpleFileVisitor[Path]() {

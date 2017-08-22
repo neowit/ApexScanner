@@ -21,14 +21,12 @@
 
 package com.neowit.apexscanner.scanner.actions
 
-import java.nio.file.Path
 
 import com.neowit.apexscanner.{TokenBasedDocument, VirtualDocument}
-import com.neowit.apexscanner.nodes.{Language, Position}
+import com.neowit.apexscanner.nodes.Position
 import com.neowit.apexscanner.scanner._
 import org.antlr.v4.runtime._
 
-import scala.concurrent.{ExecutionContext, Future}
 
 object SyntaxChecker {
     def errorListenerCreator(document: VirtualDocument): ApexErrorListener = {
@@ -37,28 +35,6 @@ object SyntaxChecker {
 
 }
 
-class SyntaxChecker(scanner: Scanner) {
-
-    /**
-      * Parse & Check syntax in files residing in specified path/location
-      * @param path file or folder with eligible apex files to check syntax
-      * @return sequence of syntax check results
-      */
-    def check(path: Path)(implicit ex: ExecutionContext): Future[Seq[SyntaxCheckResult]] = {
-
-        val resultBuilder = Seq.newBuilder[SyntaxCheckResult]
-
-        def onFileCheckResult (result: DocumentScanResult): DocumentScanResult = {
-            val res = SyntaxCheckResult(result.document, result.errors, language = Language.ApexCode)
-            resultBuilder += res
-            scanner.onEachResult(result)
-            result
-        }
-
-        scanner.scan(path, onFileCheckResult).map(ignored => resultBuilder.result())
-    }
-
-}
 
 /**
   *

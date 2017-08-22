@@ -3,7 +3,7 @@ package com.neowit.apexscanner.scanner
 import java.io.File
 import java.nio.file.{FileSystems, Files, Path}
 
-import com.neowit.apexscanner.TestConfigProvider
+import com.neowit.apexscanner.{TestConfigProvider, VirtualDocument}
 import com.neowit.apexscanner.scanner.actions.SyntaxChecker
 import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -15,7 +15,7 @@ import scala.concurrent.duration.Duration
 
 //import scala.collection.JavaConverters._
 
-class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
+class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {self =>
 
     // TEST OUTPUT CONFIGURATION
     private val failOnError = true
@@ -50,7 +50,7 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
         val key = file.getName + size
         key
     }
-    def isIgnoredPath(path: Path): Boolean = {
+    private def isIgnoredPath(path: Path): Boolean = {
         val isDirectory = Files.isDirectory(path)
         val fileName = path.toFile.getName
         if (isDirectory) {
@@ -97,11 +97,11 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
             scanResult
         }
 
-        val soqlScanner = new SoqlScanner(
-            p => true,
-            onSoqlScanResult,
-            SyntaxChecker.errorListenerCreator
-        )
+        val soqlScanner = new SoqlScanner() {
+            override def isIgnoredPath(path: Path): Boolean = true
+            override def onEachResult(result: DocumentScanResult): DocumentScanResult = onSoqlScanResult(result)
+            override def errorListenerFactory(document: VirtualDocument): ApexErrorListener = SyntaxChecker.errorListenerCreator(document)
+        }
 
         def onApexFileCheckResult(scanResult: DocumentScanResult):DocumentScanResult = {
             val file: Path = scanResult.document.file
@@ -141,18 +141,20 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
             countOfSoqlStatementsInFile = 0
             scanResult
         }
+        val apexcodeScanner = new ApexcodeScanner( ) {
+            override def isIgnoredPath(path: Path): Boolean = self.isIgnoredPath(path)
 
-        val apexcodeScanner = new ApexcodeScanner(
-            isIgnoredPath,
-            onApexFileCheckResult,
-            SyntaxChecker.errorListenerCreator)
+            override def onEachResult(result: DocumentScanResult): DocumentScanResult = onApexFileCheckResult(result)
 
-        val scanner = new SyntaxCheckScanner(Seq(apexcodeScanner, soqlScanner))
-        val checker = new SyntaxChecker(scanner)
+            override def errorListenerFactory(document: VirtualDocument): ApexErrorListener = SyntaxChecker.errorListenerCreator(document)
+        }
+
+        val checker = new SyntaxCheckScanner(Seq(apexcodeScanner, soqlScanner))
+        //val checker = new SyntaxChecker(scanner)
 
 
         val start = System.currentTimeMillis
-        val res = checker.check(path)
+        val res = checker.scan(path).map(ignore => checker.getResult)
         Await.result(res, Duration.Inf)
         val diff = System.currentTimeMillis - start
         println("==================================================")
