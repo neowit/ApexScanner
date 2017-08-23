@@ -66,7 +66,6 @@ case class IdentifierNode(name: String, range: Range) extends AbstractExpression
         import com.neowit.apexscanner.resolvers.QualifiedNameDefinitionFinder
         import scala.concurrent.duration.Duration
         import scala.concurrent.Await
-        import scala.concurrent.ExecutionContext.Implicits.global
 
         this.getProject  match {
             case Some(project) =>

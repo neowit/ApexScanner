@@ -25,12 +25,12 @@ import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes.{AstNode, HasQualifiedName}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 /**
   * Created by Andrey Gavrikov 
   */
-class QualifiedNameDefinitionFinder(project: Project)(implicit ex: ExecutionContext) {
+class QualifiedNameDefinitionFinder(project: Project) {
     def findDefinition(target: QualifiedName): Future[Option[AstNode]] = {
         // first try to find by full name
         project.getByQualifiedName(target)  match {
@@ -42,25 +42,8 @@ class QualifiedNameDefinitionFinder(project: Project)(implicit ex: ExecutionCont
                     case nodeOpt @ Some(_) =>
                         Future.successful(nodeOpt)
                     case None =>
-                        // check if given name matches one of existing project files (which has not been scanned into AST yet)
-                        findByDocumentName(target)
-
+                        Future.successful(None)
                 }
-        }
-    }
-
-    // check if given name matches one of existing project files (which has not been scanned into AST yet)
-    private def findByDocumentName(target: QualifiedName): Future[Option[AstNode]] = {
-        project.getDocumentByName(target.getFirstComponent) match {
-            case Some(document) =>
-                // generate AST for the document
-                project.getAst(document).flatMap{
-                    case Some(astBuilderResult) =>
-                        // try again, but now we are sure that AST for given file is loaded
-                        Future.successful(findDefinitionFromTop(target))
-                    case _  => Future.successful(None)
-                }
-            case None => Future.successful(None)
         }
     }
 

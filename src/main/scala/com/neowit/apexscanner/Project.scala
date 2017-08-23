@@ -32,7 +32,8 @@ import com.neowit.apexscanner.scanner.Scanner
 
 import scala.annotation.tailrec
 import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 /**
   * Created by Andrey Gavrikov 
@@ -122,7 +123,31 @@ case class Project(path: Path)(implicit ex: ExecutionContext) extends CodeLibrar
     override def getByQualifiedName(qualifiedName: QualifiedName): Option[AstNode] = {
         super.getByQualifiedName(qualifiedName) match {
             case nodeOpt @ Some(_) => nodeOpt
-            case None => findInExternalLibrary(qualifiedName)
+            case None =>
+                // check if given name matches one of existing project files (which has not been scanned into AST yet)
+                findByDocumentName(qualifiedName) match {
+                    case nodeOpt @ Some(_) => nodeOpt
+                    case None =>
+                        findInExternalLibrary(qualifiedName)
+                }
+        }
+    }
+
+    // check if given name matches one of existing project files (which has not been scanned into AST yet)
+    private def findByDocumentName(target: QualifiedName): Option[AstNode] = {
+        getDocumentByName(target.getFirstComponent) match {
+            case Some(document) =>
+                // generate AST for the document
+                val astBuilderResultFuture = getAst(document)
+                //TODO - figure out what can be done to avoid this Await.result
+                val res = Await.result(astBuilderResultFuture, Duration.Inf)
+                res match {
+                    case Some(astBuilderResult) =>
+                        // try again, but now we are sure that AST for given file is loaded
+                        super.getByQualifiedName(target)
+                    case _  => None
+                }
+            case None => None
         }
     }
 
@@ -179,10 +204,14 @@ case class Project(path: Path)(implicit ex: ExecutionContext) extends CodeLibrar
         val rootPath = this.path
         val matcher = Project.getClassOrTriggerMatcher(name)
         val isIgnoredPath: Path => Boolean = Project.defaultIsIgnoredPath
-        val paths = Files.walk(rootPath).iterator().asScala.filter(file => matcher.matches(file) && !isIgnoredPath(file))
-        paths.toList.headOption match {
-            case Some(foundPath) => Option(FileBasedDocument(foundPath))
-            case None => None
+        if (Files.exists(rootPath)) {
+            val paths = Files.walk(rootPath).iterator().asScala.filter(file => matcher.matches(file) && !isIgnoredPath(file))
+            paths.toList.headOption match {
+                case Some(foundPath) => Option(FileBasedDocument(foundPath))
+                case None => None
+            }
+        } else {
+            None
         }
     }
 
