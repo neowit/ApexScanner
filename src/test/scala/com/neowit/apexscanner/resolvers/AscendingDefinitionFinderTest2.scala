@@ -309,6 +309,38 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
         }
     }
 
+    test("findDefinition: `method call with Creator parameter`") {
+        val text =
+            """
+              |class CompletionTester {
+              | Map<String, Object> valueByName;
+              |
+              | meth<CARET>od1('str', new List<String>{}, valueByName);
+              |
+              | Boolean method1(final String str, final List<Integer> lst, final Map<String, Object> objByStr) {
+              | }
+              |
+              | // expect to find this method
+              | Integer method1(final String str, final List<String> lst, final Map<String, Object> objByStr) {
+              | }
+              |
+              |
+              |}
+            """.stripMargin
+        //val resultNodes = findDefinition(text).futureValue
+        val resultNodes = Await.result(findDefinition(text), Duration.Inf)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName(Array("CompletionTester", "method1"))), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                assertResult(Option(QualifiedName(Array("Integer"))), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
+            case _ =>
+                assert(false, "Failed to locate correct node. Expected method1()")
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////
     var _projectWithStdLib: Option[Project] = None
     private def findDefinition(text: String, documentName: String = "test", loadStdLib: Boolean = false): Future[scala.Seq[AstNode]] = {
         val project =

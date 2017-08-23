@@ -25,7 +25,7 @@ import com.neowit.apexscanner.ast.QualifiedName
 /**
   * Created by Andrey Gavrikov 
   */
-case class CreatorNode(range: Range) extends AstNode with IsTypeDefinition {
+case class CreatorNode(range: Range) extends AbstractExpression with IsTypeDefinition {
     override def nodeType: AstNodeType = CreatorNodeType
 
     override def getValueType: Option[ValueType] = {
