@@ -27,7 +27,6 @@ import com.neowit.apexscanner.{FileBasedDocument, Project, TestConfigProvider}
 import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Created by Andrey Gavrikov 
@@ -39,7 +38,7 @@ class QualifiedNameDefinitionFinderTest extends FunSuite with TestConfigProvider
         val project = Project(projectPath)
 
         // load AST of test file explicitly
-        project.getAst(FileBasedDocument(getTestResourcePath("QualifiedNameDefinitionFinderTest.existingAST.filePath"))).futureValue
+        project.getAst(FileBasedDocument(getTestResourcePath("QualifiedNameDefinitionFinderTest.existingAST.filePath")))
         val finder = new QualifiedNameDefinitionFinder(project)
         val qName = QualifiedName(Array("TypeFiNder","InnerClass1"))
         val res = finder.findDefinition(qName).futureValue

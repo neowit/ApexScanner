@@ -32,8 +32,7 @@ import com.neowit.apexscanner.scanner.Scanner
 
 import scala.annotation.tailrec
 import scala.collection.mutable
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.Future
 
 /**
   * Created by Andrey Gavrikov 
@@ -85,7 +84,7 @@ object Project {
   * @param path must point to Apex project root, @see also Project.findApexProjectRoot(path)
   *             no check is made to ensure that provided path points to correct folder
   */
-case class Project(path: Path)(implicit ex: ExecutionContext) extends CodeLibrary {
+case class Project(path: Path)/*(implicit ex: ExecutionContext)*/ extends CodeLibrary {
     private val astBuilder: AstBuilder = new AstBuilder(this, ApexAstBuilderVisitor.VISITOR_CREATOR_FUN)
     private val _externalLibraries = new collection.mutable.ListBuffer[CodeLibrary]
 
@@ -138,10 +137,7 @@ case class Project(path: Path)(implicit ex: ExecutionContext) extends CodeLibrar
         getDocumentByName(target.getFirstComponent) match {
             case Some(document) =>
                 // generate AST for the document
-                val astBuilderResultFuture = getAst(document)
-                //TODO - figure out what can be done to avoid this Await.result
-                val res = Await.result(astBuilderResultFuture, Duration.Inf)
-                res match {
+                getAst(document) match {
                     case Some(astBuilderResult) =>
                         // try again, but now we are sure that AST for given file is loaded
                         super.getByQualifiedName(target)
@@ -182,14 +178,13 @@ case class Project(path: Path)(implicit ex: ExecutionContext) extends CodeLibrar
       * @param forceRebuild set to true in order to force AST re-build/re-cache for provided document
       * @return
       */
-    def getAst(document: VirtualDocument, forceRebuild: Boolean = false): Future[Option[AstBuilderResult]] = {
+    def getAst(document: VirtualDocument, forceRebuild: Boolean = false): Option[AstBuilderResult] = {
         astBuilder.getAst(document) match {
-          case Some(_ast) if !forceRebuild => Future.successful(Option(_ast))
-          case _ =>
-              // looks like AST for given file has not been built yet, let's fix it
-              astBuilder.build(document).map { _ =>
-                  astBuilder.getAst(document)
-              }
+            case Some(_ast) if !forceRebuild => Option(_ast)
+            case _ =>
+                // looks like AST for given file has not been built yet, let's fix it
+                astBuilder.build(document)
+                astBuilder.getAst(document)
         }
     }
 

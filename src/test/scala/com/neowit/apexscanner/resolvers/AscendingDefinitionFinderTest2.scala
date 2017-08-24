@@ -29,9 +29,6 @@ import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes.{AstNode, IsTypeDefinition}
 import org.scalatest.FunSuite
 
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
 /**
   * Created by Andrey Gavrikov 
   */
@@ -360,7 +357,7 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
                 Project(projectPath)
             }
         val caretInDocument = CaretUtils.getCaret(text, Paths.get(documentName))
-        Await.result(project.getAst(caretInDocument.document), Duration.Inf) match {
+        project.getAst(caretInDocument.document) match {
             case Some(result) =>
                 val finder = new AscendingDefinitionFinder()
                 finder.findDefinition(result.rootNode, caretInDocument.position)

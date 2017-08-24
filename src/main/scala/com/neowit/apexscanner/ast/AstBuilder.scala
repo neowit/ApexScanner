@@ -49,10 +49,10 @@ class AstBuilder(project: Project, visitorCreator: AstBuilder.VisitorCreatorFun 
     def build(path: Path, scanner: Scanner)(implicit ex: ExecutionContext): Future[Unit] = {
         scanner.scan(path)
     }
-    def build(document: VirtualDocument, scanner: Scanner = DEFAULT_SCANNER, predictionMode: PredictionMode = PredictionMode.SLL): Future[Unit] = {
+    def build(document: VirtualDocument, scanner: Scanner = DEFAULT_SCANNER, predictionMode: PredictionMode = PredictionMode.SLL): Unit = {
         val scanResult = scanner.scan(document, predictionMode, None)
         onEachFileScanResult(scanResult)
-        Future.successful(())
+        ()
     }
 
     private def onEachFileScanResult(result: DocumentScanResult): DocumentScanResult = {

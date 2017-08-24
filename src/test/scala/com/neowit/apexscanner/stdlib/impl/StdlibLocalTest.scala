@@ -31,15 +31,13 @@ import com.neowit.apexscanner.symbols.SymbolKind
 import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 /**
   * Created by Andrey Gavrikov 
   */
 class StdlibLocalTest extends FunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
     private val projectPath = FileSystems.getDefault.getPath("/temp")
     private val project = Project(projectPath)
-    project.loadStdLib // force loading of StandardLibrary
+    project.loadStdLib() // force loading of StandardLibrary
 
     test("test: System.String") {
         val qName = QualifiedName(Array("System", "String"))
@@ -51,7 +49,7 @@ class StdlibLocalTest extends FunSuite with TestConfigProvider with ScalaFutures
                 assert(methods.exists(_.symbolName.equalsIgnoreCase("startsWithIgnoreCase")), "String.startsWithIgnoreCase not found")
                 //println(methods)
             case None =>
-                assert(false, "Not found: " + qName)
+                fail( "Not found: " + qName)
         }
     }
 
@@ -65,7 +63,7 @@ class StdlibLocalTest extends FunSuite with TestConfigProvider with ScalaFutures
                 assert(methods.exists(_.symbolName.equalsIgnoreCase("startsWithIgnoreCase")), "String.startsWithIgnoreCase not found")
             //println(methods)
             case None =>
-                assert(false, "Not found: " + qName)
+                fail( "Not found: " + qName)
         }
     }
 
@@ -80,13 +78,13 @@ class StdlibLocalTest extends FunSuite with TestConfigProvider with ScalaFutures
                     case Some(m) =>
                         m.getValueType.exists(_.toString.equalsIgnoreCase("List<Database.Error>"))
                     case None =>
-                        assert(false, "SaveResult.getErrors returning 'List<Database.Error>' not found")
+                        fail( "SaveResult.getErrors returning 'List<Database.Error>' not found")
                 }
                 assert(methods.exists(_.symbolName.equalsIgnoreCase("getId")), "SaveResult.getId not found")
                 assert(methods.exists(_.symbolName.equalsIgnoreCase("isSuccess")), "SaveResult.isSuccess not found")
             //println(methods)
             case None =>
-                assert(false, "Not found: " + qName)
+                fail( "Not found: " + qName)
         }
     }
 
@@ -100,7 +98,7 @@ class StdlibLocalTest extends FunSuite with TestConfigProvider with ScalaFutures
                 assert(enumConstants.exists(_.symbolName == "ERROR"), "ApexPages.Severity.ERROR not found")
             //println(methods)
             case None =>
-                assert(false, "Not found: " + qName)
+                fail( "Not found: " + qName)
         }
     }
 }

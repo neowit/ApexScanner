@@ -41,7 +41,7 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
     def resolveCaretScope(caret: CaretInDocument, caretToken: Token, tokens: TokenStream): Future[Option[CaretScope]] = {
 
         val document = caret.document
-        findAstScopeNode(document, caretToken, tokens).flatMap {
+        findAstScopeNode(document, caretToken, tokens) match{
           case Some(astScopeNode) =>
               // find list of tokens before caret which are not in AST
               val lastAstNode = getNearestPrecedingAstNode(caret, astScopeNode)
@@ -247,10 +247,10 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
         }
     }
 
-    private def findAstScopeNode(document: VirtualDocument, token: Token, tokens: TokenStream): Future[Option[AstNode]] = {
+    private def findAstScopeNode(document: VirtualDocument, token: Token, tokens: TokenStream): Option[AstNode] = {
 
         // to make sure we do not work with stale version of current document use: forceRebuild = true
-        project.getAst(document, forceRebuild = true).map{
+        project.getAst(document, forceRebuild = true) match {
             case Some(_res) =>
                 val position = Position(token.getLine, token.getCharPositionInLine)
                 val locationFinder = new NodeByLocationFinder(position)
