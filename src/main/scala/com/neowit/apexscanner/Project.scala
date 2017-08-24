@@ -85,7 +85,7 @@ object Project {
   *             no check is made to ensure that provided path points to correct folder
   */
 case class Project(path: Path)/*(implicit ex: ExecutionContext)*/ extends CodeLibrary {
-    private val astBuilder: AstBuilder = new AstBuilder(this, ApexAstBuilderVisitor.VISITOR_CREATOR_FUN)
+    private val astBuilder: AstBuilder = new AstBuilder(Option(this), ApexAstBuilderVisitor.VISITOR_CREATOR_FUN)
     private val _externalLibraries = new collection.mutable.ListBuffer[CodeLibrary]
 
     private val _fileContentByPath = new mutable.HashMap[Path, VirtualDocument]()

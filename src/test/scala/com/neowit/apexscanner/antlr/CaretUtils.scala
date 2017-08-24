@@ -40,7 +40,7 @@ object CaretUtils {
             if (caretCharacterInLine >=0) {
                 // found relevant line, remove caret tag from it
                 val documentText = text.replace(caretTag, "")
-                val fixedDocument = TextBasedDocument(documentText, file)
+                val fixedDocument = TextBasedDocument(documentText, Option(file))
                 return new CaretInDocument(Position(lineNum, caretCharacterInLine), fixedDocument)
             }
             lineNum += 1
