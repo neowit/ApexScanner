@@ -41,22 +41,13 @@ object LiteralNode {
         }
     }
 }
-case class LiteralNode(literalType: Int, valueTerminal: TerminalNode, range: Range) extends AbstractExpression with HasTypeDefinition {
+case class LiteralNode(literalType: Int, valueTerminal: TerminalNode, range: Range) extends LiteralLike {
     import LiteralNode._
 
-    def value: String = valueTerminal.getText
+    def getText: String = valueTerminal.getText
 
     override protected def resolveDefinitionImpl(): Option[AstNode] = {
         getProject.flatMap(_.getByQualifiedName(getStandardNamespace(literalType)))
-        /*
-        val stdLibOpt = getProject.map(_.getStandardLibrary)
-        stdLibOpt match {
-          case Some(stdLib) =>
-              stdLib.findChild(getStandardNamespace(literalType))
-
-          case None => None
-        }
-        */
     }
 
 }
