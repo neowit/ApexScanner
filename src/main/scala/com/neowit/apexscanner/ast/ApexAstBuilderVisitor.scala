@@ -31,8 +31,12 @@ import org.antlr.v4.runtime.tree.{RuleNode, TerminalNode}
 object ApexAstBuilderVisitor {
     val VISITOR_CREATOR_FUN: AstBuilder.VisitorCreatorFun = (projectOpt, documentOpt) => new ApexAstBuilderVisitor(projectOpt, documentOpt)
 }
+
 class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override val documentOpt: Option[VirtualDocument]) extends ApexcodeBaseVisitor[AstNode] with AstBuilderVisitor {
     private val _classLikeListBuilder = List.newBuilder[ClassLike]
+
+    private val soqlAstBuilder = new AstBuilder(projectOpt, SoqlAstBuilderVisitor.VISITOR_CREATOR_FUN)
+
     def getClassLikeNodes: List[ClassLike] = _classLikeListBuilder.result()
 
     override def defaultResult(): AstNode = NullNode
@@ -91,7 +95,7 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
                         throw new IllegalArgumentException("When parsing whole file - Project must be provided.")
                 }
             case None =>
-                throw new IllegalArgumentException("fileOpt parameter of ASTBuilderVisitor must be defined when using visitor with CompilationUnitContext ")
+                throw new IllegalArgumentException("fileOpt parameter of ApexAstBuilderVisitor must be defined when using visitor with CompilationUnitContext ")
         }
     }
 
@@ -414,7 +418,8 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     }
 
     override def visitSoqlLiteral(ctx: SoqlLiteralContext): AstNode = {
-        LiteralNode(SoqlLiteral, ctx.SoqlLiteral(), Range(ctx))
+        //LiteralNode(SoqlLiteral, ctx.SoqlLiteral(), Range(ctx))
+        SoqlLiteralNode(ctx.SoqlLiteral(), Range(ctx), Option(soqlAstBuilder))
     }
     ///////////////// END literals ///////////////////////////////
 }
