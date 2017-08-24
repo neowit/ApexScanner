@@ -57,7 +57,7 @@ object NodeByLocationFinder {
         val document = FileBasedDocument(path)
         val position = Position(18, 25)
 
-        val astBuilder = new AstBuilder(Project(path), ApexAstBuilderVisitor.VISITOR_CREATOR_FUN)
+        val astBuilder = new AstBuilder(Option(Project(path)), ApexAstBuilderVisitor.VISITOR_CREATOR_FUN)
         astBuilder.build(document)
 
         astBuilder.getAst(document) match {

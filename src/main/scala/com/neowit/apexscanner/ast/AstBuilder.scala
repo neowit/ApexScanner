@@ -36,7 +36,7 @@ case class AstBuilderResult(fileScanResult: DocumentScanResult, rootNode: AstNod
 object AstBuilder {
     type VisitorCreatorFun = (Option[Project], Option[VirtualDocument]) => AstBuilderVisitor
 }
-class AstBuilder(project: Project, visitorCreator: AstBuilder.VisitorCreatorFun = ApexAstBuilderVisitor.VISITOR_CREATOR_FUN) {self =>
+class AstBuilder(projectOpt: Option[Project], visitorCreator: AstBuilder.VisitorCreatorFun = ApexAstBuilderVisitor.VISITOR_CREATOR_FUN) {self =>
     val DEFAULT_SCANNER = new ApexcodeScanner() {
         override def isIgnoredPath(path: Path): Boolean = Scanner.defaultIsIgnoredPath(path)
         override def onEachResult(result: DocumentScanResult): DocumentScanResult = self.onEachFileScanResult(result)
@@ -57,7 +57,7 @@ class AstBuilder(project: Project, visitorCreator: AstBuilder.VisitorCreatorFun 
 
     private def onEachFileScanResult(result: DocumentScanResult): DocumentScanResult = {
         //val visitor = new ApexAstBuilderVisitor(Option(project), Option(result.document))
-        val visitor = visitorCreator(Option(project), Option(result.document))
+        val visitor = visitorCreator(projectOpt, Option(result.document))
         val compileUnit = visitor.visit(result.parseContext)
         //new AstWalker().walk(compileUnit, new DebugVisitor)
         val sourceDocument = result.document
