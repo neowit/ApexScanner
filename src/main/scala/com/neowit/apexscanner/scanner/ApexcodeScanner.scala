@@ -25,6 +25,8 @@ import java.nio.file.Path
 
 import com.neowit.apexscanner.VirtualDocument
 import com.neowit.apexscanner.antlr.{ApexcodeLexer, ApexcodeParser}
+import com.neowit.apexscanner.ast.AstBuilder
+import com.neowit.apexscanner.scanner.actions.SyntaxChecker
 import org.antlr.v4.runtime.{BailErrorStrategy, CommonTokenStream, DefaultErrorStrategy, ParserRuleContext}
 import org.antlr.v4.runtime.atn.PredictionMode
 import org.antlr.v4.runtime.misc.ParseCancellationException
@@ -34,6 +36,16 @@ import scala.util.{Failure, Success, Try}
 /**
   * Created by Andrey Gavrikov 
   */
+object ApexcodeScanner {
+    def createDefaultScanner(builder: AstBuilder): Scanner = {
+        val apexScanner = new ApexcodeScanner() {
+            override def isIgnoredPath(path: Path): Boolean = Scanner.defaultIsIgnoredPath(path)
+            override def onEachResult(result: DocumentScanResult): DocumentScanResult = builder.onEachFileScanResult(result)
+            override def errorListenerFactory(document: VirtualDocument): ApexErrorListener = SyntaxChecker.errorListenerCreator(document)
+        }
+        apexScanner
+    }
+}
 abstract class ApexcodeScanner() extends Scanner() {
 
 

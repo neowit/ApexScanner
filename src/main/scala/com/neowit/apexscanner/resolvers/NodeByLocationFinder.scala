@@ -26,6 +26,7 @@ import java.nio.file.FileSystems
 import com.neowit.apexscanner.{FileBasedDocument, Project}
 import com.neowit.apexscanner.ast._
 import com.neowit.apexscanner.nodes.{AstNode, Position}
+import com.neowit.apexscanner.scanner.ApexcodeScanner
 
 /**
   * Created by Andrey Gavrikov
@@ -58,7 +59,7 @@ object NodeByLocationFinder {
         val position = Position(18, 25)
 
         val astBuilder = new AstBuilder(Option(Project(path)), ApexAstBuilderVisitor.VISITOR_CREATOR_FUN)
-        astBuilder.build(document)
+        astBuilder.build(document, scanner = ApexcodeScanner.createDefaultScanner(astBuilder))
 
         astBuilder.getAst(document) match {
             case None =>

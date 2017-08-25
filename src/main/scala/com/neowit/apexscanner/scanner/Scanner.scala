@@ -117,7 +117,7 @@ abstract class Scanner() {
         val files = fileListBuilder.result()
 
         files.foreach{ file =>
-            val document = FileBasedDocument(file)
+            val document = FileBasedDocument(Option(file))
             val scanResult = scan(document, predictionMode, documentTokenStreamOpt = None)
             onEachResult(scanResult)
         }

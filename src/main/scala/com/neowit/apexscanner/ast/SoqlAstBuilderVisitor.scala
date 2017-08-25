@@ -31,6 +31,7 @@ import com.neowit.apexscanner.{Project, VirtualDocument}
 object SoqlAstBuilderVisitor {
     val VISITOR_CREATOR_FUN: AstBuilder.VisitorCreatorFun = (projectOpt, documentOpt) => new SoqlAstBuilderVisitor(projectOpt, documentOpt)
 }
-class SoqlAstBuilderVisitor(override val projectOpt: Option[Project], override val documentOpt: Option[VirtualDocument]) extends SoqlBaseVisitor[AstNode] with AstBuilderVisitor {
+class SoqlAstBuilderVisitor(override val projectOpt: Option[Project],
+                            override val documentOpt: Option[VirtualDocument]) extends SoqlBaseVisitor[AstNode] with AstBuilderVisitor {
     override def onComplete(): Unit = ???
 }
