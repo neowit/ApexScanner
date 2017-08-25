@@ -21,9 +21,9 @@
 
 package com.neowit.apexscanner.ast
 
-import com.neowit.apexscanner.nodes.AstNode
+import com.neowit.apexscanner.nodes.{AstNode, NullNode}
 import com.neowit.apexscanner.{Project, VirtualDocument}
-import org.antlr.v4.runtime.tree.ParseTree
+import org.antlr.v4.runtime.tree.{ParseTree, RuleNode}
 
 /**
   * Created by Andrey Gavrikov 
@@ -35,4 +35,16 @@ trait AstBuilderVisitor {
     def visit(tree: ParseTree): AstNode
 
     def onComplete(): Unit
+
+    protected def visitChildren(parent: AstNode, ruleNode: RuleNode): AstNode = {
+        for (i <- scala.collection.immutable.Range(0, ruleNode.getChildCount)) {
+            val elem = ruleNode.getChild(i)
+            val node = visit(elem)
+            if (NullNode != node) {
+                //node.setParent(parent)
+                parent.addChildToAst(node)
+            }
+        }
+        parent
+    }
 }

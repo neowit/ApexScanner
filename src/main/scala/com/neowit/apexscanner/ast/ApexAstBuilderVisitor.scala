@@ -53,18 +53,6 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
         //super.visitChildren(node)
     }
 
-    private def visitChildren(parent: AstNode, ruleNode: RuleNode): AstNode = {
-        for (i <- scala.collection.immutable.Range(0, ruleNode.getChildCount)) {
-            val elem = ruleNode.getChild(i)
-            val node = visit(elem)
-            if (NullNode != node) {
-                //node.setParent(parent)
-                parent.addChildToAst(node)
-            }
-        }
-        parent
-    }
-
     override def onComplete(): Unit = {
         // record all ClassLike nodes in project
         projectOpt match {
