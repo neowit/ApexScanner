@@ -25,23 +25,25 @@ import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
+import com.neowit.apexscanner.VirtualDocument.DocumentId
 import org.antlr.v4.runtime.{CharStream, CharStreams}
 
 /**
   * Created by Andrey Gavrikov 
   */
-case class TextBasedDocument (text: String, fileOpt: Option[Path]) extends VirtualDocument {
+case class TextBasedDocument (text: String, file: Option[Path]) extends VirtualDocument {
     override def inputStream: InputStream = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))
 
     override def getTextContent: Option[String] = Option(text)
-    def file: Path = {
-        fileOpt match {
-            case Some(_filePath) => _filePath
-            case None => throw new IllegalStateException("This document does not have a file assiciated with it")
-        }
-    }
 
     override def getCharStream: CharStream = {
         CharStreams.fromString(this.text)
+    }
+
+    override def getId: DocumentId = {
+        file match {
+            case Some(_) => super.getId
+            case None => text.hashCode.toString
+        }
     }
 }

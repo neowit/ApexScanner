@@ -28,7 +28,7 @@ import com.neowit.apexscanner.ast.{ApexAstBuilderVisitor, AstBuilder, AstBuilder
 import com.neowit.apexscanner.extlib.CodeLibrary
 import com.neowit.apexscanner.extlib.impl.stdlib.StdlibLocal
 import com.neowit.apexscanner.nodes.AstNode
-import com.neowit.apexscanner.scanner.Scanner
+import com.neowit.apexscanner.scanner.{ApexcodeScanner, Scanner}
 
 import scala.annotation.tailrec
 import scala.collection.mutable
@@ -102,7 +102,9 @@ case class Project(path: Path)/*(implicit ex: ExecutionContext)*/ extends CodeLi
     }
 
     def saveFileContent(document: VirtualDocument): Future[Unit] = {
-        _fileContentByPath += document.file -> document
+        document.file.foreach{ file =>
+            _fileContentByPath += file -> document
+        }
         Future.successful(())
     }
     def getFileContent(file: Path): Option[VirtualDocument] = {
@@ -183,7 +185,7 @@ case class Project(path: Path)/*(implicit ex: ExecutionContext)*/ extends CodeLi
             case Some(_ast) if !forceRebuild => Option(_ast)
             case _ =>
                 // looks like AST for given file has not been built yet, let's fix it
-                astBuilder.build(document)
+                astBuilder.build(document, scanner = ApexcodeScanner.createDefaultScanner(astBuilder))
                 astBuilder.getAst(document)
         }
     }
@@ -202,7 +204,7 @@ case class Project(path: Path)/*(implicit ex: ExecutionContext)*/ extends CodeLi
         if (Files.exists(rootPath)) {
             val paths = Files.walk(rootPath).iterator().asScala.filter(file => matcher.matches(file) && !isIgnoredPath(file))
             paths.toList.headOption match {
-                case Some(foundPath) => Option(FileBasedDocument(foundPath))
+                case Some(foundPath) => Option(FileBasedDocument(Option(foundPath)))
                 case None => None
             }
         } else {

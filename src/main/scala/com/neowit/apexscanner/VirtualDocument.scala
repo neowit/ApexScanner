@@ -32,11 +32,15 @@ import org.antlr.v4.runtime.CharStream
   * Created by Andrey Gavrikov 
   */
 trait VirtualDocument {
-    def file: Path
+    def file: Option[Path]
     def inputStream: InputStream
     def getTextContent: Option[String]
-    def getId: DocumentId = file.getFileName.toString
-    def getFileName: Path = file.getFileName
+    def getId: DocumentId = {
+        getFileName.map(_.toString)
+            .orElse(throw new NotImplementedError("getId() is not implemented for this document type"))
+            .getOrElse("")
+    }
+    def getFileName: Option[Path] = file.map(_.getFileName)
     def getCharStream: CharStream
 }
 

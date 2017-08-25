@@ -26,6 +26,7 @@ import java.nio.file.{FileSystems, Path}
 import com.neowit.apexscanner.{FileBasedDocument, Project, TestConfigProvider}
 import com.neowit.apexscanner.ast.AstBuilder
 import com.neowit.apexscanner.nodes.AstNode
+import com.neowit.apexscanner.scanner.ApexcodeScanner
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
 import scala.concurrent.Await
@@ -67,8 +68,8 @@ object ResolverTestUtils extends TestConfigProvider with ScalaFutures with Integ
 
         val project = existingProject.getOrElse(Project(path))
         val astBuilder = new AstBuilder(Option(project))
-        val document = FileBasedDocument(path)
-        Await.result(astBuilder.build(path, astBuilder.DEFAULT_SCANNER), Duration.Inf)
+        val document = FileBasedDocument(Option(path))
+        Await.result(astBuilder.build(path, ApexcodeScanner.createDefaultScanner(astBuilder)), Duration.Inf)
 
         astBuilder.getAst(document) match {
             case None =>

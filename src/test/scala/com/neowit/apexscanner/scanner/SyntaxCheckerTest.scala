@@ -74,7 +74,7 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
         var countOfSoqlStatementsInFile = 0
 
         def onSoqlScanResult(scanResult: DocumentScanResult):DocumentScanResult = {
-            val file: Path = scanResult.document.file
+            val file: Path = scanResult.document.file.get
             val soqlStr = scanResult.document.getTextContent.getOrElse("")
             val errors = scanResult.errors
             val fileName = file.getName(file.getNameCount-1).toString
@@ -104,7 +104,7 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
         }
 
         def onApexFileCheckResult(scanResult: DocumentScanResult):DocumentScanResult = {
-            val file: Path = scanResult.document.file
+            val file: Path = scanResult.document.file.get
             recordProcessedFile(file)
             val errors = scanResult.errors
             val fileName = file.getName(file.getNameCount-1).toString

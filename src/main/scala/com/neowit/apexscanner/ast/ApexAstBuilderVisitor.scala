@@ -87,10 +87,14 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
       */
     override def visitCompilationUnit(ctx: CompilationUnitContext): AstNode = {
         documentOpt match {
-            case Some(document) =>
+            case Some(document) if document.file.isDefined =>
                 projectOpt match {
                     case Some(project) =>
-                        visitChildren(FileNode(project, document.file, Range(ctx)), ctx)
+                        document.file match {
+                            case Some(file) =>
+                                visitChildren(FileNode(project, file, Range(ctx)), ctx)
+                            case None => NullNode
+                        }
                     case None =>
                         throw new IllegalArgumentException("When parsing whole file - Project must be provided.")
                 }

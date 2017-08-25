@@ -38,7 +38,7 @@ class QualifiedNameDefinitionFinderTest extends FunSuite with TestConfigProvider
         val project = Project(projectPath)
 
         // load AST of test file explicitly
-        project.getAst(FileBasedDocument(getTestResourcePath("QualifiedNameDefinitionFinderTest.existingAST.filePath")))
+        project.getAst(FileBasedDocument(Option(getTestResourcePath("QualifiedNameDefinitionFinderTest.existingAST.filePath"))))
         val finder = new QualifiedNameDefinitionFinder(project)
         val qName = QualifiedName(Array("TypeFiNder","InnerClass1"))
         val res = finder.findDefinition(qName).futureValue

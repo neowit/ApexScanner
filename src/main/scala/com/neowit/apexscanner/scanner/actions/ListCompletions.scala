@@ -48,7 +48,7 @@ object ListCompletions extends LazyLogging {
         //val res = completions.list(FileBasedDocument(path), line +4, 22) //new Object__c(
         //val res = completions.list(FileBasedDocument(path), line +5, 38) //new CompletionTester( Field =
         //val res = completions.list(FileBasedDocument(path), line +6, 44) //new List<Map<String, Set<Integer>>>(
-        val res = completions.list(FileBasedDocument(path), line +7, 57) //String str = new List<Map<String, Set<Integer>>>(
+        val res = completions.list(FileBasedDocument(Option(path)), line +7, 57) //String str = new List<Map<String, Set<Integer>>>(
 
         Await.result(res, Duration.Inf)
         logger.debug( res.toString )
@@ -63,9 +63,14 @@ class ListCompletions(project: Project)(implicit ex: ExecutionContext) extends L
         list(document, position.line, position.col)
     }
     def list(document: VirtualDocument, line: Int, column: Int): Future[ListCompletionsResult] = {
-        val finder = new CompletionFinder(project)
-        finder.listCompletions(document, line, column).map{symbols =>
-            ListCompletionsResult(document.file, symbols)
+        document.file match {
+            case Some(file) =>
+                val finder = new CompletionFinder(project)
+                finder.listCompletions(document, line, column).map{symbols =>
+                    ListCompletionsResult(file, symbols)
+                }
+            case None =>
+                Future.failed(new IllegalArgumentException("Document.file must be provided"))
         }
     }
 

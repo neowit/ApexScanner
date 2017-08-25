@@ -25,12 +25,13 @@ import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
+import com.neowit.apexscanner.VirtualDocument.DocumentId
 import org.antlr.v4.runtime.{CharStream, CharStreams, Token}
 
 /**
   * Created by Andrey Gavrikov 
   */
-case class TokenBasedDocument (token:Token, file: Path) extends VirtualDocument {
+case class TokenBasedDocument (token:Token, file: Option[Path]) extends VirtualDocument {
     private val text = if (null == token.getText) "" else token.getText
     override def inputStream: InputStream = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))
 
@@ -38,5 +39,12 @@ case class TokenBasedDocument (token:Token, file: Path) extends VirtualDocument 
 
     override def getCharStream: CharStream = {
         CharStreams.fromString(this.text)
+    }
+
+    override def getId: DocumentId = {
+        file match {
+            case Some(_) => super.getId
+            case None => text.hashCode.toString
+        }
     }
 }
