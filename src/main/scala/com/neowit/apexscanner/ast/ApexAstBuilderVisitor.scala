@@ -21,10 +21,11 @@
 
 package com.neowit.apexscanner.ast
 
-import com.neowit.apexscanner.{Project, VirtualDocument}
+import com.neowit.apexscanner.{Project, TextBasedDocument, VirtualDocument}
 import com.neowit.apexscanner.antlr.{ApexcodeBaseVisitor, ApexcodeParser}
 import com.neowit.apexscanner.antlr.ApexcodeParser._
 import com.neowit.apexscanner.nodes._
+import com.neowit.apexscanner.scanner.SoqlScanner
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.{RuleNode, TerminalNode}
 
@@ -32,10 +33,12 @@ object ApexAstBuilderVisitor {
     val VISITOR_CREATOR_FUN: AstBuilder.VisitorCreatorFun = (projectOpt, documentOpt) => new ApexAstBuilderVisitor(projectOpt, documentOpt)
 }
 
-class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override val documentOpt: Option[VirtualDocument]) extends ApexcodeBaseVisitor[AstNode] with AstBuilderVisitor {
+class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override val documentOpt: Option[VirtualDocument])
+        extends ApexcodeBaseVisitor[AstNode] with AstBuilderVisitor {
     private val _classLikeListBuilder = List.newBuilder[ClassLike]
 
-    private val soqlAstBuilder = new AstBuilder(projectOpt, SoqlAstBuilderVisitor.VISITOR_CREATOR_FUN)
+    private val _soqlAstBuilder = new AstBuilder(projectOpt, SoqlAstBuilderVisitor.VISITOR_CREATOR_FUN)
+    private val _soqlScanner = SoqlScanner.createDefaultScanner(_soqlAstBuilder)
 
     def getClassLikeNodes: List[ClassLike] = _classLikeListBuilder.result()
 
@@ -411,7 +414,19 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
 
     override def visitSoqlLiteral(ctx: SoqlLiteralContext): AstNode = {
         //LiteralNode(SoqlLiteral, ctx.SoqlLiteral(), Range(ctx))
-        SoqlLiteralNode(ctx.SoqlLiteral(), Range(ctx), Option(soqlAstBuilder))
+        if (null != ctx.SoqlLiteral()) {
+            val soqlQueryStr = ctx.SoqlLiteral().getText
+            //SoqlQueryNode(ctx.SoqlLiteral().getText, Range(ctx))
+            val soqlDocument = TextBasedDocument(soqlQueryStr, fileOpt = None)
+            _soqlAstBuilder.build(soqlDocument, _soqlScanner)
+            _soqlAstBuilder.getAst(soqlDocument) match {
+                case Some(astBuilderResult) =>
+                    astBuilderResult.rootNode
+                case None => NullNode
+            }
+        } else {
+            NullNode
+        }
     }
     ///////////////// END literals ///////////////////////////////
 }

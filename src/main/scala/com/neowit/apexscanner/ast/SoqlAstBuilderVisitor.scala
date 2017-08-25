@@ -21,9 +21,11 @@
 
 package com.neowit.apexscanner.ast
 
-import com.neowit.apexscanner.antlr.SoqlBaseVisitor
-import com.neowit.apexscanner.nodes.AstNode
+import com.neowit.apexscanner.antlr.{SoqlBaseVisitor, SoqlParser}
+import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.{Project, VirtualDocument}
+import org.antlr.v4.runtime.ParserRuleContext
+import org.antlr.v4.runtime.tree.RuleNode
 
 /**
   * Created by Andrey Gavrikov 
@@ -33,5 +35,29 @@ object SoqlAstBuilderVisitor {
 }
 class SoqlAstBuilderVisitor(override val projectOpt: Option[Project],
                             override val documentOpt: Option[VirtualDocument]) extends SoqlBaseVisitor[AstNode] with AstBuilderVisitor {
+
+    override def defaultResult(): AstNode = NullNode
+
+    override def visitChildren(node: RuleNode): AstNode = {
+
+        val range = node match {
+            case n: ParserRuleContext => Range(n)
+            case _ =>
+                throw new NotImplementedError("Unhandled case is this really a node without location ?" + node)
+        }
+        val fallThroughNode = FallThroughNode(range)
+        visitChildren(fallThroughNode, node)
+        //super.visitChildren(node)
+    }
+
     override def onComplete(): Unit = ???
+
+
+    override def visitCompilationUnit(ctx: SoqlParser.CompilationUnitContext): AstNode = {
+        val soqlQueryStr = ctx.soqlStatement().getText
+        val node = SoqlQueryNode(soqlQueryStr, Range(ctx))
+        visitChildren(node, ctx)
+    }
+
+    //TODO implement all relevant visitXXX methods
 }

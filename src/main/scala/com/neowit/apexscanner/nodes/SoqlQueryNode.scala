@@ -21,8 +21,7 @@
 
 package com.neowit.apexscanner.nodes
 
-import com.neowit.apexscanner.ast.AstBuilder
-import org.antlr.v4.runtime.tree.TerminalNode
+import com.neowit.apexscanner.symbols.SymbolKind
 
 /**
   * Created by Andrey Gavrikov 
@@ -30,15 +29,16 @@ import org.antlr.v4.runtime.tree.TerminalNode
 
 /**
   *
-  * @param valueTerminal terminal containing this literal node
+  * @param queryStr text version of SOQL query
   * @param range location range
-  * @param soqlAstBuilder allows to build AST tree of given SoqlLiteral on demand and avoid wasting resources
-  *                       in case if literal's AST is never used
   */
-case class SoqlLiteralNode (valueTerminal: TerminalNode, range: Range, soqlAstBuilder: Option[AstBuilder]) extends LiteralLike {
-    def getText: String = valueTerminal.getText
+case class SoqlQueryNode(queryStr: String, range: Range) extends ClassLike {
 
     override protected def resolveDefinitionImpl(): Option[AstNode] = ???
 
+    override def getValueType: Option[ValueType] = ???
 
+    override def nodeType: AstNodeType = ???
+
+    override def symbolKind: SymbolKind = ???
 }
