@@ -63,7 +63,7 @@ class ListCompletions(project: Project)(implicit ex: ExecutionContext) extends L
         list(document, position.line, position.col)
     }
     def list(document: VirtualDocument, line: Int, column: Int): Future[ListCompletionsResult] = {
-        document.file match {
+        document.fileOpt match {
             case Some(file) =>
                 val finder = new CompletionFinder(project)
                 finder.listCompletions(document, line, column).map{symbols =>

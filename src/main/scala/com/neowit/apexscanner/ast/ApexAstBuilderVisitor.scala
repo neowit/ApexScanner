@@ -87,10 +87,10 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
       */
     override def visitCompilationUnit(ctx: CompilationUnitContext): AstNode = {
         documentOpt match {
-            case Some(document) if document.file.isDefined =>
+            case Some(document) if document.fileOpt.isDefined =>
                 projectOpt match {
                     case Some(project) =>
-                        document.file match {
+                        document.fileOpt match {
                             case Some(file) =>
                                 visitChildren(FileNode(project, file, Range(ctx)), ctx)
                             case None => NullNode

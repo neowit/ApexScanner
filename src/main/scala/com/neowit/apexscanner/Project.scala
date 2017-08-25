@@ -102,7 +102,7 @@ case class Project(path: Path)/*(implicit ex: ExecutionContext)*/ extends CodeLi
     }
 
     def saveFileContent(document: VirtualDocument): Future[Unit] = {
-        document.file.foreach{ file =>
+        document.fileOpt.foreach{ file =>
             _fileContentByPath += file -> document
         }
         Future.successful(())

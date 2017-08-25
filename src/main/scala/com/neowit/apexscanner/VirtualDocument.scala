@@ -32,7 +32,7 @@ import org.antlr.v4.runtime.CharStream
   * Created by Andrey Gavrikov 
   */
 trait VirtualDocument {
-    def file: Option[Path]
+    def fileOpt: Option[Path]
     def inputStream: InputStream
     def getTextContent: Option[String]
     def getId: DocumentId = {
@@ -40,7 +40,7 @@ trait VirtualDocument {
             .orElse(throw new NotImplementedError("getId() is not implemented for this document type"))
             .getOrElse("")
     }
-    def getFileName: Option[Path] = file.map(_.getFileName)
+    def getFileName: Option[Path] = fileOpt.map(_.getFileName)
     def getCharStream: CharStream
 }
 

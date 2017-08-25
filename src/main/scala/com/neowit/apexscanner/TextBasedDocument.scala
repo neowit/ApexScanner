@@ -31,7 +31,7 @@ import org.antlr.v4.runtime.{CharStream, CharStreams}
 /**
   * Created by Andrey Gavrikov 
   */
-case class TextBasedDocument (text: String, file: Option[Path]) extends VirtualDocument {
+case class TextBasedDocument (text: String, fileOpt: Option[Path]) extends VirtualDocument {
     override def inputStream: InputStream = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))
 
     override def getTextContent: Option[String] = Option(text)
@@ -41,7 +41,7 @@ case class TextBasedDocument (text: String, file: Option[Path]) extends VirtualD
     }
 
     override def getId: DocumentId = {
-        file match {
+        fileOpt match {
             case Some(_) => super.getId
             case None => text.hashCode.toString
         }

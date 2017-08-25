@@ -267,7 +267,7 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
                 }
 
             case _ =>
-                logger.debug("Failed to build AST for file: " + document.file)
+                logger.debug("Failed to build AST for file: " + document.fileOpt.map(_.toString).getOrElse(""))
                 None
         }
     }

@@ -31,7 +31,7 @@ import org.antlr.v4.runtime.{CharStream, CharStreams, Token}
 /**
   * Created by Andrey Gavrikov 
   */
-case class TokenBasedDocument (token:Token, file: Option[Path]) extends VirtualDocument {
+case class TokenBasedDocument (token:Token, fileOpt: Option[Path]) extends VirtualDocument {
     private val text = if (null == token.getText) "" else token.getText
     override def inputStream: InputStream = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))
 
@@ -42,7 +42,7 @@ case class TokenBasedDocument (token:Token, file: Option[Path]) extends VirtualD
     }
 
     override def getId: DocumentId = {
-        file match {
+        fileOpt match {
             case Some(_) => super.getId
             case None => text.hashCode.toString
         }

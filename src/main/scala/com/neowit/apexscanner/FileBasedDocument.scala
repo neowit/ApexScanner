@@ -32,10 +32,10 @@ import scala.util.Try
 /**
   * Created by Andrey Gavrikov 
   */
-case class FileBasedDocument(file: Option[Path]) extends VirtualDocument {
-    assert(file.isDefined, "File must be provided")
+case class FileBasedDocument(fileOpt: Option[Path]) extends VirtualDocument {
+    assert(fileOpt.isDefined, "File must be provided")
     override def inputStream: InputStream = {
-        file match {
+        fileOpt match {
             case Some(_file) =>
                 new FileInputStream(_file.toFile)
             case None =>
@@ -44,7 +44,7 @@ case class FileBasedDocument(file: Option[Path]) extends VirtualDocument {
     }
 
     override def getTextContent: Option[String] = {
-        file match {
+        fileOpt match {
             case Some(_file) =>
                 Try{
                     val source = scala.io.Source.fromFile(_file.toFile)(StandardCharsets.UTF_8)
