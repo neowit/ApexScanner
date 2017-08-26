@@ -38,7 +38,7 @@ class QualifiedNameDefinitionFinderTest extends FunSuite with TestConfigProvider
         val project = Project(projectPath)
 
         // load AST of test file explicitly
-        project.getAst(FileBasedDocument(Option(getTestResourcePath("QualifiedNameDefinitionFinderTest.existingAST.filePath"))))
+        project.getAst(FileBasedDocument(getTestResourcePath("QualifiedNameDefinitionFinderTest.existingAST.filePath")))
         val finder = new QualifiedNameDefinitionFinder(project)
         val qName = QualifiedName(Array("TypeFiNder","InnerClass1"))
         val res = finder.findDefinition(qName).futureValue
@@ -47,7 +47,7 @@ class QualifiedNameDefinitionFinderTest extends FunSuite with TestConfigProvider
                 val methods = node.getSymbolsOfKind(SymbolKind.Method)
                 assert(methods.exists(_.symbolName == "methodWith2Params"), "TypeFinder.InnerClass1.methodWith2Params not found")
             case None =>
-                assert(false, "Not found: " + qName)
+                fail( "Not found: " + qName)
         }
 
     }
@@ -65,7 +65,7 @@ class QualifiedNameDefinitionFinderTest extends FunSuite with TestConfigProvider
                 val methods = node.getSymbolsOfKind(SymbolKind.Method)
                 assert(methods.exists(_.symbolName == "methodWith2Params"), "TypeFinder.InnerClass1.methodWith2Params not found")
             case None =>
-                assert(false, "Not found: " + qName)
+                fail( "Not found: " + qName)
         }
     }
 

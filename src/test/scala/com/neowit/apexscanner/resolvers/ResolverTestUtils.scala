@@ -68,7 +68,7 @@ object ResolverTestUtils extends TestConfigProvider with ScalaFutures with Integ
 
         val project = existingProject.getOrElse(Project(path))
         val astBuilder = new AstBuilder(Option(project))
-        val document = FileBasedDocument(Option(path))
+        val document = FileBasedDocument(path)
         Await.result(astBuilder.build(path, ApexcodeScanner.createDefaultScanner(astBuilder)), Duration.Inf)
 
         astBuilder.getAst(document) match {

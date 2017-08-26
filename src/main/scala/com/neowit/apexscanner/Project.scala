@@ -204,7 +204,7 @@ case class Project(path: Path)/*(implicit ex: ExecutionContext)*/ extends CodeLi
         if (Files.exists(rootPath)) {
             val paths = Files.walk(rootPath).iterator().asScala.filter(file => matcher.matches(file) && !isIgnoredPath(file))
             paths.toList.headOption match {
-                case Some(foundPath) => Option(FileBasedDocument(Option(foundPath)))
+                case Some(foundPath) => Option(FileBasedDocument(foundPath))
                 case None => None
             }
         } else {

@@ -55,7 +55,7 @@ object NodeByLocationFinder {
 
         //val path = FileSystems.getDefault.getPath(args(0))
         val path = FileSystems.getDefault.getPath ("/Users/andrey/development/scala/projects/ApexScanner/GrammarTests/TypeFinder.cls")
-        val document = FileBasedDocument(Option(path))
+        val document = FileBasedDocument(path)
         val position = Position(18, 25)
 
         val astBuilder = new AstBuilder(Option(Project(path)), ApexAstBuilderVisitor.VISITOR_CREATOR_FUN)

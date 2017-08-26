@@ -48,7 +48,7 @@ object ListCompletions extends LazyLogging {
         //val res = completions.list(FileBasedDocument(path), line +4, 22) //new Object__c(
         //val res = completions.list(FileBasedDocument(path), line +5, 38) //new CompletionTester( Field =
         //val res = completions.list(FileBasedDocument(path), line +6, 44) //new List<Map<String, Set<Integer>>>(
-        val res = completions.list(FileBasedDocument(Option(path)), line +7, 57) //String str = new List<Map<String, Set<Integer>>>(
+        val res = completions.list(FileBasedDocument(path), line +7, 57) //String str = new List<Map<String, Set<Integer>>>(
 
         Await.result(res, Duration.Inf)
         logger.debug( res.toString )
