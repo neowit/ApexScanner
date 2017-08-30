@@ -284,7 +284,7 @@ class SoqlGrammarTest extends FunSuite {
             """
               |[select id from Object
               |where ownerid = :userinfo.getuserid()
-              |order by some.field lastname asc
+              |order by some.field, lastname asc
               |limit :( isTest ? 5 : 1000 )]
               |
             """.stripMargin
