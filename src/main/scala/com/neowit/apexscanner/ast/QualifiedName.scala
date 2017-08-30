@@ -95,6 +95,9 @@ object QualifiedName {
         QualifiedName(n1.components ++ Array(n2))
     }
 
+    def apply(names: String*): QualifiedName = {
+        QualifiedName(names.toArray)
+    }
     /**
       * merge parent and child names
       * @return
