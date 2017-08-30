@@ -19,20 +19,24 @@
  *
  */
 
-package com.neowit.apexscanner.nodes
+package com.neowit.apexscanner.nodes.soql
 
+import com.neowit.apexscanner.ast.QualifiedName
+import com.neowit.apexscanner.nodes.{AstNode, AstNodeType, ExpressionNodeType, IsTypeDefinition, Range, ValueType, ValueTypeSimple}
 /**
   * Created by Andrey Gavrikov 
   */
-case class ExpressionListNode(expressions: Seq[AstNode], range: Range) extends AstNode {
-    override def nodeType: AstNodeType = ExpressionListNodeType
 
-    def getExpressions: Seq[AbstractExpression] = {
-        expressions.flatMap{
-            case n: AbstractExpression => Option(n)
-            case n: FallThroughNode => n.getChildInAst[AbstractExpression](ExpressionNodeType)
-        }
-    }
+/**
+  * node represents:
+  *     select count()
+  */
+case class SelectCountNode(range: Range) extends AstNode with IsTypeDefinition {
+    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
 
-    override def getDebugInfo: String = super.getDebugInfo + getExpressions.map(_.getDebugInfo).mkString(", ")
+    override def nodeType: AstNodeType = ExpressionNodeType
+
+    override def getValueType: Option[ValueType] = Option(ValueTypeSimple(QualifiedName("System", "Integer")))
+
+    override def qualifiedName: Option[QualifiedName] = Option(QualifiedName("System", "Integer"))
 }

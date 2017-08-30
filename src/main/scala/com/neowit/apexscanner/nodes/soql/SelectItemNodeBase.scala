@@ -19,20 +19,21 @@
  *
  */
 
-package com.neowit.apexscanner.nodes
+package com.neowit.apexscanner.nodes.soql
+
+import com.neowit.apexscanner.nodes.{AbstractExpression, SelectItemExpressionNodeType}
 
 /**
   * Created by Andrey Gavrikov 
   */
-case class ExpressionListNode(expressions: Seq[AstNode], range: Range) extends AstNode {
-    override def nodeType: AstNodeType = ExpressionListNodeType
-
-    def getExpressions: Seq[AbstractExpression] = {
-        expressions.flatMap{
-            case n: AbstractExpression => Option(n)
-            case n: FallThroughNode => n.getChildInAst[AbstractExpression](ExpressionNodeType)
-        }
+trait SelectItemNodeBase extends AbstractExpression {
+    def getAlias: Option[String] = {
+        getParentSelectItemExpressionNode
+            .flatMap(_.alias)
     }
 
-    override def getDebugInfo: String = super.getDebugInfo + getExpressions.map(_.getDebugInfo).mkString(", ")
+    def getParentSelectItemExpressionNode: Option[SelectItemExpressionNode] = {
+        findParentInAst(_.nodeType == SelectItemExpressionNodeType)
+            .map(_.asInstanceOf[SelectItemExpressionNode])
+    }
 }

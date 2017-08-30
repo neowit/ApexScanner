@@ -19,20 +19,27 @@
  *
  */
 
-package com.neowit.apexscanner.nodes
+package com.neowit.apexscanner.nodes.soql
+
+import com.neowit.apexscanner.nodes.{AstNode, AstNodeType, ClassLike, Range, ValueType}
+import com.neowit.apexscanner.symbols.SymbolKind
 
 /**
   * Created by Andrey Gavrikov 
   */
-case class ExpressionListNode(expressions: Seq[AstNode], range: Range) extends AstNode {
-    override def nodeType: AstNodeType = ExpressionListNodeType
 
-    def getExpressions: Seq[AbstractExpression] = {
-        expressions.flatMap{
-            case n: AbstractExpression => Option(n)
-            case n: FallThroughNode => n.getChildInAst[AbstractExpression](ExpressionNodeType)
-        }
-    }
+/**
+  *
+  * @param queryStr text version of SOQL query
+  * @param range location range
+  */
+case class SoqlQueryNode(queryStr: String, range: Range) extends ClassLike {
 
-    override def getDebugInfo: String = super.getDebugInfo + getExpressions.map(_.getDebugInfo).mkString(", ")
+    override protected def resolveDefinitionImpl(): Option[AstNode] = ???
+
+    override def getValueType: Option[ValueType] = ???
+
+    override def nodeType: AstNodeType = ???
+
+    override def symbolKind: SymbolKind = ???
 }

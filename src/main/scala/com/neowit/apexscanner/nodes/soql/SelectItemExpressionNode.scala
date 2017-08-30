@@ -19,20 +19,14 @@
  *
  */
 
-package com.neowit.apexscanner.nodes
+package com.neowit.apexscanner.nodes.soql
 
+import com.neowit.apexscanner.nodes.{AstNode, AstNodeType, Range, SelectItemExpressionNodeType}
 /**
-  * Created by Andrey Gavrikov 
+  * Created by Andrey Gavrikov
   */
-case class ExpressionListNode(expressions: Seq[AstNode], range: Range) extends AstNode {
-    override def nodeType: AstNodeType = ExpressionListNodeType
 
-    def getExpressions: Seq[AbstractExpression] = {
-        expressions.flatMap{
-            case n: AbstractExpression => Option(n)
-            case n: FallThroughNode => n.getChildInAst[AbstractExpression](ExpressionNodeType)
-        }
-    }
-
-    override def getDebugInfo: String = super.getDebugInfo + getExpressions.map(_.getDebugInfo).mkString(", ")
+//TODO - should this be trait with 2 children Field and TypeOf ?
+case class SelectItemExpressionNode(alias: Option[String], range: Range) extends AstNode {
+    override def nodeType: AstNodeType = SelectItemExpressionNodeType
 }

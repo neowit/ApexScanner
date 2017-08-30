@@ -23,6 +23,7 @@ package com.neowit.apexscanner.ast
 
 import com.neowit.apexscanner.antlr.{SoqlBaseVisitor, SoqlParser}
 import com.neowit.apexscanner.nodes._
+import com.neowit.apexscanner.nodes.soql._
 import com.neowit.apexscanner.{Project, VirtualDocument}
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.RuleNode
@@ -59,5 +60,45 @@ class SoqlAstBuilderVisitor(override val projectOpt: Option[Project],
         visitChildren(node, ctx)
     }
 
+    override def visitSelectStatement(ctx: SoqlParser.SelectStatementContext): AstNode = {
+        if (null != ctx.countFunction()) {
+            SelectCountNode(Range(ctx))
+        } else {
+            visitChildren(ctx)
+        }
+    }
+
+    //TODO - check if this method actually gets called
+    override def visitSelectItems(ctx: SoqlParser.SelectItemsContext): AstNode = {
+        if (null != ctx.selectItem()) {
+            // select one, two, three, TYPEOF Some ... END
+            import scala.collection.JavaConverters._
+            val selectItems: Seq[AstNode] = ctx.selectItem().asScala.map(visit)
+            val expressionListNode = SelectItemsNode(selectItems, Range(ctx))
+            selectItems.map(_.setParentInAst(expressionListNode))
+            visitChildren(expressionListNode, ctx)
+        } else {
+            NullNode
+        }
+    }
+
+    override def visitSelectItem(ctx: SoqlParser.SelectItemContext): AstNode = {
+        val aliasOpt = if (null == ctx.alias()) None else Option(ctx.alias().getText)
+        visitChildren(SelectItemExpressionNode(aliasOpt, Range(ctx)), ctx)
+    }
+
+    override def visitFieldItem(ctx: SoqlParser.FieldItemContext): AstNode = {
+        visitChildren(FieldItemNode(Range(ctx)), ctx)
+    }
+
+    override def visitSubquery(ctx: SoqlParser.SubqueryContext): AstNode = {
+        visitChildren(SubqueryNode(Range(ctx)), ctx)
+    }
+
+    override def visitTypeOfExpression(ctx: SoqlParser.TypeOfExpressionContext): AstNode = {
+        visitChildren(TypeOfExpressionNode(Range(ctx)), ctx)
+    }
+
     //TODO implement all relevant visitXXX methods
+
 }

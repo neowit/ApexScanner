@@ -64,6 +64,10 @@ case object TriggerNodeType extends AstNodeType
 case object TypeArgumentsNodeType extends AstNodeType
 case object TypeCastNodeType extends AstNodeType
 
+// SOQL
+case object SelectItemExpressionNodeType extends AstNodeType
+case object SubqueryNodeType extends AstNodeType
+case object TypeOfExpressionNodeType extends AstNodeType
 
 object AstNodeType {
 

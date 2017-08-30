@@ -19,26 +19,12 @@
  *
  */
 
-package com.neowit.apexscanner.nodes
+package com.neowit.apexscanner.nodes.soql
 
-import com.neowit.apexscanner.symbols.SymbolKind
-
+import com.neowit.apexscanner.nodes.{AstNode, Range}
 /**
   * Created by Andrey Gavrikov 
   */
-
-/**
-  *
-  * @param queryStr text version of SOQL query
-  * @param range location range
-  */
-case class SoqlQueryNode(queryStr: String, range: Range) extends ClassLike {
-
+case class FieldItemNode(range: Range) extends SelectItemNodeBase  {
     override protected def resolveDefinitionImpl(): Option[AstNode] = ???
-
-    override def getValueType: Option[ValueType] = ???
-
-    override def nodeType: AstNodeType = ???
-
-    override def symbolKind: SymbolKind = ???
 }
