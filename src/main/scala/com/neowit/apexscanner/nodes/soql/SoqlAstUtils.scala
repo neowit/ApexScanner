@@ -1,5 +1,6 @@
 package com.neowit.apexscanner.nodes.soql
 
+import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes.{AstNode, FromNodeType, SoqlQueryNodeType, SubqueryNodeType}
 
 /**
@@ -10,8 +11,12 @@ object SoqlAstUtils {
     def findFromNode(thisNode: AstNode, aliasOpt: Option[String]): Option[FromNode] = {
         // find parent query or subquery
         val queryNode =
-            thisNode.findParentInAst(_.nodeType == SubqueryNodeType)
-                .orElse(thisNode.findParentInAst(_.nodeType == SoqlQueryNodeType))
+            if (thisNode.nodeType == SubqueryNodeType || thisNode.nodeType == SoqlQueryNodeType) {
+                Option(thisNode)
+            } else {
+                thisNode.findParentInAst(_.nodeType == SubqueryNodeType)
+                    .orElse(thisNode.findParentInAst(_.nodeType == SoqlQueryNodeType))
+            }
 
         // find one or more FromNode-s under current query node
         val fromNodes:Seq[FromNode] =
@@ -35,5 +40,63 @@ object SoqlAstUtils {
                     case None => Option(nodes.head)
                 }
         }
+    }
+
+    /**
+      * check if given node is part of Subquery
+      */
+    def isSubquery(thisNode: AstNode): Boolean = {
+        thisNode.nodeType == SubqueryNodeType || thisNode.findParentInAst(_.nodeType == SubqueryNodeType).isDefined
+    }
+
+    /**
+      * find outer most SOQL Query node
+      * @param thisNode node to start from
+      * @return
+      */
+    def findParentFromNode(thisNode: AstNode, aliasOpt: Option[String]): Option[FromNode] = {
+        val queryNodeOpt =
+            thisNode.findParentInAst(_.nodeType == SubqueryNodeType)
+                .orElse(thisNode.findParentInAst(_.nodeType == SoqlQueryNodeType))
+
+        queryNodeOpt match {
+            case Some(queryNode) if queryNode.nodeType == SubqueryNodeType=>
+                findParentFromNode(queryNode, aliasOpt)
+            case Some(queryNode) if queryNode.nodeType == SoqlQueryNodeType=>
+                findFromNode(queryNode, aliasOpt)
+            case None => None
+        }
+    }
+
+    /**
+      * for outer query this will be name of object in FROM: e.g. "Account"
+      * for relationship queries this will be combined name of all FROM-s, e.g. Account.Contacts
+      * @param thisNode node which is part of SOQL query or subquery
+      * @param aliasOpt first part of node name which may be alias
+      *                 e.g. `select a.Name from Account a`
+      *                 alias is "a"
+      * @return
+      */
+    def getFullyQualifiedFromName(thisNode: AstNode, aliasOpt: Option[String]): Option[QualifiedName] = {
+        def _getFullyQualifiedFromName(thisNode: AstNode, aliasOpt: Option[String], nameSoFar: Option[QualifiedName]): Option[QualifiedName] = {
+            findFromNode(thisNode, aliasOpt) match {
+                case Some(fromNode) if isSubquery(fromNode)=>
+                    val qName =
+                        QualifiedName.fromOptions(fromNode.qualifiedName, nameSoFar)
+
+                    fromNode.findParentInAst(n => n.nodeType == SubqueryNodeType || n.nodeType == SoqlQueryNodeType)
+                        .flatMap(_.getParentInAst()) match {
+                        case Some(queryNode) =>
+                            _getFullyQualifiedFromName(queryNode, fromNode.aliasOpt, qName)
+                        case None =>
+                            qName
+                    }
+                case Some(fromNode) if !isSubquery(fromNode)=>
+                    QualifiedName.fromOptions(fromNode.qualifiedName, nameSoFar)
+                case None => nameSoFar
+            }
+
+        }
+        _getFullyQualifiedFromName(thisNode, aliasOpt, nameSoFar = None)
     }
 }
