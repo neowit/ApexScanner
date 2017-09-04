@@ -72,8 +72,7 @@ object SoqlAstUtils {
       * for outer query this will be name of object in FROM: e.g. "Account"
       * for relationship queries this will be combined name of all FROM-s, e.g. Account.Contacts
       * @param thisNode node which is part of SOQL query or subquery
-      * @param aliasOpt first part of node name which may be alias
-      *                 e.g. `select a.Name from Account a`
+      * @param aliasOpt e.g. `select a.Name from Account a`
       *                 alias is "a"
       * @return
       */
@@ -92,7 +91,19 @@ object SoqlAstUtils {
                             qName
                     }
                 case Some(fromNode) if !isSubquery(fromNode)=>
-                    QualifiedName.fromOptions(fromNode.qualifiedName, nameSoFar)
+                    // drop alias if exists (i.e. covert a.Contacts to Contacts)
+                    val nameSoFarWithoutAlias =
+                        nameSoFar match {
+                            case Some(name) =>
+                                if (name.length > 1 && fromNode.aliasOpt.exists(_.toLowerCase == name.getFirstComponent.toLowerCase)) {
+                                    name.tailOption
+                                } else {
+                                    nameSoFar
+                                }
+                            case _ => nameSoFar
+                        }
+
+                    QualifiedName.fromOptions(fromNode.qualifiedName, nameSoFarWithoutAlias)
                 case None => nameSoFar
             }
 

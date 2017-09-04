@@ -377,6 +377,26 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
         }
     }
 
+    test("findDefinition: inside SOQL statement: Subquery with alias") {
+        val text =
+            """
+              |class CompletionTester {
+              | Integer i = [select Name, (select FirstName from a.Con<CARET>tacts) from Account a];
+              |}
+            """.stripMargin
+        //val resultNodes = findDefinition(text).futureValue
+        val resultNodes = findDefinition(text)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName(Array("a", "Contacts"))), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                assertResult(Option(QualifiedName(Array("Account", "Contacts"))), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
+            case _ =>
+                fail( "Failed to locate correct node. Expected method1()")
+        }
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////
     var _projectWithStdLib: Option[Project] = None
     private def findDefinition(text: String, documentName: String = "test", loadStdLib: Boolean = false): scala.Seq[AstNode] = {
