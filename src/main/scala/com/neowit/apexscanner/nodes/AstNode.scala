@@ -103,7 +103,7 @@ trait AstNode {
 
     /**
       * find parent matching specified condition
-      * @param filter - condition
+      * @param filter condition
       * @return
       */
     def findParentInAst(filter: (AstNode) => Boolean): Option[AstNode] = {

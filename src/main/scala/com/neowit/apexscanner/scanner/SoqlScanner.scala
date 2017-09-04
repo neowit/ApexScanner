@@ -86,7 +86,7 @@ abstract class SoqlScanner() extends Scanner() {
 
                 SoqlScanner.getSoqlStatements(tokenStream).foreach{soqlToken =>
                     //println("SOQL: " + soqlToken.getText)
-                    val scanResult = scan(TokenBasedDocument(soqlToken, file), PredictionMode.SLL)
+                    val scanResult = scan(TokenBasedDocument(soqlToken, file, document.offset), PredictionMode.SLL)
                     totalScanResult = scanResult.copy(errors = totalScanResult.errors ++ scanResult.errors)
                     onEachResult(totalScanResult)
                 }

@@ -26,12 +26,13 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
 import com.neowit.apexscanner.VirtualDocument.DocumentId
+import com.neowit.apexscanner.nodes.Position
 import org.antlr.v4.runtime.{CharStream, CharStreams}
 
 /**
   * Created by Andrey Gavrikov 
   */
-case class TextBasedDocument (text: String, fileOpt: Option[Path]) extends VirtualDocument {
+case class TextBasedDocument (text: String, fileOpt: Option[Path], offset: Option[Position]) extends VirtualDocument {
     override def inputStream: InputStream = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))
 
     override def getTextContent: Option[String] = Option(text)

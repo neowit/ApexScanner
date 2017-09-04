@@ -42,7 +42,7 @@ class NearestPrecedingNodeFinder(location: Position) extends AstVisitor {
                     foundNode = Option(node)
                     true
             }
-        } else if (node.range.includesLocation(location)) {
+        } else if (node.range.includesLocation(location, ignoreOffset = false)) {
             true
         } else {
             false

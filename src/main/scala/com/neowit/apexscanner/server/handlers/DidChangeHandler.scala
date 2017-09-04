@@ -45,7 +45,7 @@ class DidChangeHandler extends NotificationHandler with MessageJsonSupport with 
                                         // save current document content in temp storage for later use
                                         didSaveParams.contentChanges.lastOption match {
                                           case Some(lastVersion) =>
-                                              project.saveFileContent(TextBasedDocument(lastVersion.text, Option(filePath)))
+                                              project.saveFileContent(TextBasedDocument(lastVersion.text, Option(filePath), offset = None))
                                           case None =>
                                               Future.successful(logger.error("Missing file content in message: " + messageIn))
                                         }

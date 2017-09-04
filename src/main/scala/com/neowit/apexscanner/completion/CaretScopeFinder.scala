@@ -67,7 +67,7 @@ object CaretScopeFinder extends LazyLogging {
                 rewriter.replace(caretToken.getTokenIndex, fixerTokenText)
             case _ => // TODO
         }
-        val fixedDocument = TextBasedDocument(rewriter.getText, caret.document.fileOpt)
+        val fixedDocument = TextBasedDocument(rewriter.getText, caret.document.fileOpt, caret.document.offset)
         fixedDocument
     }
 }

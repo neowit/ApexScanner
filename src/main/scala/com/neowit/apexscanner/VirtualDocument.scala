@@ -25,6 +25,7 @@ import java.io.InputStream
 import java.nio.file.Path
 
 import com.neowit.apexscanner.VirtualDocument.DocumentId
+import com.neowit.apexscanner.nodes.Position
 import org.antlr.v4.runtime.CharStream
 
 
@@ -42,6 +43,13 @@ trait VirtualDocument {
     }
     def getFileName: Option[Path] = fileOpt.map(_.getFileName)
     def getCharStream: CharStream
+
+    /**
+      * when current document is part of another document offset:Position can be used to specify where given document
+      * starts in the outer document
+      * @return
+      */
+    def offset: Option[Position]
 }
 
 object VirtualDocument {

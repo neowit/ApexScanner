@@ -25,6 +25,7 @@ import java.io._
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
+import com.neowit.apexscanner.nodes.Position
 import org.antlr.v4.runtime.{CharStream, CharStreams}
 
 import scala.util.Try
@@ -50,4 +51,7 @@ case class FileBasedDocument(file: Path) extends VirtualDocument {
     override def getCharStream: CharStream = {
         CharStreams.fromStream(this.inputStream, StandardCharsets.UTF_8)
     }
+
+    // it is highly unlikely that a document based on a concrete file will have parent (outer) document
+    override def offset: Option[Position] = None
 }

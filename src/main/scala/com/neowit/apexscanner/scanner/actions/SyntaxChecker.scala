@@ -82,7 +82,7 @@ private class SyntaxCheckerErrorListener(document: VirtualDocument) extends Base
         val msgCleaned = msg.replace("'FIXER_TOKEN', ", "")
         val error =
         document match {
-            case _doc @ TokenBasedDocument(token, _) => // adjust error location
+            case _doc @ TokenBasedDocument(token, _, _) => // adjust error location
                 val offset = Position(token.getLine, token.getCharPositionInLine)
                 SyntaxError(offendingSymbol, line, charPositionInLine, msgCleaned, Option(offset))
             case _ => // return as is

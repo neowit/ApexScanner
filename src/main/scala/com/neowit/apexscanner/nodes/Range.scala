@@ -67,7 +67,14 @@ object Position {
     val FALLTHROUGH_LOCATION = Position(-2, -2)
 }
 
-case class Range(start: Position, end: Position) {
+/**
+  *
+  * @param start position where range starts
+  * @param end position where range ends
+  * @param offset if current range is relative then offset may be used to specify parent range
+  *               and allow to find absolute position of current Range
+  */
+case class Range(start: Position, end: Position, offset: Position = Position(0, 0)) {
     def getDebugInfo: String = {
         val text =
             if (start != end) {
@@ -83,11 +90,18 @@ case class Range(start: Position, end: Position) {
       * @param location - line/col to check for inclusion
       * @return true if given location is inside current LocationInterval
       */
-    def includesLocation(location: Position): Boolean = {
-        if (start.line > location.line || start.line == location.line && start.col > location.col) {
+    def includesLocation(location: Position, ignoreOffset: Boolean): Boolean = {
+        val startLine = if (ignoreOffset || offset.line < 1) start.line else (start.line - 1) + offset.line //-1 because lines start with 1
+        val startCol = if (ignoreOffset) start.col else start.col + offset.col
+
+        if (startLine > location.line || startLine == location.line && startCol > location.col) {
             return false
         }
-        if (end.line < location.line || end.line == location.line && end.col < location.col) {
+
+        val endLine = if (ignoreOffset) end.line else end.line + offset.line
+        val endCol = if (ignoreOffset) end.col else end.col + offset.col
+
+        if (endLine < location.line || endLine == location.line && endCol < location.col) {
             return false
         }
         true
@@ -101,7 +115,8 @@ object Range {
     def apply(node: RuleNode): Range = {
         FALLTHROUGH_LOCATION
     }
-    def apply(ctx: ParserRuleContext): Range = {
+
+    def apply(ctx: ParserRuleContext, offsetPosition: Position): Range = {
         val startToken = ctx.getStart
         val endToken = ctx.getStop
         val startPosition = Position(startToken.getLine, startToken.getCharPositionInLine)
@@ -109,14 +124,24 @@ object Range {
         val endPosition = Position(endToken.getLine, endToken.getCharPositionInLine + endToken.getStopIndex - endToken.getStartIndex + 1)
         Range(
             start = startPosition,
-            end = endPosition
+            end = endPosition,
+            offset = offsetPosition
+        )
+
+    }
+    def apply(ctx: ParserRuleContext): Range = {
+        apply(ctx, Position(0, 0))
+    }
+
+    def apply(node: org.antlr.v4.runtime.tree.TerminalNode, offsetPosition: Position): Range = {
+        Range(
+            start = Position(node.getSymbol.getLine, node.getSymbol.getCharPositionInLine),
+            end = Position(node.getSymbol.getLine, node.getSymbol.getCharPositionInLine + node.getSymbol.getText.length -1),
+            offset = offsetPosition
         )
     }
     def apply(node: org.antlr.v4.runtime.tree.TerminalNode): Range = {
-        Range(
-            start = Position(node.getSymbol.getLine, node.getSymbol.getCharPositionInLine),
-            end = Position(node.getSymbol.getLine, node.getSymbol.getCharPositionInLine + node.getSymbol.getText.length -1)
-        )
+        apply(node, Position(0, 0))
     }
 }
 

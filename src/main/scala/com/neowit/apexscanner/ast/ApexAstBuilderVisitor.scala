@@ -415,9 +415,10 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     override def visitSoqlLiteral(ctx: SoqlLiteralContext): AstNode = {
         //LiteralNode(SoqlLiteral, ctx.SoqlLiteral(), Range(ctx))
         if (null != ctx.SoqlLiteral()) {
+            val offsetPosition = Range(ctx).start // position of SOQL statement in the outer document/class
             val soqlQueryStr = ctx.SoqlLiteral().getText
             //SoqlQueryNode(ctx.SoqlLiteral().getText, Range(ctx))
-            val soqlDocument = TextBasedDocument(soqlQueryStr, fileOpt = None)
+            val soqlDocument = TextBasedDocument(soqlQueryStr, fileOpt = None, Option(offsetPosition))
             _soqlAstBuilder.build(soqlDocument, _soqlScanner)
             _soqlAstBuilder.getAst(soqlDocument) match {
                 case Some(astBuilderResult) =>

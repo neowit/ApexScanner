@@ -36,7 +36,8 @@ class NodeByLocationFinder(location: Position) extends AstVisitor {
     private var foundNode: Option[AstNode] = None
 
     override def visit(node: AstNode): Boolean = {
-        if (node.range.includesLocation(location)) {
+        //TODO for SOQL Statement node.range.includesLocation() does NOT work
+        if (node.range.includesLocation(location, ignoreOffset = false)) {
             foundNode = Option(node)
             true
         } else {
