@@ -25,6 +25,8 @@ import com.neowit.apexscanner.nodes.{AstNode, AstNodeType, Range, SubqueryNodeTy
 /**
   * Created by Andrey Gavrikov 
   */
-case class SubqueryNode(range: Range) extends AstNode {
+case class SubqueryNode(queryStr: String, range: Range) extends AstNode {
     override def nodeType: AstNodeType = SubqueryNodeType
+
+    override def isScope: Boolean = true
 }

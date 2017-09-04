@@ -108,7 +108,7 @@ case object ValueTypeVoid extends ValueType {
 //ANY - special type which match all and any types
 case object ValueTypeAny extends ValueType {
     //override def text: String = "void"
-    def qualifiedName: QualifiedName = QualifiedName(Array.empty)
+    def qualifiedName: QualifiedName = new QualifiedName(Array.empty)
 
     override def typeArguments: Seq[ValueType] = Seq.empty
 

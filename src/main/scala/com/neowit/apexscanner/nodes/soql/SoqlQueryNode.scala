@@ -21,25 +21,60 @@
 
 package com.neowit.apexscanner.nodes.soql
 
-import com.neowit.apexscanner.nodes.{AstNode, AstNodeType, ClassLike, Range, ValueType}
-import com.neowit.apexscanner.symbols.SymbolKind
+import com.neowit.apexscanner.ast.QualifiedName
+import com.neowit.apexscanner.nodes.{AstNode, AstNodeType, FromNodeType, IsTypeDefinition, Range, SoqlQueryNodeType, ValueType, ValueTypeSimple}
 
 /**
   * Created by Andrey Gavrikov 
   */
 
+object SoqlQueryNode {
+    val LIBRARY_NAME: String = "SObjectLibrary"
+}
 /**
   *
   * @param queryStr text version of SOQL query
   * @param range location range
   */
-case class SoqlQueryNode(queryStr: String, range: Range) extends ClassLike {
+case class SoqlQueryNode(queryStr: String, range: Range) extends AstNode with IsTypeDefinition {
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = ???
+    override def isScope: Boolean = true
 
-    override def getValueType: Option[ValueType] = ???
+    override def getValueType: Option[ValueType] = {
+        getFromNodes match {
+            case nodes if nodes.isEmpty =>
+                //TODO - return Database Namespace which can return all DB Objects
+                Option(ValueTypeSimple(QualifiedName(SoqlQueryNode.LIBRARY_NAME)))
+            case nodes if 1 == nodes.length =>
+                nodes.head.getValueType // return FromNode as is
+            case nodes =>
+                // multiple object types defined in From clause
+                // can not return singular value type
+                None
 
-    override def nodeType: AstNodeType = ???
+        }
+    }
 
-    override def symbolKind: SymbolKind = ???
+    override val qualifiedName: Option[QualifiedName] = Option(new QualifiedName(Array(queryStr)))
+
+    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+
+    override def nodeType: AstNodeType = SoqlQueryNodeType
+
+    def getAliases: Seq[String] = {
+        getFromNodes match {
+            case nodes if nodes.isEmpty =>
+                Seq.empty
+            case nodes =>
+                // multiple object types defined in From clause
+                nodes.map(_.aliasOpt.getOrElse("")).filterNot(_.isEmpty)
+
+        }
+    }
+    private def getFromNodes: Seq[FromNode] = {
+        findChildrenInAst(_.nodeType == FromNodeType).map(_.asInstanceOf[FromNode])
+    }
+
+
+    override def toString: String = "QUERY: " + queryStr
 }
