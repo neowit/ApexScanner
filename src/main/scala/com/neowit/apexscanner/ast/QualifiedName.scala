@@ -104,9 +104,11 @@ object QualifiedName {
       */
     def fromOptions(parentOpt: Option[QualifiedName], childOpt: Option[QualifiedName]): Option[QualifiedName] = {
         parentOpt match {
-          case Some(parent) =>
+          case Some(parent) if childOpt.isDefined =>
               childOpt.map(child => QualifiedName(parent, child))
-          case None =>
+          case Some(parent) if childOpt.isEmpty =>
+              parentOpt
+          case _ =>
                 childOpt
         }
     }
