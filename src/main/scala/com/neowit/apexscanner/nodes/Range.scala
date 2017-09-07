@@ -21,7 +21,7 @@
 
 package com.neowit.apexscanner.nodes
 
-import org.antlr.v4.runtime.ParserRuleContext
+import org.antlr.v4.runtime.{ParserRuleContext, Token}
 import org.antlr.v4.runtime.tree.RuleNode
 
 case class Position(line: Int, col: Int) extends Ordered[Position]{
@@ -51,6 +51,82 @@ case class Position(line: Int, col: Int) extends Ordered[Position]{
         }
     }
 }
+
+object Position {
+    val INVALID_LOCATION = Position(-1, -1)
+    val FALLTHROUGH_LOCATION = Position(-2, -2)
+
+    def apply(token: Token): Position = {
+        new Position(token.getLine, token.getCharPositionInLine)
+    }
+
+    /**
+      * given position inside inner document (e.g. SOQL statement)
+      * and offset of the document in the outer file (e.g. in Apex class)
+      * calculate absolute position in the outer document
+      * @param position position inside inner document (e.g. inside SOQL statement)
+      * @param offset position of inner document in the outer document
+      * @return
+      */
+    def toAbsolutePosition(position: Position, offset: Option[Position]): Position = {
+        Position(
+            getAbsoluteLine(position, offset),
+            getAbsoluteCharPositionInLine(position, offset)
+        )
+    }
+    def getAbsoluteLine(position: Position, offset: Option[Position]): Int = {
+        offset match {
+            case Some(Position(offsetLine, _)) =>
+                offsetLine + position.line - 1
+            case None => position.line
+        }
+    }
+
+    def getAbsoluteCharPositionInLine(position: Position, offset: Option[Position]): Int = {
+        offset match {
+            case Some(Position(_, offsetCol)) =>
+                if (1 == position.line) {
+                    offsetCol + position.col
+                } else {
+                    position.col
+                }
+            case None => position.col
+        }
+    }
+
+    /**
+      * convert absolute position (global position in the outer document)
+      * to relative position (position inside and relative inner document)
+      * @return
+      */
+    def toRelativePosition(position: Position, offset: Option[Position]): Position = {
+        Position(
+            getRelativeLine(position, offset),
+            getRelativeCharPositionInLine(position, offset)
+        )
+    }
+
+    def getRelativeLine(position: Position, offset: Option[Position]): Int = {
+        offset match {
+            case Some(Position(offsetLine, _)) =>
+                position.line - offsetLine + 1
+            case None => position.line
+        }
+    }
+
+    def getRelativeCharPositionInLine(position: Position, offset: Option[Position]): Int = {
+        offset match {
+            case Some(Position(offsetLine, offsetCol)) =>
+                if (position.line == offsetLine) {
+                    position.col - offsetCol + 1
+                } else {
+                    position.col
+                }
+            case None => position.col
+        }
+    }
+}
+
 case class Distance(lines: Int, cols: Int)
 object Distance {
     def min(d1: Distance, d2: Distance): Distance = {
@@ -62,10 +138,7 @@ object Distance {
         }
     }
 }
-object Position {
-    val INVALID_LOCATION = Position(-1, -1)
-    val FALLTHROUGH_LOCATION = Position(-2, -2)
-}
+
 
 /**
   *
