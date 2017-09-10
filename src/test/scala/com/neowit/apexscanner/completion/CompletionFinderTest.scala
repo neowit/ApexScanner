@@ -29,9 +29,6 @@ import com.neowit.apexscanner.symbols.Symbol
 import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
-import scala.concurrent.{Await, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
 
 /**
   * Created by Andrey Gavrikov 
@@ -50,7 +47,7 @@ private val filePath = getProperty("CompletionFinderTest.path")
               | }
               |}
             """.stripMargin
-        val result = listCompletions(text).futureValue
+        val result = listCompletions(text)
         result match {
             case symbols if symbols.nonEmpty =>
                 assert(symbols.length >= 4, "Result contains less items than expected")
@@ -70,7 +67,7 @@ private val filePath = getProperty("CompletionFinderTest.path")
               | }
               |}
             """.stripMargin
-        val result = listCompletions(text).futureValue
+        val result = listCompletions(text)
         result match {
             case symbols if symbols.nonEmpty =>
                 assert(symbols.length >= 4, "Result contains less items than expected")
@@ -90,7 +87,7 @@ private val filePath = getProperty("CompletionFinderTest.path")
               | }
               |}
             """.stripMargin
-        val result = listCompletions(text).futureValue
+        val result = listCompletions(text)
         result match {
             case symbols if symbols.nonEmpty =>
                 assert(symbols.length >= 2, "Result contains less items than expected")
@@ -112,7 +109,7 @@ private val filePath = getProperty("CompletionFinderTest.path")
               | }
               |}
             """.stripMargin
-        val result = listCompletions(text).futureValue
+        val result = listCompletions(text)
         result match {
             case symbols if symbols.nonEmpty =>
                 assert(symbols.length >= 2, "Result contains less items than expected")
@@ -136,7 +133,7 @@ private val filePath = getProperty("CompletionFinderTest.path")
               | }
               |}
             """.stripMargin
-        val result = Await.result(listCompletions(text, "", loadStdLib = true), Duration.Inf)
+        val result = listCompletions(text, "", loadStdLib = true)
         result match {
             case symbols if symbols.nonEmpty =>
                 assert(symbols.length >= 2, "Result contains less items than expected")
@@ -160,7 +157,7 @@ private val filePath = getProperty("CompletionFinderTest.path")
               | }
               |}
             """.stripMargin
-        val result = Await.result(listCompletions(text, "", loadStdLib = true), Duration.Inf)
+        val result = listCompletions(text, "", loadStdLib = true)
         result match {
             case symbols if symbols.nonEmpty =>
                 assert(symbols.length >= 2, "Result contains less items than expected")
@@ -184,7 +181,7 @@ private val filePath = getProperty("CompletionFinderTest.path")
               | }
               |}
             """.stripMargin
-        val result = Await.result(listCompletions(text, "", loadStdLib = true), Duration.Inf)
+        val result = listCompletions(text, "", loadStdLib = true)
         result match {
             case symbols if symbols.nonEmpty =>
                 assert(symbols.length >= 2, "Result contains less items than expected")
@@ -207,7 +204,7 @@ private val filePath = getProperty("CompletionFinderTest.path")
               | }
               |}
             """.stripMargin
-        val result = Await.result(listCompletions(text, "", loadStdLib = true), Duration.Inf)
+        val result = listCompletions(text, "", loadStdLib = true)
         result match {
             case symbols if symbols.nonEmpty =>
                 assert(symbols.length >= 2, "Result contains less items than expected")
@@ -220,7 +217,7 @@ private val filePath = getProperty("CompletionFinderTest.path")
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     var _projectWithStdLib: Option[Project] = None
-    def listCompletions(text: String, documentName: String = "test", loadStdLib: Boolean = false): Future[scala.Seq[Symbol]] = {
+    def listCompletions(text: String, documentName: String = "test", loadStdLib: Boolean = false): scala.Seq[Symbol] = {
         val project =
             if (loadStdLib) {
                 _projectWithStdLib match {

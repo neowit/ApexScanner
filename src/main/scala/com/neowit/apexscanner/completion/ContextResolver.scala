@@ -30,28 +30,26 @@ import com.neowit.apexscanner.resolvers.{AscendingDefinitionFinder, NodeBySymbol
 import org.antlr.v4.runtime.tree.{ErrorNode, ParseTree}
 import org.antlr.v4.runtime.{Token, TokenStream}
 
-import scala.concurrent.Future
-
 /**
   * Created by Andrey Gavrikov 
   */
 class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstNode) {
     private val _visitor = new ApexAstBuilderVisitor(projectOpt = None, documentOpt = None)
 
-    def resolveContext(context: ParseTree, tokens: TokenStream): Future[Option[IsTypeDefinition]] = {
+    def resolveContext(context: ParseTree, tokens: TokenStream): Option[IsTypeDefinition] = {
         context match {
             case c: PrimaryExprContext => // single token
-                Future.successful(resolvePrimary(c))
+                resolvePrimary(c)
             case c: CreatorExpressionContext =>
                 resolveCreator(c, tokens, lastAstNode)
             case c: TypeCastExprContext => // ((ObjType)some).<caret>
-                Future.successful(resolveTypeCast(c))
+                resolveTypeCast(c)
             case c: ExprDotExpressionContext => // aaa.bbb.<caret>
-                Future.successful(resolveExprDotExpression(c))
+                resolveExprDotExpression(c)
             case c: ClassVariableContext => // String str = new List<Map<String, Set<Integer>>>(<caret>
-                Future.successful(resolveClassVariableContext(c))
+                resolveClassVariableContext(c)
             case c: CodeBlockContext => // Opportunity opp; this.opp.<CARET>
-                Future.successful(resolveCodeBlockContext(c))
+                resolveCodeBlockContext(c)
             case _:InfixAddExprContext | _:InfixAndExprContext | _:InfixEqualityExprContext |
                  _:InfixMulExprContext | _:InfixOrExprContext | _:InfixShiftExprContext if context.getChildCount > 0=>
                 // all infix expressions are served here
@@ -60,11 +58,11 @@ class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstN
                         resolveContext(lastChild, tokens)
                     case None =>
                         // looks like there are no non error children available
-                        Future.successful(None)
+                        None
                 }
             case _: SpecialCaretExprContext =>
                 // looks like we have a free standing caret, not bound to any specific expression
-                Future.successful(None)
+                None
             case x =>
                 println(x)
                 ???
@@ -95,10 +93,10 @@ class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstN
             None
         }
     }
-    private def resolveCreator(context: CreatorExpressionContext, tokens: TokenStream, lastAstNode: AstNode): Future[Option[IsTypeDefinition]] = {
+    private def resolveCreator(context: CreatorExpressionContext, tokens: TokenStream, lastAstNode: AstNode): Option[IsTypeDefinition] = {
         _visitor.visitCreatorExpression(context) match {
             case creator: CreatorNode if creator.getValueType.nonEmpty =>
-                Future.successful(Option(creator))
+                Option(creator)
             case _ if null != context.creator() && context.creator().getChildCount > 0 =>
                 // failed to parse something meaningful
                 // try to determine type from tokens
@@ -117,7 +115,7 @@ class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstN
                         val tree = parser.expression()
                         resolveContext(tree, _tokens)
                     case None =>
-                        Future.successful(None)
+                        None
                 }
                 //val startPredicate: Token => Boolean = t => t.getText.toLowerCase == "new"
             case _ => ???

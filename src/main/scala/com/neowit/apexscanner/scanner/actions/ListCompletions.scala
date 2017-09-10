@@ -28,14 +28,11 @@ import com.neowit.apexscanner.completion._
 import com.neowit.apexscanner.nodes.Position
 import com.typesafe.scalalogging.LazyLogging
 
-import scala.concurrent.{Await, ExecutionContext, Future}
 /**
   * Created by Andrey Gavrikov 
   */
 object ListCompletions extends LazyLogging {
     def main(args: Array[String]): Unit = {
-        import scala.concurrent.ExecutionContext.Implicits.global
-        import scala.concurrent.duration._
 
         val projectPath = Paths.get("/Users/andrey/eclipse.workspace/Sforce - SFDC Experiments/SForce (vim-force.com)")
         val path: Path = Paths.get("/Users/andrey/eclipse.workspace/Sforce - SFDC Experiments/SForce (vim-force.com)/src/classes/CompletionTester.cls")
@@ -50,27 +47,25 @@ object ListCompletions extends LazyLogging {
         //val res = completions.list(FileBasedDocument(path), line +6, 44) //new List<Map<String, Set<Integer>>>(
         val res = completions.list(FileBasedDocument(path), line +7, 57) //String str = new List<Map<String, Set<Integer>>>(
 
-        Await.result(res, Duration.Inf)
         logger.debug( res.toString )
         ()
     }
 
 }
 
-class ListCompletions(project: Project)(implicit ex: ExecutionContext) extends LazyLogging {
+class ListCompletions(project: Project) extends LazyLogging {
 
-    def list(document: VirtualDocument, position: Position): Future[ListCompletionsResult] = {
+    def list(document: VirtualDocument, position: Position): ListCompletionsResult = {
         list(document, position.line, position.col)
     }
-    def list(document: VirtualDocument, line: Int, column: Int): Future[ListCompletionsResult] = {
+    def list(document: VirtualDocument, line: Int, column: Int): ListCompletionsResult = {
         document.fileOpt match {
             case Some(file) =>
                 val finder = new CompletionFinder(project)
-                finder.listCompletions(document, line, column).map{symbols =>
-                    ListCompletionsResult(file, symbols)
-                }
+                val symbols  = finder.listCompletions(document, line, column)
+                ListCompletionsResult(file, symbols)
             case None =>
-                Future.failed(new IllegalArgumentException("Document.file must be provided"))
+                throw new IllegalArgumentException("Document.file must be provided")
         }
     }
 

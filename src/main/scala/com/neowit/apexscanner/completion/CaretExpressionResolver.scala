@@ -29,16 +29,15 @@ import com.typesafe.scalalogging.LazyLogging
 import org.antlr.v4.runtime._
 import org.antlr.v4.runtime.misc.Pair
 
-import scala.concurrent.{ExecutionContext, Future}
 
 case class CaretScope(scopeNode: AstNode, typeDefinition: Option[IsTypeDefinition])
 /**
   * Created by Andrey Gavrikov 
   */
-class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  extends LazyLogging {
+class CaretExpressionResolver(project: Project)  extends LazyLogging {
 
 
-    def resolveCaretScope(caret: CaretInDocument, caretToken: Token, tokens: TokenStream): Future[Option[CaretScope]] = {
+    def resolveCaretScope(caret: CaretInDocument, caretToken: Token, tokens: TokenStream): Option[CaretScope] = {
 
         val document = caret.document
         findAstScopeNode(document, caretToken) match{
@@ -71,14 +70,14 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
               // now we have list of tokens between last AST Node and caret
               val tokensBeforeCaret = tokensBeforeCaretBuilder.result().reverse
               // finally try to find definition of the last meaningful token before caret, aka "caret scope token"
-              resolveExpressionBeforeCaret(caret, tokensBeforeCaret, astScopeNode, lastAstNode).map {
+              resolveExpressionBeforeCaret(caret, tokensBeforeCaret, astScopeNode, lastAstNode) match {
                 case Some(caretScopeTypeDef) =>
                     Option(CaretScope(astScopeNode, Option(caretScopeTypeDef)))
                 case None =>
                     Option(CaretScope(astScopeNode, None))
               }
           case None =>
-              Future.successful(None)
+              None
         }
     }
 
@@ -86,7 +85,7 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
       * @param tokensBeforeCaret unresolved tokens in front of caret
       * @return
       */
-    def resolveExpressionBeforeCaret(caret: Caret, tokensBeforeCaret: List[Token], astScopeNode: AstNode, lastAstNode: AstNode): Future[Option[IsTypeDefinition]] = {
+    def resolveExpressionBeforeCaret(caret: Caret, tokensBeforeCaret: List[Token], astScopeNode: AstNode, lastAstNode: AstNode): Option[IsTypeDefinition] = {
 
         import collection.JavaConverters._
         val tokenSource = new ListTokenSource(tokensBeforeCaret.asJava)
@@ -103,7 +102,7 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
                         val resolver = new ContextResolver(project, astScopeNode, lastAstNode)
                         resolver.resolveContext(tree, tokenStream)
                     case None =>
-                        Future.successful(None)
+                        None
                 }
             case _ =>
                 // looks like we have a valid AST up until caret
@@ -113,24 +112,24 @@ class CaretExpressionResolver(project: Project)(implicit ex: ExecutionContext)  
                         lastAstNode.getParentInAst(true) match {
                             case Some(_lastAstNode) => resolveExpressionBeforeCaret(caret, tokensBeforeCaret, astScopeNode, _lastAstNode)
                             case None =>
-                                Future.successful(None)
+                                None
                         }
-                    case n: IsTypeDefinition => Future.successful(Option(n))
+                    case n: IsTypeDefinition => Option(n)
                     case n: HasTypeDefinition =>
                         n.resolveDefinition() match {
                             case defOpt @ Some(_: IsTypeDefinition) =>
-                                Future.successful(defOpt.map(_.asInstanceOf[IsTypeDefinition]))
+                                defOpt.map(_.asInstanceOf[IsTypeDefinition])
                             case x =>
                                 // TODO
                                 println(x)
-                                Future.successful(None)
+                                None
                         }
                     case n: ExpressionListNode =>
                         // this may be something like new Account(Field1 = 'a', <CARET>)
                         // check if parent of expression list is CreatorNode
                         n.getParentInAst(skipFallThroughNodes = true) match {
                             case Some(_node: CreatorNode) =>
-                                Future.successful(Option(_node))
+                                Option(_node)
                             case _ =>
                                 println(n)
                                 ??? //should we give up ?

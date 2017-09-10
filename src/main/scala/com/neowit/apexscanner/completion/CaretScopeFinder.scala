@@ -27,8 +27,6 @@ import com.neowit.apexscanner.nodes.Position
 import com.typesafe.scalalogging.LazyLogging
 import org.antlr.v4.runtime._
 
-import scala.concurrent.{ExecutionContext, Future}
-
 /**
   * Created by Andrey Gavrikov
   * given caret position in Document - try to find its Scope/Type
@@ -132,10 +130,10 @@ object CaretScopeFinder extends LazyLogging {
     }
 }
 
-class CaretScopeFinder(project: Project)(implicit ex: ExecutionContext) extends LazyLogging {
+class CaretScopeFinder(project: Project) extends LazyLogging {
     import CaretScopeFinder._
 
-    def findCaretScope(caretInOriginalDocument: CaretInDocument): Future[Option[FindCaretScopeResult]] = {
+    def findCaretScope(caretInOriginalDocument: CaretInDocument): Option[FindCaretScopeResult] = {
         val lexer = new ApexcodeLexer(caretInOriginalDocument.document.getCharStream)
         val tokens = new CommonTokenStream(lexer)
         findCaretToken(caretInOriginalDocument, tokens) match {
@@ -145,11 +143,11 @@ class CaretScopeFinder(project: Project)(implicit ex: ExecutionContext) extends 
             case Some(caretTokenInApex) =>
                 findCaretScopeInApex(caretInOriginalDocument, caretTokenInApex)
             case None =>
-                Future.successful(None)
+                None
         }
     }
 
-    private def findCaretScopeInApex(caretInOriginalDocument: CaretInDocument, caretTokenInOriginalDocument: Token): Future[Option[FindCaretScopeResult]] = {
+    private def findCaretScopeInApex(caretInOriginalDocument: CaretInDocument, caretTokenInOriginalDocument: Token): Option[FindCaretScopeResult] = {
         // alter original document by injecting FIXER_TOKEN
         val fixedDocument = injectFixerToken(caretInOriginalDocument)
         val caret = new CaretInFixedDocument(caretInOriginalDocument.position, fixedDocument, caretInOriginalDocument.document)
@@ -161,18 +159,18 @@ class CaretScopeFinder(project: Project)(implicit ex: ExecutionContext) extends 
                 //collectCandidates(caret, caretToken, parser)
                 val resolver = new CaretExpressionResolver(project)
                 val tokens = parser.getTokenStream
-                resolver.resolveCaretScope(caret, caretToken, tokens).map{
+                resolver.resolveCaretScope(caret, caretToken, tokens) match {
                     case caretScopeOpt @ Some( CaretScope(_, _)) =>
                         Option(FindCaretScopeResult(caretScopeOpt, caretToken))
                     case _  =>
                         Option(FindCaretScopeResult(None, caretToken))
                 }
             case None =>
-                Future.successful(None)
+                None
         }
     }
 
-    private def findCaretScopeInSoql(caretInOriginalDocument: CaretInDocument, caretTokenInApex: Token): Future[Option[FindCaretScopeResult]] = {
+    private def findCaretScopeInSoql(caretInOriginalDocument: CaretInDocument, caretTokenInApex: Token): Option[FindCaretScopeResult] = {
         val fixedSoqlDocument = injectFixerTokenInSoql(caretInOriginalDocument, caretTokenInApex)
         val (parser, tokenStream) = SoqlParserUtils.createParserWithCommonTokenStream(fixedSoqlDocument)
 
@@ -197,14 +195,14 @@ class CaretScopeFinder(project: Project)(implicit ex: ExecutionContext) extends 
                 //collectCandidates(caret, caretToken, parser)
                 val resolver = new CaretExpressionResolver(project)
                 val tokens = parser.getTokenStream
-                resolver.resolveCaretScope(caret, caretToken, tokens).map{
+                resolver.resolveCaretScope(caret, caretToken, tokens) match {
                     case caretScopeOpt @ Some( CaretScope(_, _)) =>
                         Option(FindCaretScopeResult(caretScopeOpt, caretToken))
                     case _  =>
                         Option(FindCaretScopeResult(None, caretToken))
                 }
             case None =>
-                Future.successful(None)
+                None
         }
     }
 }

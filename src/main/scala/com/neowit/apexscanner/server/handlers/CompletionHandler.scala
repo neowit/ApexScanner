@@ -50,10 +50,10 @@ class CompletionHandler() extends MessageHandler with MessageJsonSupport with La
                                   val document = project.getFileContent(file).getOrElse(FileBasedDocument(file))
                                   // Line and Column in LSP are zero based
                                   // while ANTLR uses: Line starting with 1, column starting with 0
-                                  completions.list(document, position.line +1, position.col).map{res =>
-                                      val completionItems = res.options.map(CompletionItem(_))
-                                      Right(ResponseMessage(messageIn.id, Option(completionItems.asJson), error = None))
-                                  }
+                                  val res = completions.list(document, position.line +1, position.col)
+                                  val completionItems = res.options.map(CompletionItem(_))
+                                  Future.successful(Right(ResponseMessage(messageIn.id, Option(completionItems.asJson), error = None)))
+
 
                               case None =>
                                   Future.successful(Left(ResponseError(ErrorCodes.InvalidParams, "Project not found by path: " + file.toString)))

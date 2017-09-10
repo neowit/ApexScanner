@@ -30,8 +30,6 @@ import com.neowit.apexscanner.{Project, TestConfigProvider}
 import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 /**
   * Created by Andrey Gavrikov
   *
@@ -51,12 +49,12 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "testFindCaretScope.con").futureValue
+        val result = findCaretScope(text, "testFindCaretScope.con")
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assertResult(Some("CompletionTester"), "Wrong caret type detected. Expected 'CompletionTester'")(typeDefinition.getValueType.map(_.toString))
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'CompletionTester'")
+                fail("Failed to identify caret type. Expected 'CompletionTester'")
         }
 
     }
@@ -71,7 +69,7 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "testFindCaretScope").futureValue
+        val result = findCaretScope(text, "testFindCaretScope")
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assertResult(None, "Wrong caret type detected.")(typeDefinition.getValueType.map(_.toString))
@@ -80,7 +78,7 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
                 println(scopeNode)
             case x =>
                 println(x)
-                assert(false, "Failed to identify caret type")
+                fail("Failed to identify caret type")
         }
     }
 
@@ -94,12 +92,12 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "testFindCaretScope.con").futureValue
+        val result = findCaretScope(text, "testFindCaretScope.con")
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assertResult(Some("CompletionTester"), "Wrong caret type detected. Expected 'CompletionTester'")(typeDefinition.getValueType.map(_.toString))
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'CompletionTester'")
+                fail("Failed to identify caret type. Expected 'CompletionTester'")
         }
     }
 
@@ -114,12 +112,12 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "testFindCaretScope").futureValue
+        val result = findCaretScope(text, "testFindCaretScope")
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assertResult(Some("Opportunity"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.toString))
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'Opportunity'")
+                fail("Failed to identify caret type. Expected 'Opportunity'")
         }
     }
 
@@ -137,12 +135,12 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "testFindCaretScope").futureValue
+        val result = findCaretScope(text, "testFindCaretScope")
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assertResult(Some("Opportunity"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.toString))
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'Opportunity'")
+                fail("Failed to identify caret type. Expected 'Opportunity'")
         }
     }
 
@@ -156,12 +154,12 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | this.opp.<CARET>
               |}
             """.stripMargin
-        val result = findCaretScope(text, "testFindCaretScope").futureValue
+        val result = findCaretScope(text, "testFindCaretScope")
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assertResult(Some("Opportunity"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.toString))
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'Opportunity'")
+                fail("Failed to identify caret type. Expected 'Opportunity'")
         }
     }
 
@@ -180,12 +178,12 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "testFindCaretScope").futureValue
+        val result = findCaretScope(text, "testFindCaretScope")
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assertResult(Some("Opportunity"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.toString))
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'Opportunity'")
+                fail("Failed to identify caret type. Expected 'Opportunity'")
         }
     }
 
@@ -199,12 +197,12 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "testFindCaretScope").futureValue
+        val result = findCaretScope(text, "testFindCaretScope")
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assertResult(Some("CompletionTester"), "Wrong caret type detected. Expected 'CompletionTester'")(typeDefinition.getValueType.map(_.toString))
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'CompletionTester'")
+                fail("Failed to identify caret type. Expected 'CompletionTester'")
         }
     }
 
@@ -218,12 +216,12 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "testFindCaretScope").futureValue
+        val result = findCaretScope(text, "testFindCaretScope")
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assertResult(Some("Opportunity"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.toString))
             case _ =>
-                assert(false, "Failed to identify caret type")
+                fail("Failed to identify caret type")
         }
     }
 
@@ -236,12 +234,12 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "testFindCaretScope").futureValue
+        val result = findCaretScope(text, "testFindCaretScope")
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assertResult(Some(QualifiedName(Array("CompletionTester"))), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
             case _ =>
-                assert(false, "Failed to identify caret type")
+                fail("Failed to identify caret type")
         }
     }
     test("testFindCaretScope: `List<Map<String, Set<Integer>>>`") {
@@ -254,12 +252,12 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "testFindCaretScope3").futureValue
+        val result = findCaretScope(text, "testFindCaretScope3")
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assertResult(Some("List<Map<String,Set<Integer>>>"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.toString))
             case _ =>
-                assert(false, "Failed to identify caret type")
+                fail("Failed to identify caret type")
         }
     }
 
@@ -273,12 +271,12 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "testFindCaretScope3").futureValue
+        val result = findCaretScope(text, "testFindCaretScope3")
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assertResult(Some("List<Map<String,Set<Integer>>>"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.toString))
             case _ =>
-                assert(false, "Failed to identify caret type")
+                fail("Failed to identify caret type")
         }
     }
 
@@ -292,12 +290,12 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "ignored", loadStdLib = true).futureValue
+        val result = findCaretScope(text, "ignored", loadStdLib = true)
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assertResult(Some(QualifiedName(Array("System", "String"))), "Wrong caret type detected. Expected 'String'")(typeDefinition.getValueType.map(_.qualifiedName))
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'String'")
+                fail("Failed to identify caret type. Expected 'String'")
         }
 
     }
@@ -312,12 +310,12 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "ignored", loadStdLib = true).futureValue
+        val result = findCaretScope(text, "ignored", loadStdLib = true)
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assertResult(Some(QualifiedName(Array("System", "String"))), "Wrong caret type detected. Expected 'String'")(typeDefinition.getValueType.map(_.qualifiedName))
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'String'")
+                fail("Failed to identify caret type. Expected 'String'")
         }
 
     }
@@ -331,12 +329,12 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "ignored", loadStdLib = true).futureValue
+        val result = findCaretScope(text, "ignored", loadStdLib = true)
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assertResult(Some(QualifiedName(Array("System", "String"))), "Wrong caret type detected. Expected 'String'")(typeDefinition.getValueType.map(_.qualifiedName))
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'String'")
+                fail("Failed to identify caret type. Expected 'String'")
         }
 
     }
@@ -351,14 +349,14 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "ignored", loadStdLib = true).futureValue
+        val result = findCaretScope(text, "ignored", loadStdLib = true)
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assert(typeDefinition.getValueType.isDefined, "Value type not found")
                 val valueType = typeDefinition.getValueType.get
                 assert(QualifiedName(Array("System", "Integer")).couldBeMatch(valueType.qualifiedName), "Expected Integer, actual: " + valueType.qualifiedName)
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'String'")
+                fail("Failed to identify caret type. Expected 'String'")
         }
 
     }
@@ -373,14 +371,14 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "ignored", loadStdLib = true).futureValue
+        val result = findCaretScope(text, "ignored", loadStdLib = true)
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assert(typeDefinition.getValueType.isDefined, "Value type not found")
                 val valueType = typeDefinition.getValueType.get
                 assert(QualifiedName(Array("System", "Integer")).couldBeMatch(valueType.qualifiedName), "Expected Integer, actual: " + valueType.qualifiedName)
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'Integer'")
+                fail("Failed to identify caret type. Expected 'Integer'")
         }
 
     }
@@ -394,14 +392,14 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "ignored", loadStdLib = true).futureValue
+        val result = findCaretScope(text, "ignored", loadStdLib = true)
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assert(typeDefinition.getValueType.isDefined, "Value type not found")
                 val valueType = typeDefinition.getValueType.get
                 assert(QualifiedName(Array("System", "String")).couldBeMatch(valueType.qualifiedName), "Expected String, actual: " + valueType.qualifiedName)
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'String'")
+                fail("Failed to identify caret type. Expected 'String'")
         }
     }
 
@@ -414,14 +412,14 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "ignored", loadStdLib = true).futureValue
+        val result = findCaretScope(text, "ignored", loadStdLib = true)
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assert(typeDefinition.getValueType.isDefined, "Value type not found")
                 val valueType = typeDefinition.getValueType.get
                 assert(QualifiedName(Array("System", "Decimal")).couldBeMatch(valueType.qualifiedName), "Expected Decimal, actual: " + valueType.qualifiedName)
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'Decimal'")
+                fail("Failed to identify caret type. Expected 'Decimal'")
         }
     }
 
@@ -434,14 +432,14 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "ignored", loadStdLib = true).futureValue
+        val result = findCaretScope(text, "ignored", loadStdLib = true)
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assert(typeDefinition.getValueType.isDefined, "Value type not found")
                 val valueType = typeDefinition.getValueType.get
                 assert(QualifiedName(Array("System", "Integer")).couldBeMatch(valueType.qualifiedName), "Expected Integer, actual: " + valueType.qualifiedName)
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'Integer'")
+                fail("Failed to identify caret type. Expected 'Integer'")
         }
     }
 
@@ -454,14 +452,14 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "ignored", loadStdLib = true).futureValue
+        val result = findCaretScope(text, "ignored", loadStdLib = true)
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assert(typeDefinition.getValueType.isDefined, "Value type not found")
                 val valueType = typeDefinition.getValueType.get
                 assert(QualifiedName(Array("System", "Long")).couldBeMatch(valueType.qualifiedName), "Expected Long, actual: " + valueType.qualifiedName)
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'Long'")
+                fail("Failed to identify caret type. Expected 'Long'")
         }
     }
 
@@ -474,14 +472,14 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "ignored", loadStdLib = true).futureValue
+        val result = findCaretScope(text, "ignored", loadStdLib = true)
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assert(typeDefinition.getValueType.isDefined, "Value type not found")
                 val valueType = typeDefinition.getValueType.get
                 assert(QualifiedName(Array("System", "Integer")).couldBeMatch(valueType.qualifiedName), "Expected Integer, actual: " + valueType.qualifiedName)
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'Integer'")
+                fail("Failed to identify caret type. Expected 'Integer'")
         }
     }
 
@@ -495,12 +493,12 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "testFindCaretScope").futureValue
+        val result = findCaretScope(text, "testFindCaretScope")
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assertResult(Some("SEASONS"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName.getLastComponent))
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'Opportunity'")
+                fail("Failed to identify caret type. Expected 'Opportunity'")
         }
     }
 
@@ -514,12 +512,12 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "testFindCaretScope").futureValue
+        val result = findCaretScope(text, "testFindCaretScope")
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assertResult(Some("Summer"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName.getLastComponent))
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'Opportunity'")
+                fail("Failed to identify caret type. Expected 'Opportunity'")
         }
     }
 
@@ -533,12 +531,12 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "testFindCaretScope").futureValue
+        val result = findCaretScope(text, "testFindCaretScope")
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assertResult(Some("Integer"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName.getLastComponent))
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'Integer'")
+                fail("Failed to identify caret type. Expected 'Integer'")
         }
     }
 
@@ -552,12 +550,12 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
               | }
               |}
             """.stripMargin
-        val result = findCaretScope(text, "testFindCaretScope").futureValue
+        val result = findCaretScope(text, "testFindCaretScope")
         result match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 assertResult(Some("SEASONS"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName.getLastComponent))
             case _ =>
-                assert(false, "Failed to identify caret type. Expected 'Opportunity'")
+                fail("Failed to identify caret type. Expected 'Opportunity'")
         }
     }
 
@@ -569,7 +567,7 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
 
     }
     var _projectWithStdLib: Option[Project] = None
-    private def findCaretScope(text: String, documentName: String, loadStdLib: Boolean = false): Future[Option[FindCaretScopeResult]] = {
+    private def findCaretScope(text: String, documentName: String, loadStdLib: Boolean = false): Option[FindCaretScopeResult] = {
         val project =
             if (loadStdLib) {
                 _projectWithStdLib match {

@@ -30,7 +30,6 @@ import com.neowit.apexscanner.resolvers.QualifiedNameDefinitionFinder
 import com.typesafe.scalalogging.LazyLogging
 import org.antlr.v4.runtime._
 
-import scala.concurrent.{ExecutionContext, Future}
 import com.neowit.apexscanner.symbols._
 
 case class FindCaretScopeResult(caretScope: Option[CaretScope], caretToken: Token)
@@ -55,23 +54,23 @@ object CompletionFinder extends LazyLogging {
 
 
 }
-class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends LazyLogging {
+class CompletionFinder(project: Project) extends LazyLogging {
 
-    def listCompletions(file: VirtualDocument, line: Int, column: Int): Future[Seq[Symbol]] = {
+    def listCompletions(file: VirtualDocument, line: Int, column: Int): Seq[Symbol] = {
         val caret = new CaretInDocument(Position(line, column), file)
         listCompletions(caret)
     }
 
-    def listCompletions(caret: CaretInDocument): Future[Seq[Symbol]] = {
+    def listCompletions(caret: CaretInDocument): Seq[Symbol] = {
         val scopeFinder = new CaretScopeFinder(project)
-        scopeFinder.findCaretScope(caret).flatMap{
+        scopeFinder.findCaretScope(caret) match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 getValueTypeMembers(typeDefinition)
             case Some(FindCaretScopeResult(Some(CaretScope(scopeNode, None)), caretToken)) =>
                 // caret definition is not obvious, but we have an AST scope node
                 val (parser, _) = ApexParserUtils.createParserWithCommonTokenStream(caret)
                 val candidates = collectCandidates(caret, caretToken, parser)
-                Future.successful(getCandidateSymbols(scopeNode, candidates))
+                getCandidateSymbols(scopeNode, candidates)
 
             case Some(FindCaretScopeResult(None, caretToken)) =>
                 // caret definition is not obvious, and we do not even have an AST scope node
@@ -79,7 +78,7 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                 collectCandidates(caret, caretToken, parser)
                 ???
             case _ =>
-                Future.successful(Seq.empty)
+                Seq.empty
         }
     }
 
@@ -146,7 +145,7 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
         res
     }
 
-    private def getValueTypeMembers(typeDefinition: IsTypeDefinition): Future[Seq[Symbol]] = {
+    private def getValueTypeMembers(typeDefinition: IsTypeDefinition): Seq[Symbol] = {
         typeDefinition.resolveDefinition() match {
             case Some(defNode: AstNode with IsTypeDefinition) =>
                 val fullyQualifiedName = QualifiedName.getFullyQualifiedValueTypeName(defNode)
@@ -156,14 +155,14 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                         // first try simple option, by "Value Type" as defined in the code
                         getValueTypeMembers(valueType, fullyQualifiedName)
                     case None =>
-                        Future.successful(Seq.empty)
+                        Seq.empty
                 }
             case _ =>
                 throw new IllegalStateException("CompletionFinder.getValueTypeMembers: typeDefinition could not resolve its own definition")
         }
     }
 
-    private def getValueTypeMembers(valueType: ValueType, fullyQualifiedName: QualifiedName): Future[Seq[Symbol]] = {
+    private def getValueTypeMembers(valueType: ValueType, fullyQualifiedName: QualifiedName): Seq[Symbol] = {
         valueType match {
             case ValueTypeComplex(qualifiedName, typeArguments) => getSymbolsOf(fullyQualifiedName)
             case ValueTypeSimple(qualifiedName) => getSymbolsOf(fullyQualifiedName)
@@ -180,11 +179,11 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                     ),
                     fullyQualifiedName
                 )
-            case ValueTypeVoid => Future.successful(Seq.empty)
+            case ValueTypeVoid => Seq.empty
             case ValueTypeAny => ???
         }
     }
-    private def getSymbolsOf(qualifiedName: QualifiedName): Future[Seq[Symbol]] = {
+    private def getSymbolsOf(qualifiedName: QualifiedName): Seq[Symbol] = {
         val qualifiedNameDefinitionFinder = new QualifiedNameDefinitionFinder(project)
         val res =
         qualifiedNameDefinitionFinder.findDefinition(qualifiedName) match {
@@ -192,6 +191,6 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
                 node.findChildrenInAst(_.isSymbol).map(_.asInstanceOf[com.neowit.apexscanner.symbols.Symbol])
             case None => Seq.empty
         }
-        Future.successful(res)
+        res
     }
 }
