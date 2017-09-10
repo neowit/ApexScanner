@@ -41,7 +41,7 @@ class QualifiedNameDefinitionFinderTest extends FunSuite with TestConfigProvider
         project.getAst(FileBasedDocument(getTestResourcePath("QualifiedNameDefinitionFinderTest.existingAST.filePath")))
         val finder = new QualifiedNameDefinitionFinder(project)
         val qName = QualifiedName(Array("TypeFiNder","InnerClass1"))
-        val res = finder.findDefinition(qName).futureValue
+        val res = finder.findDefinition(qName)
         res match {
             case Some(node) =>
                 val methods = node.getSymbolsOfKind(SymbolKind.Method)
@@ -59,7 +59,7 @@ class QualifiedNameDefinitionFinderTest extends FunSuite with TestConfigProvider
         val qName = QualifiedName(Array("TypeFinDer","InnerClASs1"))
         // project has not been loaded yet, see if lazy loading/parsing of Class code works
         // in this test we attempt to find/load AST based on parts of Qualified Name
-        val res = finder.findDefinition(qName).futureValue
+        val res = finder.findDefinition(qName)
         res match {
             case Some(node) =>
                 val methods = node.getSymbolsOfKind(SymbolKind.Method)

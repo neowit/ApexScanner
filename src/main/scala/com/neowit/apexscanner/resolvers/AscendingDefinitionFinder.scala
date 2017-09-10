@@ -27,7 +27,6 @@ import com.neowit.apexscanner.matchers.MethodMatcher
 import com.neowit.apexscanner.nodes._
 
 import scala.annotation.tailrec
-import scala.concurrent.{ExecutionContext, Future}
 
 object AscendingDefinitionFinder {
     type NodeMatcherFunc = AstNode => Boolean
@@ -100,15 +99,13 @@ class AscendingDefinitionFinder() {
       * @param rootNode where to start looking for definition of node residing in provided position
       * @param position location of node which definition is requested
       * @param project current project
-      * @param ec execution context to run
       * @return
       */
-    def findUltimateDefinition(rootNode: AstNode, position: Position, project: Project)
-                              (implicit ec: ExecutionContext): Future[Seq[AstNode with IsTypeDefinition]] = {
+    def findUltimateDefinition(rootNode: AstNode, position: Position, project: Project): Seq[AstNode with IsTypeDefinition] = {
         val qualifiedNameDefinitionFinder = new QualifiedNameDefinitionFinder(project)
         val nodes = findDefinition(rootNode, position)
 
-        val futureResults: Seq[Future[Option[AstNode]]] =
+        val nodeOpts: Seq[Option[AstNode]] =
             nodes.map{
                 case n: DataTypeNode =>
                     //this is a type defining node
@@ -117,24 +114,20 @@ class AscendingDefinitionFinder() {
                     n.qualifiedName match {
                         case Some(qualifiedName) =>
                             qualifiedNameDefinitionFinder.findDefinition(qualifiedName)
-                        case None => Future.successful(Option(n)) //do not really expect this
+                        case None => Option(n) //do not really expect this
                     }
-                case n => Future.successful(Option(n)) // assume this node is the target
+                case n => Option(n) // assume this node is the target
             }
 
         // convert Seq[Future[Option[AstNode]]] to Future[Seq[Option[AstNode]]]
-        val res: Future[Seq[AstNode with IsTypeDefinition]] =
-            Future.sequence(futureResults).map{ nodeOpts =>
-                val allDefNodes = nodeOpts.filter(_.isDefined).map(_.get)
-                allDefNodes.filter {
-                    case defNode: AstNode with IsTypeDefinition => true
-                    case _ => false
-                }.map {
-                    case defNode: AstNode with IsTypeDefinition =>
-                        defNode
-                }
-            }
-        res
+        val allDefNodes = nodeOpts.filter(_.isDefined).map(_.get)
+        allDefNodes.filter {
+            case defNode: AstNode with IsTypeDefinition => true
+            case _ => false
+        }.map {
+            case defNode: AstNode with IsTypeDefinition =>
+                defNode
+        }
     }
 
     def findDefinition(target: AstNode, startNode: AstNode): Seq[AstNode] = {

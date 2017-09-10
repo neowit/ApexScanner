@@ -25,24 +25,22 @@ import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes.{AstNode, HasQualifiedName}
 
-import scala.concurrent.Future
-
 /**
   * Created by Andrey Gavrikov 
   */
 class QualifiedNameDefinitionFinder(project: Project) {
-    def findDefinition(target: QualifiedName): Future[Option[AstNode]] = {
+    def findDefinition(target: QualifiedName): Option[AstNode] = {
         // first try to find by full name
         project.getByQualifiedName(target)  match {
             case nodeOpt @ Some(_) =>
-                Future.successful(nodeOpt)
+                nodeOpt
             case None =>
                 //go step by step
                 findDefinitionFromTop(target) match {
                     case nodeOpt @ Some(_) =>
-                        Future.successful(nodeOpt)
+                        nodeOpt
                     case None =>
-                        Future.successful(None)
+                        None
                 }
         }
     }

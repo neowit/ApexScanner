@@ -61,17 +61,14 @@ case class IdentifierNode(name: String, range: Range) extends AbstractExpression
 
     }
 
-    // TODO - implement proper (non blocking) future handling
     def resolveDefinitionByQualifiedName(): Option[AstNode] = {
         import com.neowit.apexscanner.resolvers.QualifiedNameDefinitionFinder
-        import scala.concurrent.duration.Duration
-        import scala.concurrent.Await
 
         this.getProject  match {
             case Some(project) =>
                 val finder = new QualifiedNameDefinitionFinder(project)
-                val futureResult = finder.findDefinition(QualifiedName(Array(name)))
-                Await.result(futureResult, Duration.Inf)
+                val result = finder.findDefinition(QualifiedName(Array(name)))
+                result
             case None => None
         }
     }

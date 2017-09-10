@@ -186,10 +186,12 @@ class CompletionFinder(project: Project)(implicit ex: ExecutionContext) extends 
     }
     private def getSymbolsOf(qualifiedName: QualifiedName): Future[Seq[Symbol]] = {
         val qualifiedNameDefinitionFinder = new QualifiedNameDefinitionFinder(project)
-        qualifiedNameDefinitionFinder.findDefinition(qualifiedName).map{
+        val res =
+        qualifiedNameDefinitionFinder.findDefinition(qualifiedName) match {
             case Some(node) =>
                 node.findChildrenInAst(_.isSymbol).map(_.asInstanceOf[com.neowit.apexscanner.symbols.Symbol])
             case None => Seq.empty
         }
+        Future.successful(res)
     }
 }

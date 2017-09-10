@@ -91,7 +91,7 @@ class StdlibLocalTest extends FunSuite with TestConfigProvider with ScalaFutures
     test("test: ApexPages.Severity") {
         val finder = new QualifiedNameDefinitionFinder(project)
         val qName = QualifiedName(Array("ApexPages", "Severity"))
-        finder.findDefinition(qName).futureValue match {
+        finder.findDefinition(qName) match {
             case Some(node) =>
                 val enumConstants = node.getSymbolsOfKind(SymbolKind.Property)
                 assert(enumConstants.exists(_.symbolName == "INFO"), "ApexPages.Severity.INFO not found")
