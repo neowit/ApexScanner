@@ -118,8 +118,14 @@ class SoqlAstBuilderVisitor(override val projectOpt: Option[Project],
             val aliasOpt = if (null != ctx.alias()) Option(ctx.alias().getText) else None
             // generate qualified name from Identifier(s)
             val identifiers: Array[String] = ctx.Identifier().asScala.map(_.getText).toArray
-            val qualifiedName = QualifiedName(identifiers)
-            FromNode(Option(qualifiedName), aliasOpt, Range(ctx, _documentOffsetPosition))
+            val qualifiedNameOpt =
+                if (identifiers.nonEmpty) {
+                    Option(QualifiedName(identifiers))
+                } else {
+                    // if FROM is empty then return Namespace: "SObjectLibrary" itself, to allow query all its members/SObjects
+                    Option(QualifiedName(SoqlQueryNode.LIBRARY_NAME))
+                }
+            FromNode(qualifiedNameOpt, aliasOpt, Range(ctx, _documentOffsetPosition))
         } else if (null != ctx.fromExpression()) {
             val fromExpressionNode = FromExpressionNode(Range(ctx, _documentOffsetPosition))
             val expressions: Seq[AstNode] = ctx.fromExpression().asScala.map(visit)
