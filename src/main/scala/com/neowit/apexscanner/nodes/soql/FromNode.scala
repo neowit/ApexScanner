@@ -22,4 +22,6 @@ case class FromNode(qualifiedName: Option[QualifiedName], aliasOpt: Option[Strin
             case None => None
         }
     }
+
+    override def isScope: Boolean = true
 }
