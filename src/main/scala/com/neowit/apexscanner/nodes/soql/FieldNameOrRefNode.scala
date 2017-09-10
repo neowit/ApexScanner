@@ -23,6 +23,7 @@ package com.neowit.apexscanner.nodes.soql
 
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes.{AstNode, AstNodeType, FieldNameOrRefNodeType, HasTypeDefinition, Range}
+import com.neowit.apexscanner.resolvers.QualifiedNameDefinitionFinder
 
 /**
   * Created by Andrey Gavrikov 
@@ -46,7 +47,15 @@ case class FieldNameOrRefNode(qualifiedName: QualifiedName, range: Range) extend
 
         fromObjectRefOpt  match {
             case Some(fromObjectRef) =>
-                getProject.flatMap(_.getByQualifiedName(fromObjectRef))
+                val qName = QualifiedName.fromOptions(fromObjectRef, Option(qualifiedName))
+                getProject match {
+                    case Some(_project) =>
+                        val finder = new QualifiedNameDefinitionFinder(_project)
+                        qName.flatMap(finder.findDefinition(_))
+                    case None => None
+                }
+
+                //getProject.flatMap(_.getByQualifiedName(fromObjectRef))
             case None => None
         }
     }
