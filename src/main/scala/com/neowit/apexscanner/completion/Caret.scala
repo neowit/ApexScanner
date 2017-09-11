@@ -49,8 +49,9 @@ abstract class Caret(val position: Position) {
       * check if caret is After given Token
       */
     def isAfter(token: Token): Boolean = {
-        val tokenEnds = token.getCharPositionInLine + token.getText.length -1
-        token.getLine < line || line == token.getLine && tokenEnds < col
+        //val tokenEnds = token.getCharPositionInLine + token.getText.length -1
+        //token.getLine < line || line == token.getLine && tokenEnds < col
+        isAfter(Range(token, Position(0, 0)))
     }
     def isAfter(range: Range): Boolean = {
         val position = range.end
@@ -61,7 +62,8 @@ abstract class Caret(val position: Position) {
       * check if caret is Before given Token
       */
     def isBefore(token: Token): Boolean = {
-        token.getLine > line || line == token.getLine && token.getCharPositionInLine > col
+        //token.getLine > line || line == token.getLine && token.getCharPositionInLine > col
+        isBefore(Range(token, Position(0, 0)))
     }
     def isBefore(range: Range): Boolean = {
         val position = range.end
@@ -73,11 +75,13 @@ abstract class Caret(val position: Position) {
       * check if caret is Inside given Token
       */
     def isInside(token: Token): Boolean = {
-        val tokenEnds = token.getCharPositionInLine + token.getText.length
-        line == token.getLine && token.getCharPositionInLine <= col && tokenEnds >= col
+        //val tokenEnds = token.getCharPositionInLine + token.getText.length
+        //line == token.getLine && token.getCharPositionInLine <= col && tokenEnds >= col
+        isInside(Range(token, Position(0, 0)))
     }
     def isInside(range: Range): Boolean = {
-        val tokenEnds = range.end.col
-        line <= range.start.line && range.start.col <= col && tokenEnds >= col
+        //val tokenEnds = range.end.col
+        //line <= range.start.line && range.start.col <= col && tokenEnds >= col
+        range.includesLocation(position, ignoreOffset = false)
     }
 }

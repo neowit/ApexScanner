@@ -194,7 +194,10 @@ object Range {
         val endToken = ctx.getStop
         val startPosition = Position(startToken.getLine, startToken.getCharPositionInLine)
         // when calculating endPosition take into account length of stop token
-        val endPosition = Position(endToken.getLine, endToken.getCharPositionInLine + endToken.getStopIndex - endToken.getStartIndex + 1)
+        //val endPosition = Range(endToken, offsetPosition).end
+        val endTokenStart = Position(endToken.getLine, endToken.getCharPositionInLine)
+        val endPosition = getEndPosition(endTokenStart, endToken.getText)
+
         Range(
             start = startPosition,
             end = endPosition,
@@ -207,14 +210,54 @@ object Range {
     }
 
     def apply(node: org.antlr.v4.runtime.tree.TerminalNode, offsetPosition: Position): Range = {
+        val start = Position(node.getSymbol.getLine, node.getSymbol.getCharPositionInLine)
         Range(
-            start = Position(node.getSymbol.getLine, node.getSymbol.getCharPositionInLine),
-            end = Position(node.getSymbol.getLine, node.getSymbol.getCharPositionInLine + node.getSymbol.getText.length -1),
+            start,
+            end = getEndPosition(start, node.getSymbol.getText),
             offset = offsetPosition
         )
     }
+
     def apply(node: org.antlr.v4.runtime.tree.TerminalNode): Range = {
         apply(node, Position(0, 0))
+    }
+
+    def apply(token: org.antlr.v4.runtime.Token, offsetPosition: Position): Range = {
+        val start = Position(token.getLine, token.getCharPositionInLine)
+        Range(
+            start,
+            end = getEndPosition(start, token.getText),
+            offset = offsetPosition
+        )
+    }
+
+    def getEndPosition(token: Token): Position = {
+        val start = Position(token.getLine, token.getCharPositionInLine)
+        getEndPosition(start, token.getText)
+    }
+    /**
+      * calculate end position of provided text
+      * @param start position where text starts
+      * @param text text to evaluate
+      * @return
+      */
+    def getEndPosition(start: Position, text: String): Position = {
+        if (null == text || text.isEmpty) {
+            return start
+        }
+
+        val lines = text.split("\\r?\\n")
+        val (_endLine, _endCol) =
+            if (lines.length > 1) {
+                val endLine = start.line + lines.length - 1
+                val endCol = lines.last.length
+                (endLine, endCol)
+            } else {
+                val endLine = start.line
+                val endCol = start.col + text.length -1
+                (endLine, endCol)
+            }
+        Position(_endLine, _endCol)
     }
 }
 
