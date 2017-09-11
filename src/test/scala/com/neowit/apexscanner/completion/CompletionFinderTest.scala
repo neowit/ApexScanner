@@ -215,6 +215,28 @@ private val filePath = getProperty("CompletionFinderTest.path")
                 fail("Expected non empty result")
         }
     }
+
+    test("testListCompletions: `String.is<CARET>`") {
+        val text =
+            """
+              |class CompletionTester {
+              |
+              | public void testCompletion() {
+              |     String.is<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = listCompletions(text, "", loadStdLib = true)
+        result match {
+            case symbols if symbols.nonEmpty =>
+                assert(symbols.length >= 2, "Result contains less items than expected")
+                assert(symbols.exists(_.symbolName == "isEmpty"), "Missing expected symbol: name()")
+                assert(symbols.exists(_.symbolName == "isNotBlank"), "Missing expected symbol: ordinal()")
+                assert(symbols.exists(_.symbolName == "isNotEmpty"), "Missing expected symbol: equals()")
+            case _ =>
+                fail("Expected non empty result")
+        }
+    }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     var _projectWithStdLib: Option[Project] = None
     def listCompletions(text: String, documentName: String = "test", loadStdLib: Boolean = false): scala.Seq[Symbol] = {

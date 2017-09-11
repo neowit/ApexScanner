@@ -50,6 +50,10 @@ case class Position(line: Int, col: Int) extends Ordered[Position]{
             1
         }
     }
+
+    def addCol(count: Int): Position = {
+        this.copy(line, col + count)
+    }
 }
 
 object Position {

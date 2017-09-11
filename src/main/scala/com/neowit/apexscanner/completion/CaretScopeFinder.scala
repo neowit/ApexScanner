@@ -23,7 +23,7 @@ package com.neowit.apexscanner.completion
 
 import com.neowit.apexscanner.{Project, TextBasedDocument, TokenBasedDocument, VirtualDocument}
 import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, SoqlLexer, SoqlParserUtils}
-import com.neowit.apexscanner.nodes.Position
+import com.neowit.apexscanner.nodes.{Position, Range}
 import com.typesafe.scalalogging.LazyLogging
 import org.antlr.v4.runtime._
 
@@ -42,7 +42,20 @@ object CaretScopeFinder extends LazyLogging {
             i += 1
             token = tokens.get(i)
         }
+
         if (caret.isInside(token) || caret.isBefore(token)) {
+            if (!ApexParserUtils.isWordToken(token)) {
+                // check if caret is part of previous WORD token
+                val prevTokenIndex = token.getTokenIndex - 1
+                if (prevTokenIndex >= 0) {
+                    val prevToken = tokens.get(prevTokenIndex)
+                    val prevTokenEndPosition = Range.getEndPosition(prevToken)
+                    if (ApexParserUtils.isWordToken(prevToken) && prevTokenEndPosition.addCol(+1) == caret.position) {
+                        // caret is right after word token, without space in between - assume caret is part of that previous token
+                        token = tokens.get(prevTokenIndex)
+                    }
+                }
+            }
             Option(token)
         } else {
             None
@@ -105,6 +118,8 @@ object CaretScopeFinder extends LazyLogging {
         val fixerTokenText = lexer.getVocabulary.getSymbolicName(SoqlLexer.FIXER_TOKEN)
 
         findCaretToken(caret, tokens) match {
+            case Some(caretToken) if caretToken.getType == SoqlLexer.WS =>
+                rewriter.insertAfter(caretToken.getTokenIndex, fixerTokenText + " ")
             case Some(caretToken) if caretToken.getText.isEmpty || !ApexParserUtils.isWordToken(caretToken)=>
                 rewriter.insertBefore(caretToken, fixerTokenText)
             case Some(caretToken) if caretToken.getText.nonEmpty && ApexParserUtils.isWordToken(caretToken) =>
