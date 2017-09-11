@@ -118,7 +118,7 @@ object Position {
         offset match {
             case Some(Position(offsetLine, offsetCol)) =>
                 if (position.line == offsetLine) {
-                    position.col - offsetCol + 1
+                    position.col - offsetCol
                 } else {
                     position.col
                 }

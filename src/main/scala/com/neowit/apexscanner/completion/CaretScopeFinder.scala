@@ -88,7 +88,7 @@ object CaretScopeFinder extends LazyLogging {
     }
 
     private def injectFixerTokenInSoql(caretInApexDocument: CaretInDocument, caretTokenInApex: Token): VirtualDocument = {
-        val soqlDocumentOffset = Position(caretTokenInApex)
+        val soqlDocumentOffset = Position(caretTokenInApex)/*.addCol(1)*/// +1 to compensate the fact that both offset and SOQL share same start symbol
         val caretPositionInSoql = Position.toRelativePosition(caretInApexDocument.position, Option(soqlDocumentOffset))
         val caret = new CaretInDocument(
             caretPositionInSoql,
