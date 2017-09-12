@@ -34,20 +34,27 @@ case class FieldNameOrRefNode(qualifiedName: QualifiedName, range: Range) extend
     override protected def resolveDefinitionImpl(): Option[AstNode] = {
         // assume first component of qualifiedName is alias
         val maybeAliasName = qualifiedName.getFirstComponent
-        val fromObjectRefOpt =
+        val fromNodeOpt =
             SoqlAstUtils.findFromNode(this, Option(maybeAliasName)) match {
-                case Some(FromNode(objectRef, _, _)) => Option(objectRef)
+                case Some(_fromNode @ FromNode(objectRef, _, _)) => Option(_fromNode)
                 case None =>
                     // looks like first component of QualifiedName is not an alias
                     SoqlAstUtils.findFromNode(this, aliasOpt = None) match {
-                        case Some(FromNode(objectRef, _, _)) => Option(objectRef)
+                        case Some(_fromNode @ FromNode(objectRef, _, _)) => Option(_fromNode)
                         case None => None
                     }
             }
 
-        fromObjectRefOpt  match {
-            case Some(fromObjectRef) =>
-                val qName = QualifiedName.fromOptions(fromObjectRef, Option(qualifiedName))
+        fromNodeOpt  match {
+            case Some(FromNode(fromObjectRef, aliasOpt, _)) =>
+                // drop Alias from qualified name
+                val qualifiedNameWithoutAliasOpt =
+                    aliasOpt match {
+                        case Some(alias) if qualifiedName.getFirstComponent.toLowerCase == alias.toLowerCase =>
+                            qualifiedName.tailOption
+                        case _ => Option(qualifiedName)
+                    }
+                val qName = QualifiedName.fromOptions(fromObjectRef, qualifiedNameWithoutAliasOpt)
                 getProject match {
                     case Some(_project) =>
                         val finder = new QualifiedNameDefinitionFinder(_project)
