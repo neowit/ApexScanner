@@ -36,6 +36,7 @@ trait ClassLike extends AstNode with HasApexDoc with IsTypeDefinition with Symbo
     def name: Option[String] = getChildInAst[IdentifierNode](IdentifierNodeType).map(_.name)
     def annotations: Seq[AnnotationNode] = getChildrenInAst[AnnotationNode](AnnotationNodeType)
     def modifiers: Set[ModifierNode] = getChildrenInAst[ModifierNode](ModifierNodeType).toSet
+    override def visibility: Option[String] = modifiers.find(_.modifierType.isInstanceOf[ModifierNode.Visibility]).map(_.modifierType.toString)
 
     override def symbolIsStatic: Boolean = modifiers.exists(_.modifierType == ModifierNode.STATIC)
 

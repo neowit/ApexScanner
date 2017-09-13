@@ -57,7 +57,7 @@ trait MethodNodeBase extends AstNode with HasApexDoc with IsTypeDefinition with 
 
     override def isSymbol: Boolean = true
     override def symbolIsStatic: Boolean = isStatic
-    override def symbolValueType: Option[String] = getValueType.map(_.qualifiedName.toString)
+    override def symbolValueType: Option[String] = getValueType.map(_.toString)
     override def isMethodLike: Boolean = true
     override def methodParameters: Seq[String] = getParameterTypes.map(_.toString)
     override def symbolName: String = qualifiedName.map(_.getLastComponent).getOrElse("")

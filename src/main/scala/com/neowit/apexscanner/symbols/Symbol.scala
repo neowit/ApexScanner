@@ -26,7 +26,7 @@ import com.neowit.apexscanner.nodes.Location
 /**
   * Created by Andrey Gavrikov
   *
-  * Primary purpose of DocumentSymbol is to be displayed as a useful part of file structure
+  * Primary purpose of Symbol is to be displayed as a useful part of file structure
   * for example
   * - method is useful to display ina file structure
   * - anonymous code block or method variable are not useful parts of displayable file structure
@@ -39,6 +39,7 @@ trait Symbol {
     def documentation: Option[String] = None
     def symbolIsStatic: Boolean
     def symbolValueType: Option[String]
+    def visibility: Option[String]
 
     def isMethodLike: Boolean = false
     def methodParameters: Seq[String] = Seq.empty

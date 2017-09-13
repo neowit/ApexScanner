@@ -50,4 +50,13 @@ trait ClassOrInterfaceBodyMember extends Symbol {
             case None => LocationUndefined
         }
     }
+    override def visibility: Option[String] = {
+        getSelf.findChildInAst{
+            case ModifierNode(modifierType, _) if modifierType.isInstanceOf[ModifierNode.Visibility] => true
+            case _ => false
+        }.map{
+            case ModifierNode(modifierType, _) => modifierType.toString
+            case _ => "private"
+        }
+    }
 }

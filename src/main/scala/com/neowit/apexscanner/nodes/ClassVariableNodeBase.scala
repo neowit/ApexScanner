@@ -61,8 +61,9 @@ trait ClassVariableNodeBase extends VariableLike with ClassOrInterfaceBodyMember
 
     override def symbolIsStatic: Boolean = modifiers.exists(_.modifierType == ModifierNode.STATIC)
 
-    override def symbolValueType: Option[String] = getValueType.map(_.qualifiedName.toString)
+    override def symbolValueType: Option[String] = getValueType.map(_.toString)
 
+    override def visibility: Option[String] = modifiers.find(_.modifierType.isInstanceOf[ModifierNode.Visibility]).map(_.modifierType.toString)
     /**
       * used for debug purposes
       *

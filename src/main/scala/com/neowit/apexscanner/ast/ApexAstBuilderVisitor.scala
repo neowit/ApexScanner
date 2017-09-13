@@ -240,14 +240,71 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
         visitChildren(ClassVariableNode(Range(ctx)), ctx)
     }
 
+    override def visitClassVariableModifier(ctx: ClassVariableModifierContext): AstNode = {
+        if (null != ctx.PROTECTED()) {
+            return ModifierNode(ModifierNode.PROTECTED, Range(ctx.PROTECTED()))
+        }
+        if (null != ctx.GLOBAL()) {
+            return ModifierNode(ModifierNode.GLOBAL, Range(ctx.GLOBAL()))
+        }
+        if (null != ctx.PRIVATE()) {
+            return ModifierNode(ModifierNode.PRIVATE, Range(ctx.PRIVATE()))
+        }
+        if (null != ctx.PUBLIC()) {
+            return ModifierNode(ModifierNode.PUBLIC, Range(ctx.PUBLIC()))
+        }
+        if (null != ctx.TRANSIENT()) {
+            return ModifierNode(ModifierNode.TRANSIENT, Range(ctx.TRANSIENT()))
+        }
+        NullNode
+    }
+
     override def visitClassProperty(ctx: ClassPropertyContext): AstNode = {
         visitChildren(ClassPropertyNode(Range(ctx)), ctx)
     }
 
     /////////////////// constructor ////////////////////////////////
 
+    override def visitPropertyModifier(ctx: PropertyModifierContext): AstNode = {
+        if (null != ctx.PROTECTED()) {
+            return ModifierNode(ModifierNode.PROTECTED, Range(ctx.PROTECTED()))
+        }
+        if (null != ctx.GLOBAL()) {
+            return ModifierNode(ModifierNode.GLOBAL, Range(ctx.GLOBAL()))
+        }
+        if (null != ctx.PRIVATE()) {
+            return ModifierNode(ModifierNode.PRIVATE, Range(ctx.PRIVATE()))
+        }
+        if (null != ctx.PUBLIC()) {
+            return ModifierNode(ModifierNode.PUBLIC, Range(ctx.PUBLIC()))
+        }
+        if (null != ctx.TRANSIENT()) {
+            return ModifierNode(ModifierNode.TRANSIENT, Range(ctx.TRANSIENT()))
+        }
+        NullNode
+    }
+
     override def visitClassConstructor(ctx: ClassConstructorContext): AstNode = {
         visitChildren(ConstructorNode(Range(ctx)), ctx)
+    }
+
+    override def visitClassConstructorModifier(ctx: ClassConstructorModifierContext): AstNode = {
+        if (null != ctx.PROTECTED()) {
+            return ModifierNode(ModifierNode.PROTECTED, Range(ctx.PROTECTED()))
+        }
+        if (null != ctx.GLOBAL()) {
+            return ModifierNode(ModifierNode.GLOBAL, Range(ctx.GLOBAL()))
+        }
+        if (null != ctx.PRIVATE()) {
+            return ModifierNode(ModifierNode.PRIVATE, Range(ctx.PRIVATE()))
+        }
+        if (null != ctx.PUBLIC()) {
+            return ModifierNode(ModifierNode.PUBLIC, Range(ctx.PUBLIC()))
+        }
+        if (null != ctx.VIRTUAL()) {
+            return ModifierNode(ModifierNode.VIRTUAL, Range(ctx.VIRTUAL()))
+        }
+        NullNode
     }
 
     /////////////////// method ////////////////////////////////
@@ -258,6 +315,26 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     override def visitMethodHeader(ctx: MethodHeaderContext): AstNode = {
         visitChildren(MethodHeaderNode(Range(ctx)), ctx)
     }
+
+    override def visitMethodHeaderModifier(ctx: MethodHeaderModifierContext): AstNode = {
+        if (null != ctx.PROTECTED()) {
+            return ModifierNode(ModifierNode.PROTECTED, Range(ctx.PROTECTED()))
+        }
+        if (null != ctx.GLOBAL()) {
+            return ModifierNode(ModifierNode.GLOBAL, Range(ctx.GLOBAL()))
+        }
+        if (null != ctx.PRIVATE()) {
+            return ModifierNode(ModifierNode.PRIVATE, Range(ctx.PRIVATE()))
+        }
+        if (null != ctx.PUBLIC()) {
+            return ModifierNode(ModifierNode.PUBLIC, Range(ctx.PUBLIC()))
+        }
+        if (null != ctx.VIRTUAL()) {
+            return ModifierNode(ModifierNode.VIRTUAL, Range(ctx.VIRTUAL()))
+        }
+        NullNode
+    }
+
 
     override def visitDefinedMethodName(ctx: DefinedMethodNameContext): AstNode = {
         MethodNameNode(ctx.Identifier().getText, Range(ctx))

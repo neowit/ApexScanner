@@ -41,6 +41,11 @@ case class MethodNode(range: Range) extends MethodNodeBase { self =>
             .exists(_.modifiers.exists(_.modifierType == ModifierNode.STATIC))
     }
 
+    override def visibility: Option[String] = {
+        getChildInAst[MethodHeaderNode](MethodHeaderNodeType)
+            .flatMap(_.modifiers.find(_.modifierType.isInstanceOf[ModifierNode.Visibility]).map(_.modifierType.toString))
+    }
+
     override def getValueType: Option[ValueType] = {
         getChildInAst[MethodHeaderNode](MethodHeaderNodeType).flatMap(_.dataType)
     }
@@ -95,7 +100,7 @@ object MethodNode {
 
             override protected def getSelf: AstNode = self
 
-
+            override def visibility: Option[String] = Option("public")
         }
 
         m
