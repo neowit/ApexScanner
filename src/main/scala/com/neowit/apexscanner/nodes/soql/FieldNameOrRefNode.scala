@@ -46,7 +46,7 @@ case class FieldNameOrRefNode(qualifiedName: QualifiedName, range: Range) extend
             }
 
         fromNodeOpt  match {
-            case Some(FromNode(fromObjectRef, aliasOpt, _)) =>
+            case Some(_fromNode @ FromNode(fromObjectRef, aliasOpt, _)) =>
                 // drop Alias from qualified name
                 val qualifiedNameWithoutAliasOpt =
                     aliasOpt match {
@@ -54,7 +54,7 @@ case class FieldNameOrRefNode(qualifiedName: QualifiedName, range: Range) extend
                             qualifiedName.tailOption
                         case _ => Option(qualifiedName)
                     }
-                val qName = QualifiedName.fromOptions(fromObjectRef, qualifiedNameWithoutAliasOpt)
+                val qName = QualifiedName.fromOptions(_fromNode.getValueType.map(_.qualifiedName), qualifiedNameWithoutAliasOpt)
                 getProject match {
                     case Some(_project) =>
                         val finder = new QualifiedNameDefinitionFinder(_project)

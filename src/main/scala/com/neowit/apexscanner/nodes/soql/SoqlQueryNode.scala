@@ -43,7 +43,7 @@ case class SoqlQueryNode(queryStr: String, range: Range) extends AstNode with Is
     override def getValueType: Option[ValueType] = {
         getFromNodes match {
             case nodes if nodes.isEmpty =>
-                //TODO - return Database Namespace which can return all DB Objects
+                //return Database Namespace which can return all DB Objects
                 Option(ValueTypeSimple(QualifiedName(SoqlQueryNode.LIBRARY_NAME)))
             case nodes if 1 == nodes.length =>
                 nodes.head.getValueType // return FromNode as is

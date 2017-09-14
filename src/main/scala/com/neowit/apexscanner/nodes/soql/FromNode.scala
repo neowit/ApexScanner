@@ -30,11 +30,20 @@ import com.neowit.apexscanner.nodes.{AstNode, AstNodeType, FromNodeType, IsTypeD
 case class FromNode(qualifiedName: Option[QualifiedName], aliasOpt: Option[String], range: Range) extends AstNode with IsTypeDefinition {
     override def nodeType: AstNodeType = FromNodeType
 
+
+    //SoqlQueryNode.CHILD_RELATIONSHIPS_NODE_NAME
     override def getValueType: Option[ValueType] = {
         // for outer query value type is just its QualifiedName
         // for relationship subquery the value type is a combination of:
         //  - parent query qualifiedName and this node qualified name
-        SoqlAstUtils.getFullyQualifiedFromName(this, aliasOpt).map(ValueTypeSimple)
+        if (SoqlAstUtils.isChildRelationshipSubquery(this)) {
+            // child relationship query
+            getChildRelationshipValueType
+        } else {
+            // normal query
+            SoqlAstUtils.getFullyQualifiedFromName(this, aliasOpt).map(ValueTypeSimple)
+        }
+
     }
 
     override protected def resolveDefinitionImpl(): Option[AstNode] = {
@@ -45,4 +54,23 @@ case class FromNode(qualifiedName: Option[QualifiedName], aliasOpt: Option[Strin
     }
 
     override def isScope: Boolean = true
+
+    // select Id, (SELECT Contact.LastName FROM Account.Contacts) from Account
+    // select Id, (SELECT Contact.LastName FROM a.Contacts) from Account a
+    // select Id, (SELECT Name from Contacts) from Account
+    // select Id, (select cc.Name from a.Contacts cc) from Account a
+    private def getChildRelationshipValueType: Option[ValueType] = {
+        /*
+        val (parentQName, thisQName) =
+            SoqlAstUtils.findParentFromNode(this, aliasOpt) match {
+                case Some(FromNode(Some(_parentQualifiedName), None, _)) =>
+                    (_parentQualifiedName, )
+                case Some(FromNode(Some(_parentQualifiedName), Some(parentAlias), _)) =>
+                // parent has alias
+
+                case _ => None
+            }
+        */
+        ???
+    }
 }
