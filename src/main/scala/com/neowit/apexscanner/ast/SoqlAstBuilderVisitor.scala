@@ -33,7 +33,8 @@ import scala.collection.JavaConverters._
   * Created by Andrey Gavrikov 
   */
 object SoqlAstBuilderVisitor {
-    val VISITOR_CREATOR_FUN: AstBuilder.VisitorCreatorFun = (projectOpt, documentOpt) => new SoqlAstBuilderVisitor(projectOpt, documentOpt)
+    val VISITOR_CREATOR_FUN: AstBuilder.VisitorCreatorFun =
+        (projectOpt: Option[Project], documentOpt: Option[VirtualDocument]) => new SoqlAstBuilderVisitor(projectOpt, documentOpt)
 }
 class SoqlAstBuilderVisitor(override val projectOpt: Option[Project],
                             override val documentOpt: Option[VirtualDocument]) extends SoqlBaseVisitor[AstNode] with AstBuilderVisitor {
@@ -98,9 +99,20 @@ class SoqlAstBuilderVisitor(override val projectOpt: Option[Project],
         visitChildren(FieldItemNode(Range(ctx, _documentOffsetPosition)), ctx)
     }
 
+    override def visitChildRelationshipQuery(ctx: SoqlParser.ChildRelationshipQueryContext): AstNode = {
+        if (null != ctx.subquery()) {
+            visitChildren(ChildRelationshipSubqueryNode(ctx.getText, Range(ctx, _documentOffsetPosition)), ctx)
+        } else {
+            NullNode
+        }
+        //super.visitChildRelationshipQuery(ctx)
+    }
+
+    /* TODO
     override def visitSubquery(ctx: SoqlParser.SubqueryContext): AstNode = {
         visitChildren(SubqueryNode(ctx.getText, Range(ctx, _documentOffsetPosition)), ctx)
     }
+    */
 
     override def visitTypeOfExpression(ctx: SoqlParser.TypeOfExpressionContext): AstNode = {
         visitChildren(TypeOfExpressionNode(Range(ctx, _documentOffsetPosition)), ctx)

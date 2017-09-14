@@ -68,6 +68,7 @@ case object TypeCastNodeType extends AstNodeType
 case object SelectItemExpressionNodeType extends AstNodeType
 case object SoqlQueryNodeType extends AstNodeType
 case object SubqueryNodeType extends AstNodeType
+case object ChildRelationshipSubqueryNodeType extends AstNodeType
 case object TypeOfExpressionNodeType extends AstNodeType
 
 case object FromExpressionNodeType extends AstNodeType

@@ -22,20 +22,25 @@
 package com.neowit.apexscanner.nodes.soql
 
 import com.neowit.apexscanner.ast.QualifiedName
-import com.neowit.apexscanner.nodes.{AstNode, FromNodeType, SoqlQueryNodeType, SubqueryNodeType}
+import com.neowit.apexscanner.nodes._
 
 /**
   * Created by Andrey Gavrikov 
   */
 object SoqlAstUtils {
+    val QUERY_NODE_TYPES: Set[AstNodeType] = Set(SubqueryNodeType, SoqlQueryNodeType, ChildRelationshipSubqueryNodeType)
+    val CHILD_QUERY_NODE_TYPES: Set[AstNodeType] = Set(ChildRelationshipSubqueryNodeType)
 
     def findFromNode(thisNode: AstNode, aliasOpt: Option[String]): Option[FromNode] = {
+        if (FromNodeType == thisNode.nodeType) {
+            return Option(thisNode.asInstanceOf[FromNode])
+        }
         // find parent query or subquery
         val queryNode =
-            if (thisNode.nodeType == SubqueryNodeType || thisNode.nodeType == SoqlQueryNodeType) {
+            if (QUERY_NODE_TYPES.contains(thisNode.nodeType)) {
                 Option(thisNode)
             } else {
-                thisNode.findParentInAst(_.nodeType == SubqueryNodeType)
+                thisNode.findParentInAst(n => CHILD_QUERY_NODE_TYPES.contains(n.nodeType))
                     .orElse(thisNode.findParentInAst(_.nodeType == SoqlQueryNodeType))
             }
 
@@ -45,7 +50,7 @@ object SoqlAstUtils {
                 case  Some(queryNode @ SoqlQueryNode(_, _)) =>
                     queryNode.findChildrenInAst(_.nodeType == FromNodeType)
                         .map(_.asInstanceOf[FromNode])
-                case  Some(queryNode @ SubqueryNode(_, _)) =>
+                case  Some(queryNode @ ChildRelationshipSubqueryNode(_, _)) =>
                     queryNode.findChildrenInAst(_.nodeType == FromNodeType)
                         .map(_.asInstanceOf[FromNode])
                 case  _ => Seq.empty
@@ -69,6 +74,9 @@ object SoqlAstUtils {
     def isSubquery(thisNode: AstNode): Boolean = {
         thisNode.nodeType == SubqueryNodeType || thisNode.findParentInAst(_.nodeType == SubqueryNodeType).isDefined
     }
+    def isChildRelationshipSubquery(thisNode: AstNode): Boolean = {
+        thisNode.nodeType == ChildRelationshipSubqueryNodeType || thisNode.findParentInAst(_.nodeType == ChildRelationshipSubqueryNodeType).isDefined
+    }
 
     /**
       * find outer most SOQL Query node
@@ -91,7 +99,7 @@ object SoqlAstUtils {
 
     /**
       * for outer query this will be name of object in FROM: e.g. "Account"
-      * for relationship queries this will be combined name of all FROM-s, e.g. Account.Contacts
+      * for relationship queries this will be combined name of all FROM-s, e.g. Account._Child_Relationships.Contacts
       * @param thisNode node which is part of SOQL query or subquery
       * @param aliasOpt e.g. `select a.Name from Account a`
       *                 alias is "a"
@@ -100,18 +108,18 @@ object SoqlAstUtils {
     def getFullyQualifiedFromName(thisNode: AstNode, aliasOpt: Option[String]): Option[QualifiedName] = {
         def _getFullyQualifiedFromName(thisNode: AstNode, aliasOpt: Option[String], nameSoFar: Option[QualifiedName]): Option[QualifiedName] = {
             findFromNode(thisNode, aliasOpt) match {
-                case Some(fromNode) if isSubquery(fromNode)=>
+                case Some(fromNode) if isChildRelationshipSubquery(fromNode)=>
                     val qName =
                         QualifiedName.fromOptions(fromNode.qualifiedName, nameSoFar)
 
-                    fromNode.findParentInAst(n => n.nodeType == SubqueryNodeType || n.nodeType == SoqlQueryNodeType)
+                    fromNode.findParentInAst(n => CHILD_QUERY_NODE_TYPES.contains(n.nodeType))
                         .flatMap(_.getParentInAst()) match {
-                        case Some(queryNode) =>
-                            _getFullyQualifiedFromName(queryNode, fromNode.aliasOpt, qName)
-                        case None =>
-                            qName
-                    }
-                case Some(fromNode) if !isSubquery(fromNode)=>
+                            case Some(queryNode) =>
+                                _getFullyQualifiedFromName(queryNode, fromNode.aliasOpt, qName)
+                            case None =>
+                                qName
+                        }
+                case Some(fromNode) =>
                     // drop alias if exists (i.e. covert a.Contacts to Contacts)
                     val nameSoFarWithoutAlias =
                         nameSoFar match {
