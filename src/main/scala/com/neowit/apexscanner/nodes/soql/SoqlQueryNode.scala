@@ -30,6 +30,7 @@ import com.neowit.apexscanner.nodes.{AstNode, AstNodeType, FromNodeType, IsTypeD
 
 object SoqlQueryNode {
     val LIBRARY_NAME: String = "SObjectLibrary"
+    val CHILD_RELATIONSHIPS_NODE_NAME: String = "_Child_Relationships"
 }
 /**
   *

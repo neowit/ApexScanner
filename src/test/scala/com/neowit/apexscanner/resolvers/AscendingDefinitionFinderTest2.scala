@@ -357,7 +357,7 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
         }
     }
 
-    test("findDefinition: inside SOQL statement: Subquery") {
+    test("findDefinition: inside SOQL statement: Child Relationship Subquery") {
         val text =
             """
               |class CompletionTester {
@@ -370,8 +370,8 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
         assertResult(1,"Wrong number of results found") (resultNodes.length)
         resultNodes.head match {
             case typeDefinition: IsTypeDefinition =>
-                assertResult(Option(QualifiedName(Array("Contacts"))), "Wrong caret type detected.")(typeDefinition.qualifiedName)
-                assertResult(Option(QualifiedName(Array("Account", "Contacts"))), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
+                assertResult(Option(QualifiedName("Contacts")), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                //typeDefinition.getValueType - can not be tested from this test because requires access to SFDC DB
             case _ =>
                 fail( "Failed to locate correct node. Expected method1()")
         }
@@ -391,7 +391,7 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
         resultNodes.head match {
             case typeDefinition: IsTypeDefinition =>
                 assertResult(Option(QualifiedName(Array("a", "Contacts"))), "Wrong caret type detected.")(typeDefinition.qualifiedName)
-                assertResult(Option(QualifiedName(Array("Account", "Contacts"))), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
+                //typeDefinition.getValueType - can not be tested from this test because requires access to SFDC DB
             case _ =>
                 fail( "Failed to locate correct node. Expected method1()")
         }

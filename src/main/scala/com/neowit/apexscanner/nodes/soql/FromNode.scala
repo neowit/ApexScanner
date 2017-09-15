@@ -23,6 +23,7 @@ package com.neowit.apexscanner.nodes.soql
 
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes.{AstNode, AstNodeType, FromNodeType, IsTypeDefinition, Range, ValueType, ValueTypeSimple}
+import com.neowit.apexscanner.resolvers.QualifiedNameDefinitionFinder
 
 /**
   * Created by Andrey Gavrikov 
@@ -60,17 +61,29 @@ case class FromNode(qualifiedName: Option[QualifiedName], aliasOpt: Option[Strin
     // select Id, (SELECT Name from Contacts) from Account
     // select Id, (select cc.Name from a.Contacts cc) from Account a
     private def getChildRelationshipValueType: Option[ValueType] = {
-        /*
-        val (parentQName, thisQName) =
-            SoqlAstUtils.findParentFromNode(this, aliasOpt) match {
-                case Some(FromNode(Some(_parentQualifiedName), None, _)) =>
-                    (_parentQualifiedName, )
-                case Some(FromNode(Some(_parentQualifiedName), Some(parentAlias), _)) =>
-                // parent has alias
-
-                case _ => None
-            }
-        */
-        ???
+        SoqlAstUtils.getFullyQualifiedFromName(this, aliasOpt) match {
+            case Some(fullName) =>
+                // add _Child_Relationships before child relationship name
+                //e.g. Account.Contacts becomes Account._Child_Relationships.Contacts
+                val relationshipName = fullName.components.last
+                val childRelationshipQNameComponents = fullName.components.dropRight(1) ++ Array(SoqlQueryNode.CHILD_RELATIONSHIPS_NODE_NAME)
+                val childRelationshipQName = QualifiedName(childRelationshipQNameComponents)
+                getProject match {
+                    case Some(project) =>
+                        val finder = new QualifiedNameDefinitionFinder(project)
+                        //for Account.Contacts return ValueTypeSimple(Contact)
+                        finder.findDefinition(childRelationshipQName) match {
+                            case Some(container: SObjectChildRelationshipContainerNodeBase)  =>
+                                container.findChildByRelationshipName(relationshipName) match {
+                                    case Some(valueTypeNode) =>
+                                        valueTypeNode.getValueType
+                                    case None => None
+                                }
+                            case _ => None
+                        }
+                    case None => None
+                }
+            case None => None
+        }
     }
 }

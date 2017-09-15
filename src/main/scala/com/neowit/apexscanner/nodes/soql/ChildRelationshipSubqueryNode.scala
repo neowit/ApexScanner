@@ -40,7 +40,7 @@ case class ChildRelationshipSubqueryNode(queryStr: String, range: Range) extends
                 SoqlAstUtils.findParentFromNode(this, aliasOpt = None) match {
                     case Some(FromNode(Some(parentQualifiedName), _, _)) =>
                         val globalQname = QualifiedName(SoqlQueryNode.LIBRARY_NAME)
-                        val qName = QualifiedName(globalQname, QualifiedName(parentQualifiedName, SoqlQueryNode.CHILD_RELATIONSHIPS_NODE_NAME))
+                        val qName = QualifiedName(globalQname, parentQualifiedName)
                         Option(ValueTypeSimple(qName))
                     case _ => None
                 }
