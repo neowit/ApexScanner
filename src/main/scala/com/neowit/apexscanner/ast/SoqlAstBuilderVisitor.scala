@@ -134,8 +134,8 @@ class SoqlAstBuilderVisitor(override val projectOpt: Option[Project],
                 if (identifiers.nonEmpty) {
                     Option(QualifiedName(identifiers))
                 } else {
-                    // if FROM is empty then return Namespace: "SObjectLibrary" itself, to allow query all its members/SObjects
-                    Option(QualifiedName(SoqlQueryNode.LIBRARY_NAME))
+                    // FROM is empty
+                    None
                 }
             FromNode(qualifiedNameOpt, aliasOpt, Range(ctx, _documentOffsetPosition))
         } else if (null != ctx.fromExpression()) {
@@ -152,8 +152,14 @@ class SoqlAstBuilderVisitor(override val projectOpt: Option[Project],
         if (null != ctx.fromRelationshipPath() && null != ctx.fromRelationshipPath().Identifier()) {
             val aliasOpt = if (null != ctx.alias()) Option(ctx.alias().getText) else None
             val identifiers: Array[String] = ctx.fromRelationshipPath().Identifier().asScala.map(_.getText).toArray
-            val qualifiedName = QualifiedName(identifiers)
-            FromNode(Option(qualifiedName), aliasOpt, Range(ctx, _documentOffsetPosition))
+            val qualifiedNameOpt =
+                if (identifiers.nonEmpty) {
+                    Option(QualifiedName(identifiers))
+                } else {
+                    // FROM is empty
+                    None
+                }
+            FromNode(qualifiedNameOpt, aliasOpt, Range(ctx, _documentOffsetPosition))
         } else {
             NullNode
         }

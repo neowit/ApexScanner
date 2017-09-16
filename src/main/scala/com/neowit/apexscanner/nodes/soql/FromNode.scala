@@ -42,17 +42,18 @@ case class FromNode(qualifiedName: Option[QualifiedName], aliasOpt: Option[Strin
             getChildRelationshipValueType
         } else {
             // normal query
-            SoqlAstUtils.getFullyQualifiedFromName(this, aliasOpt).map(ValueTypeSimple)
+            qualifiedName match {
+                case Some(_) =>
+                    SoqlAstUtils.getFullyQualifiedFromName(this, aliasOpt).map(ValueTypeSimple)
+                case None =>
+                    // if FROM is empty then return Namespace: "SObjectLibrary" itself, to allow query all its members/SObjects
+                    Option(ValueTypeSimple(QualifiedName(SoqlQueryNode.LIBRARY_NAME)))
+            }
         }
 
     }
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = {
-        qualifiedName match {
-            case Some(_) => Option(this)
-            case None => None
-        }
-    }
+    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
 
     override def isScope: Boolean = true
 
@@ -61,29 +62,42 @@ case class FromNode(qualifiedName: Option[QualifiedName], aliasOpt: Option[Strin
     // select Id, (SELECT Name from Contacts) from Account
     // select Id, (select cc.Name from a.Contacts cc) from Account a
     private def getChildRelationshipValueType: Option[ValueType] = {
-        SoqlAstUtils.getFullyQualifiedFromName(this, aliasOpt) match {
-            case Some(fullName) =>
-                // add _Child_Relationships before child relationship name
-                //e.g. Account.Contacts becomes Account._Child_Relationships.Contacts
-                val relationshipName = fullName.components.last
-                val childRelationshipQNameComponents = fullName.components.dropRight(1) ++ Array(SoqlQueryNode.CHILD_RELATIONSHIPS_NODE_NAME)
-                val childRelationshipQName = QualifiedName(childRelationshipQNameComponents)
-                getProject match {
-                    case Some(project) =>
-                        val finder = new QualifiedNameDefinitionFinder(project)
-                        //for Account.Contacts return ValueTypeSimple(Contact)
-                        finder.findDefinition(childRelationshipQName) match {
-                            case Some(container: SObjectChildRelationshipContainerNodeBase)  =>
-                                container.findChildByRelationshipName(relationshipName) match {
-                                    case Some(valueTypeNode) =>
-                                        valueTypeNode.getValueType
-                                    case None => None
+        qualifiedName match {
+            case Some(_) =>
+                SoqlAstUtils.getFullyQualifiedFromName(this, aliasOpt) match {
+                    case Some(fullName) =>
+                        // add _Child_Relationships before child relationship name
+                        //e.g. Account.Contacts becomes Account._Child_Relationships.Contacts
+                        val relationshipName = fullName.components.last
+                        val childRelationshipQNameComponents = fullName.components.dropRight(1) ++ Array(SoqlQueryNode.CHILD_RELATIONSHIPS_NODE_NAME)
+                        val childRelationshipQName = QualifiedName(childRelationshipQNameComponents)
+                        getProject match {
+                            case Some(project) =>
+                                val finder = new QualifiedNameDefinitionFinder(project)
+                                //for Account.Contacts return ValueTypeSimple(Contact)
+                                finder.findDefinition(childRelationshipQName) match {
+                                    case Some(container: SObjectChildRelationshipContainerNodeBase)  =>
+                                        container.findChildByRelationshipName(relationshipName) match {
+                                            case Some(valueTypeNode) =>
+                                                valueTypeNode.getValueType
+                                            case None => None
+                                        }
+                                    case _ => None
                                 }
-                            case _ => None
+                            case None => None
                         }
                     case None => None
                 }
-            case None => None
+            case None =>
+                SoqlAstUtils.findParentFromNode(this, aliasOpt) match {
+                    case Some(FromNode(Some(parentQualifiedName), _, _)) =>
+                        //find container by QualifiedName: Account.SoqlQueryNode.CHILD_RELATIONSHIPS_NODE_NAME
+                        // this should allow to list all child relationships in "list-completions" part
+                        Option(ValueTypeSimple(QualifiedName(parentQualifiedName, SoqlQueryNode.CHILD_RELATIONSHIPS_NODE_NAME)))
+                    case _ =>
+                        // looks like parent does not have a From <name> either, give up
+                        None
+                }
         }
     }
 }
