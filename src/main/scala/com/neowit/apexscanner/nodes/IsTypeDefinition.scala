@@ -22,6 +22,7 @@
 package com.neowit.apexscanner.nodes
 
 import com.neowit.apexscanner.ast.QualifiedName
+import com.neowit.apexscanner.symbols.Symbol
 
 /**
   * Created by Andrey Gavrikov 
@@ -29,4 +30,12 @@ import com.neowit.apexscanner.ast.QualifiedName
 trait IsTypeDefinition extends HasQualifiedName with HasTypeDefinition {
     def getValueType: Option[ValueType]
     def qualifiedName: Option[QualifiedName]
+
+    /**
+      * in some situations it is useful to remove symbols not relevant in current code completion context
+      * override this method to reduce list of returned symbols
+      * @param symbols original sequence of symbols
+      * @return same or reduced sequence of symbols
+      */
+    def filterCompletionSymbols(symbols: Seq[Symbol]): Seq[Symbol] = symbols
 }

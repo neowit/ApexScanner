@@ -153,7 +153,8 @@ class CompletionFinder(project: Project) extends LazyLogging {
                     case Some(valueType) =>
                         logger.debug("Caret value type: " + valueType)
                         // first try simple option, by "Value Type" as defined in the code
-                        getValueTypeMembers(valueType, fullyQualifiedName)
+                        val allSymbols = getValueTypeMembers(valueType, fullyQualifiedName)
+                        defNode.filterCompletionSymbols(allSymbols)
                     case None =>
                         Seq.empty
                 }
