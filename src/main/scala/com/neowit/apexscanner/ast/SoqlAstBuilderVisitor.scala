@@ -73,7 +73,7 @@ class SoqlAstBuilderVisitor(override val projectOpt: Option[Project],
         if (null != ctx.countFunction()) {
             SelectCountNode(Range(ctx, _documentOffsetPosition))
         } else {
-            visitChildren(ctx)
+            visitChildren(SelectStatementNode(Range(ctx, _documentOffsetPosition)), ctx)
         }
     }
 

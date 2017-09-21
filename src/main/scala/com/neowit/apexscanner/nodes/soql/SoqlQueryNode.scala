@@ -22,8 +22,7 @@
 package com.neowit.apexscanner.nodes.soql
 
 import com.neowit.apexscanner.ast.QualifiedName
-import com.neowit.apexscanner.nodes.{AstNode, AstNodeType, FieldNameOrRefNodeType, FromNodeType, IsTypeDefinition, Range, SoqlQueryNodeType, ValueType, ValueTypeSimple}
-import com.neowit.apexscanner.symbols.Symbol
+import com.neowit.apexscanner.nodes.{AstNode, AstNodeType, FromNodeType, IsTypeDefinition, Range, SoqlQueryNodeType, ValueType, ValueTypeSimple}
 
 /**
   * Created by Andrey Gavrikov 
@@ -59,24 +58,9 @@ case class SoqlQueryNode(queryStr: String, range: Range) extends AstNode with Is
         }
     }
 
-    override def filterCompletionSymbols(symbols: Seq[Symbol]): Seq[Symbol] = {
-        // SOQL query does not support duplicate names in SELECT ... part
-        //remove Field Names which are already present in SELECT ... FROM part
-        val existingFields = getChildrenInAst[FieldNameOrRefNode](FieldNameOrRefNodeType, recursively = true)
-
-        if (existingFields.isEmpty) {
-            symbols
-        } else {
-            // remove existing fields from symbols list
-            val existingFieldNames: Set[String] = existingFields.filterNot(_.qualifiedName.isEmpty).map(_.qualifiedName.getLastComponent.toLowerCase).toSet
-            symbols.filterNot(s => existingFieldNames.contains(s.symbolName.toLowerCase))
-        }
-    }
-
     override val qualifiedName: Option[QualifiedName] = Option(new QualifiedName(Array(queryStr)))
 
     override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
-
 
     def getAliases: Seq[String] = {
         getFromNodes match {
