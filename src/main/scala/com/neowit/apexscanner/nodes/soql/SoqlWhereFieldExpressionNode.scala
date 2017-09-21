@@ -19,28 +19,14 @@
 
 package com.neowit.apexscanner.nodes.soql
 
-import com.neowit.apexscanner.ast.QualifiedName
-import com.neowit.apexscanner.nodes.{AstNode, AstNodeType, IsTypeDefinition, Range, SoqlQueryNodeType, SoqlWhereNodeType, ValueType}
+import com.neowit.apexscanner.nodes.{AstNode, AstNodeType, HasTypeDefinition, Range, SoqlWhereFieldExpressionNodeType, SoqlWhereNodeType}
 
 /**
   * Created by Andrey Gavrikov 
   */
-case class SoqlWhereNode (range: Range) extends AstNode with IsTypeDefinition {
+case class SoqlWhereFieldExpressionNode (range: Range) extends AstNode with HasTypeDefinition {
 
-    override def nodeType: AstNodeType = SoqlWhereNodeType
-    override def isScope: Boolean = true
+    override def nodeType: AstNodeType = SoqlWhereFieldExpressionNodeType
 
-    override def getValueType: Option[ValueType] = {
-        findParentInAst(_.nodeType == SoqlQueryNodeType).flatMap{
-            case n@ SoqlQueryNode(_, _) => n.getValueType
-        }
-    }
-
-    override def qualifiedName: Option[QualifiedName] = {
-        findParentInAst(_.nodeType == SoqlQueryNodeType).flatMap{
-            case n@ SoqlQueryNode(_, _) => n.getValueType.map(_.qualifiedName)
-        }
-    }
-
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(): Option[AstNode] = findParentInAst(_.nodeType == SoqlWhereNodeType)
 }

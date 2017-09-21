@@ -169,5 +169,9 @@ class SoqlAstBuilderVisitor(override val projectOpt: Option[Project],
         visitChildren(SoqlWhereNode(Range(ctx, _documentOffsetPosition)), ctx)
     }
 
+    override def visitWhereFieldExpression(ctx: SoqlParser.WhereFieldExpressionContext): AstNode = {
+        visitChildren(SoqlWhereFieldExpressionNode(Range(ctx, _documentOffsetPosition)), ctx)
+    }
+
     //TODO implement all relevant visitXXX methods
 }
