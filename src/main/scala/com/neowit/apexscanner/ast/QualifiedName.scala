@@ -35,6 +35,7 @@ case class QualifiedName(components: Array[String]) {
     def getFirstComponent: String = components.head
     def getLastComponent: String = components.last
     def isEmpty: Boolean = components.isEmpty
+    def nonEmpty: Boolean = !isEmpty
 
     lazy val head: QualifiedName = QualifiedName(Array(getFirstComponent))
     lazy val tailOption: Option[QualifiedName] = {

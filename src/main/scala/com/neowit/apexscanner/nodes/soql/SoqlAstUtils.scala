@@ -124,7 +124,7 @@ object SoqlAstUtils {
                     val nameSoFarWithoutAlias =
                         nameSoFar match {
                             case Some(name) =>
-                                if (name.length > 1 && fromNode.aliasOpt.exists(_.toLowerCase == name.getFirstComponent.toLowerCase)) {
+                                if (name.nonEmpty && fromNode.aliasOpt.exists(_.toLowerCase == name.getFirstComponent.toLowerCase)) {
                                     name.tailOption
                                 } else {
                                     nameSoFar
