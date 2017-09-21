@@ -40,6 +40,8 @@ object SoqlQueryNode {
   */
 case class SoqlQueryNode(queryStr: String, range: Range) extends AstNode with IsTypeDefinition {
 
+    override def nodeType: AstNodeType = SoqlQueryNodeType
+
     override def isScope: Boolean = true
 
     override def getValueType: Option[ValueType] = {
@@ -75,7 +77,6 @@ case class SoqlQueryNode(queryStr: String, range: Range) extends AstNode with Is
 
     override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
 
-    override def nodeType: AstNodeType = SoqlQueryNodeType
 
     def getAliases: Seq[String] = {
         getFromNodes match {
