@@ -53,7 +53,7 @@ case class FromNode(qualifiedName: Option[QualifiedName], aliasOpt: Option[Strin
 
     }
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(this)
 
     override def isScope: Boolean = true
 

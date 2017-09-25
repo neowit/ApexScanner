@@ -31,7 +31,7 @@ case class ConstructorNode(range: Range) extends MethodNodeBase { self =>
         getChildInAst[MethodHeaderNode](MethodHeaderNodeType).flatMap(_.methodName)
 
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(this)
 
     def getApexDoc: Option[DocNode] = getChildrenInAst[DocNode](DocNodeType).headOption
 

@@ -55,7 +55,7 @@ case class ChildRelationshipSubqueryNode(queryStr: String, range: Range) extends
         }
     }
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = {
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = {
         Option(this)
     }
 

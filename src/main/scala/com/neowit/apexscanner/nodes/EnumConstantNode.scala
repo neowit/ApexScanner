@@ -59,7 +59,7 @@ case class EnumConstantNode (constantName: String, range: Range) extends Variabl
 
     override def nodeType: AstNodeType = EnumConstantNodeType
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(self)
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(self)
 
     override def symbolName: String = name.getOrElse("")
 

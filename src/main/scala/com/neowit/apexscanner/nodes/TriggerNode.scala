@@ -32,7 +32,7 @@ case class TriggerNode(override val name: Option[String], range: Range ) extends
         qualifiedName.map(name => ValueTypeTrigger(name))
     }
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(this)
 
     /**
       * find container of current class/interface

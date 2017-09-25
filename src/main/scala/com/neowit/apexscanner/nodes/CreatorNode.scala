@@ -35,5 +35,5 @@ case class CreatorNode(range: Range) extends AbstractExpression with IsTypeDefin
 
     override def qualifiedName: Option[QualifiedName] = getValueType.map(_.qualifiedName)
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(this)
 }

@@ -58,6 +58,6 @@ case class SelectStatementNode(range: Range) extends AstNode with IsTypeDefiniti
         }
     }
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(this)
 
 }

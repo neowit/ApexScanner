@@ -32,7 +32,7 @@ case class EnhancedForVariableNode(dataTypeNode: DataTypeNode, override val name
     override def getValueType: Option[ValueType] = {
         dataTypeNode.getValueType
     }
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(this)
 
     override def qualifiedName: Option[QualifiedName] = name.map(n => QualifiedName(Array(n)))
 }

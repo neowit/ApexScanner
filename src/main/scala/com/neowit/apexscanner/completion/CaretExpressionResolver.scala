@@ -103,7 +103,7 @@ class CaretExpressionResolver(project: Project, actionContext: ActionContext)  e
                 findLongestTree(caret, tokensBeforeCaret) match {
                     case Some(tree) =>
                         // now visit resulting tree and try resolve caret context
-                        val resolver = new ContextResolver(project, astScopeNode, lastAstNode)
+                        val resolver = new ContextResolver(project, astScopeNode, lastAstNode, actionContext)
                         resolver.resolveContext(tree, tokenStream)
                     case None =>
                         None
@@ -120,7 +120,7 @@ class CaretExpressionResolver(project: Project, actionContext: ActionContext)  e
                         }
                     case n: IsTypeDefinition => Option(n)
                     case n: HasTypeDefinition =>
-                        n.resolveDefinition() match {
+                        n.resolveDefinition(actionContext) match {
                             case defOpt @ Some(_: IsTypeDefinition) =>
                                 defOpt.map(_.asInstanceOf[IsTypeDefinition])
                             case x =>

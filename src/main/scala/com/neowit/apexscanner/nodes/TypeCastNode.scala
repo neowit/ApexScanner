@@ -36,5 +36,5 @@ case class TypeCastNode(range: Range) extends AbstractExpression with IsTypeDefi
 
     override def qualifiedName: Option[QualifiedName] = getValueType.map(_.qualifiedName)
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(this)
 }

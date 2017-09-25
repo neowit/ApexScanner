@@ -32,7 +32,7 @@ case class NamespaceNode(override val name: Option[String]) extends ClassLike {
         qualifiedName.map(name => ValueTypeClass(name))
     }
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(this)
 
     override def range: Range = Range.INVALID_LOCATION
 

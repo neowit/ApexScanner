@@ -39,7 +39,9 @@ object ActionContext {
     def apply(contextId: ActionContextId, actionType: ActionType): ActionContext = {
         val actionContext = actionType match {
             case ListCompletionsActionType => CompletionActionContext(contextId)
-            case _ => throw new NotImplementedError(actionType.toString)
+            case FindSymbolActionType => FindSymbolActionContext(contextId)
+            case FindUsagesActionType =>  FindUsagesActionContext(contextId)
+            case _ => throw new NotImplementedError("ActionContext.apply is not implemented for " + actionType.toString)
         }
         _contextById += actionContext.id -> actionContext
         actionContext
@@ -125,4 +127,10 @@ trait ActionContext {
 }
 case class CompletionActionContext private (id: ActionContextId) extends ActionContext {
     override val actionType: ActionType = ListCompletionsActionType
+}
+case class FindSymbolActionContext private (id: ActionContextId) extends ActionContext {
+    override val actionType: ActionType = FindSymbolActionType
+}
+case class FindUsagesActionContext private (id: ActionContextId) extends ActionContext {
+    override val actionType: ActionType = FindUsagesActionType
 }

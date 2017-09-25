@@ -31,16 +31,16 @@ trait HasTypeDefinition {
         _resolvedDefinition = resolvedDefinition
     }
 
-    def resolveDefinition(): Option[AstNode] = {
+    def resolveDefinition(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = {
         _resolvedDefinition match {
           case resolvedDefinition @ Some(_) =>
               // use earlier resolved value
               resolvedDefinition
           case None =>
               // try to resolve value now
-              _resolvedDefinition = resolveDefinitionImpl()
+              _resolvedDefinition = resolveDefinitionImpl(actionContext)
               _resolvedDefinition
         }
     }
-    protected def resolveDefinitionImpl(): Option[AstNode]
+    protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode]
 }

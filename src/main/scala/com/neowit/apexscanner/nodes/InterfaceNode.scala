@@ -32,5 +32,5 @@ case class InterfaceNode(override val name: Option[String], range: Range ) exten
         qualifiedName.map(name => ValueTypeInterface(name))
     }
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(this)
 }

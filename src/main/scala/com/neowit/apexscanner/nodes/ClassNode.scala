@@ -32,7 +32,7 @@ case class ClassNode(override val name: Option[String], range: Range) extends Cl
         qualifiedName.map(name => ValueTypeClass(name))
     }
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(this)
 
     /**
       * @return true if this node is a Scope node (e.g. method declaration, class declaration)

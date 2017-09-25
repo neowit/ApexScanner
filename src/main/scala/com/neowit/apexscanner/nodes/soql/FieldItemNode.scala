@@ -26,5 +26,5 @@ import com.neowit.apexscanner.nodes.{AstNode, Range}
   * Created by Andrey Gavrikov 
   */
 case class FieldItemNode(range: Range) extends SelectItemNodeBase  {
-    override protected def resolveDefinitionImpl(): Option[AstNode] = ???
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = ???
 }

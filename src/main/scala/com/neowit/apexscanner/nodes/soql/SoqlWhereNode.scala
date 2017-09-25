@@ -42,5 +42,5 @@ case class SoqlWhereNode (range: Range) extends AstNode with IsTypeDefinition {
         }
     }
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(this)
 }

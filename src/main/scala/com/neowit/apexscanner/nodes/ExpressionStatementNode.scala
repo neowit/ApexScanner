@@ -27,12 +27,12 @@ package com.neowit.apexscanner.nodes
 case class ExpressionStatementNode(range: Range) extends AstNode with HasTypeDefinition {
     override def nodeType: AstNodeType = ExpressionStatementNodeType
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = {
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = {
         // ExpressionStatementNode can not contain anything other than single "expression" child
         getChildInAst[AbstractExpression](ExpressionNodeType)  match {
             case Some(ex: HasTypeDefinition) =>
                 // finally try to resolve definition of fudged expression
-                ex.resolveDefinition() match {
+                ex.resolveDefinition(actionContext) match {
                     case defOpt @ Some(_: IsTypeDefinition) =>
                         defOpt
                     case _ =>

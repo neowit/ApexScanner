@@ -60,7 +60,7 @@ case class SoqlQueryNode(queryStr: String, range: Range) extends AstNode with Is
 
     override val qualifiedName: Option[QualifiedName] = Option(new QualifiedName(Array(queryStr)))
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(this)
 
     def getAliases: Seq[String] = {
         getFromNodes match {

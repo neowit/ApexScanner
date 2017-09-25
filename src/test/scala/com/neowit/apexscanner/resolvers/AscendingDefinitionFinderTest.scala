@@ -23,7 +23,10 @@ package com.neowit.apexscanner.resolvers
 
 import com.neowit.apexscanner.TestConfigProvider
 import com.neowit.apexscanner.nodes._
+import com.neowit.apexscanner.scanner.actions.{ActionContext, FindSymbolActionType}
 import org.scalatest.FunSuite
+
+import scala.util.Random
 
 /**
   * Created by Andrey Gavrikov 
@@ -190,7 +193,8 @@ class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
     private def getNodeDefinition(hint: String, rootNode: AstNode, location: Position): Seq[AstNode] = {
-        val finder = new AscendingDefinitionFinder()
+        val actionContext = ActionContext("AscendingDefinitionFinderTest-" + Random.nextString(5), FindSymbolActionType)
+        val finder = new AscendingDefinitionFinder(actionContext)
         finder.findDefinition(rootNode, location)  match {
             case nodes if nodes.nonEmpty =>
                 println("FOUND NODES")

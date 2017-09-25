@@ -24,6 +24,7 @@ package com.neowit.apexscanner.resolvers
 import com.neowit.apexscanner.ast.{AstVisitor, QualifiedName}
 import com.neowit.apexscanner.matchers.MethodMatcher
 import com.neowit.apexscanner.nodes._
+import com.neowit.apexscanner.scanner.actions.ActionContext
 
 /**
   * Created by Andrey Gavrikov
@@ -33,8 +34,8 @@ import com.neowit.apexscanner.nodes._
   *                   List("integer", "*") - "*" means any type of second argument is a match
   *
   */
-class FindMethodVisitor(methodName: QualifiedName, paramTypes: Seq[ValueType]) extends AstVisitor {
-    private val matcher = new MethodMatcher(methodName, paramTypes)
+class FindMethodVisitor(methodName: QualifiedName, paramTypes: Seq[ValueType], actionContext: ActionContext) extends AstVisitor {
+    private val matcher = new MethodMatcher(methodName, paramTypes, actionContext)
     private var foundMethodNode: Option[MethodNode] = None
 
     override def visit(node: AstNode): Boolean = {

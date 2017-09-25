@@ -27,7 +27,10 @@ import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.antlr.CaretUtils
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes.{AstNode, IsTypeDefinition}
+import com.neowit.apexscanner.scanner.actions.{ActionContext, FindSymbolActionType}
 import org.scalatest.FunSuite
+
+import scala.util.Random
 
 /**
   * Created by Andrey Gavrikov 
@@ -459,7 +462,8 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
         val caretInDocument = CaretUtils.getCaret(text, Paths.get(documentName))
         project.getAst(caretInDocument.document) match {
             case Some(result) =>
-                val finder = new AscendingDefinitionFinder()
+                val actionContext = ActionContext("AscendingDefinitionFinderTest2-" + Random.nextString(5), FindSymbolActionType)
+                val finder = new AscendingDefinitionFinder(actionContext)
                 finder.findDefinition(result.rootNode, caretInDocument.position)
             case _ =>
                 Seq.empty

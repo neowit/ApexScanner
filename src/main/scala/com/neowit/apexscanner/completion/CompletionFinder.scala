@@ -62,8 +62,8 @@ class CompletionFinder(project: Project) extends LazyLogging {
     }
 
     def listCompletions(caret: CaretInDocument, actionContext: ActionContext): Seq[Symbol] = {
-        val scopeFinder = new CaretScopeFinder(project)
-        scopeFinder.findCaretScope(caret, actionContext) match {
+        val scopeFinder = new CaretScopeFinder(project, actionContext)
+        scopeFinder.findCaretScope(caret) match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
                 if (actionContext.isCancelled) {
                     return Seq.empty
@@ -155,7 +155,7 @@ class CompletionFinder(project: Project) extends LazyLogging {
     }
 
     private def getValueTypeMembers(typeDefinition: IsTypeDefinition, actionContext: ActionContext): Seq[Symbol] = {
-        typeDefinition.resolveDefinition() match {
+        typeDefinition.resolveDefinition(actionContext) match {
             case Some(defNode: AstNode with IsTypeDefinition) =>
                 if (actionContext.isCancelled) {
                     return Seq.empty

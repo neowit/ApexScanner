@@ -21,6 +21,7 @@
 
 package com.neowit.apexscanner.nodes
 import com.neowit.apexscanner.ast.QualifiedName
+import com.neowit.apexscanner.scanner.actions.ActionContext
 
 
 /**
@@ -29,11 +30,11 @@ import com.neowit.apexscanner.ast.QualifiedName
 trait AbstractExpression extends AstNode with HasTypeDefinition {
     override def nodeType: AstNodeType = ExpressionNodeType
 
-    protected def resolveDefinitionIfPartOfExprDotExpr(): Option[AstNode] = {
+    protected def resolveDefinitionIfPartOfExprDotExpr(actionContext: ActionContext): Option[AstNode] = {
         getParentInAst(skipFallThroughNodes = true) match {
             case Some(n: ExpressionDotExpressionNode) =>
                 // this node is part of expression1.expression2....
-                n.getResolvedPartDefinition(this)
+                n.getResolvedPartDefinition(this, actionContext)
             case _ => None
         }
     }
@@ -48,7 +49,7 @@ trait AbstractExpression extends AstNode with HasTypeDefinition {
   *     List<Integer>
   */
 case class ApexTypeExpressionNode(dataType: DataTypeNode,range: Range) extends AbstractExpression with HasTypeDefinition with IsTypeDefinition {
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(this)
 
     override def getValueType: Option[ValueType] = Option(dataType.getDataType)
 
@@ -56,7 +57,7 @@ case class ApexTypeExpressionNode(dataType: DataTypeNode,range: Range) extends A
 }
 
 case class ThisExpressionNode(range: Range) extends AbstractExpression with HasTypeDefinition {
-    override protected def resolveDefinitionImpl(): Option[AstNode] = {
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = {
         Option(getClassOrInterfaceNode)
     }
 
@@ -69,7 +70,7 @@ case class ThisExpressionNode(range: Range) extends AbstractExpression with HasT
 }
 
 case class SuperExpressionNode(range: Range) extends AbstractExpression with HasTypeDefinition {
-    override protected def resolveDefinitionImpl(): Option[AstNode] = {
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = {
         getClassOrInterfaceNode.getSuperClassOrInterface
     }
 

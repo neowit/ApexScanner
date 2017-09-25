@@ -22,6 +22,7 @@
 package com.neowit.apexscanner.nodes
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.resolvers.AscendingDefinitionFinder
+import com.neowit.apexscanner.scanner.actions.ActionContext
 
 /**
   * Created by Andrey Gavrikov 
@@ -43,14 +44,14 @@ case class MethodCallNode(methodName: QualifiedName, range: Range) extends Abstr
       */
     override def getDebugInfo: String = super.getDebugInfo + " calling: " + methodName + "(" + getParameterExpressionNodes.mkString(",") + ")"
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = {
+    override protected def resolveDefinitionImpl(actionContext: ActionContext): Option[AstNode] = {
         println("resolve definition of method call: " + getDebugInfo)
-        resolveDefinitionIfPartOfExprDotExpr() match {
+        resolveDefinitionIfPartOfExprDotExpr(actionContext) match {
             case defOpt@Some(_) =>
                 // this identifier is part of expression1.expression2....
                 defOpt
             case _ =>
-                val finder = new AscendingDefinitionFinder()
+                val finder = new AscendingDefinitionFinder(actionContext)
                 val res = finder.findDefinition(this, this).headOption
                 res
         }
@@ -61,7 +62,7 @@ case class MethodCallNode(methodName: QualifiedName, range: Range) extends Abstr
 
     //TODO implement taking real parameter types into account
     // current version returns "*" for each parameter
-    def getParameterTypes: Seq[ValueType] = {
+    def getParameterTypes(actionContext: ActionContext): Seq[ValueType] = {
         _resolvedParameterTypes match {
             case Some(paramTypes) =>
                 paramTypes
@@ -70,7 +71,7 @@ case class MethodCallNode(methodName: QualifiedName, range: Range) extends Abstr
                 // because this will make number of method parameters incorrect
                 val valueTypes =
                     getParameterExpressionNodes.map{n =>
-                        n.resolveDefinition() match {
+                        n.resolveDefinition(actionContext) match {
                             case Some(defNode: IsTypeDefinition) =>
                                 defNode.getValueType.getOrElse(ValueTypeAny)
                             case _ => ValueTypeAny

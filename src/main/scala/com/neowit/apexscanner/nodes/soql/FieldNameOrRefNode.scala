@@ -31,7 +31,7 @@ import com.neowit.apexscanner.resolvers.QualifiedNameDefinitionFinder
 case class FieldNameOrRefNode(qualifiedName: QualifiedName, range: Range) extends AstNode with HasTypeDefinition {
     override def nodeType: AstNodeType = FieldNameOrRefNodeType
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = {
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = {
         // assume first component of qualifiedName is alias
         val maybeAliasName = qualifiedName.getFirstComponent
         val fromNodeOpt =

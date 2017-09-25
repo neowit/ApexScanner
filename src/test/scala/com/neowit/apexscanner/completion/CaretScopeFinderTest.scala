@@ -26,9 +26,12 @@ import java.nio.file.{FileSystems, Path, Paths}
 import com.neowit.apexscanner.antlr.CaretUtils
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes.MethodBodyNodeType
+import com.neowit.apexscanner.scanner.actions.{ActionContext, FindSymbolActionType}
 import com.neowit.apexscanner.{Project, TestConfigProvider}
 import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
+
+import scala.util.Random
 
 /**
   * Created by Andrey Gavrikov
@@ -586,7 +589,8 @@ class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFu
             }
         val caretInDocument = getCaret(text, Paths.get(documentName))
 //        val document = caretInDocument.document
-        val scopeFinder = new CaretScopeFinder(project)
+        val actionContext = ActionContext("CaretScopeFinderTest-" + Random.nextString(5), FindSymbolActionType)
+        val scopeFinder = new CaretScopeFinder(project, actionContext)
         scopeFinder.findCaretScope(caretInDocument)
     }
 

@@ -25,7 +25,10 @@ package com.neowit.apexscanner.resolvers
 import com.neowit.apexscanner.TestConfigProvider
 import com.neowit.apexscanner.ast.{AstWalker, QualifiedName}
 import com.neowit.apexscanner.nodes.ValueType
+import com.neowit.apexscanner.scanner.actions.{ActionContext, FindUsagesActionType}
 import org.scalatest.FunSuite
+
+import scala.util.Random
 
 /**
   * Created by Andrey Gavrikov 
@@ -42,11 +45,12 @@ class FindMethodUsagesVisitorTest extends FunSuite with TestConfigProvider {
         val lineNos = getLineNoByTag(testFileData.path, testTag)
         assert(lineNos.nonEmpty, s"Invalid test data, expected to find line(s) with tag: $testTag in file: " + testFileData.filePath)
 
-        val findMethodVisitor = new FindMethodVisitor(QualifiedName(Array("method2")), List(ValueTypeForTest("integer"), ValueTypeForTest("list", Seq(ValueTypeForTest("String")))))
+        val actionContext = ActionContext("FindMethodUsagesVisitorTest-" + Random.nextString(5), FindUsagesActionType)
+        val findMethodVisitor = new FindMethodVisitor(QualifiedName(Array("method2")), List(ValueTypeForTest("integer"), ValueTypeForTest("list", Seq(ValueTypeForTest("String")))), actionContext)
         new AstWalker().walk(testFileData.rootNode.get, findMethodVisitor)
         findMethodVisitor.getFoundMethod match {
             case Some(methodNode) =>
-                val findUsagesVisitor = new FindMethodUsagesVisitor(methodNode)
+                val findUsagesVisitor = new FindMethodUsagesVisitor(methodNode, actionContext)
                 new AstWalker().walk(testFileData.rootNode.get, findUsagesVisitor)
                 val results = findUsagesVisitor.getResult
                 results.foreach(methodCallNode => println("FOUND: " + methodCallNode))

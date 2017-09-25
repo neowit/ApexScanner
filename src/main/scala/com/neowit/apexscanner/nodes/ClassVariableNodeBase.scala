@@ -42,7 +42,7 @@ trait ClassVariableNodeBase extends VariableLike with ClassOrInterfaceBodyMember
         }
     }
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(this)
 
     override def getClassOrInterfaceNode: ClassLike = {
         findParentInAst(p => p.nodeType == ClassNodeType || p.nodeType == InterfaceNodeType ) match {

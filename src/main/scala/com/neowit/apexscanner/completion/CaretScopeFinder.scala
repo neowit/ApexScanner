@@ -146,24 +146,24 @@ object CaretScopeFinder extends LazyLogging {
     }
 }
 
-class CaretScopeFinder(project: Project) extends LazyLogging {
+class CaretScopeFinder(project: Project, actionContext: ActionContext) extends LazyLogging {
     import CaretScopeFinder._
 
-    def findCaretScope(caretInOriginalDocument: CaretInDocument, actionContext: ActionContext): Option[FindCaretScopeResult] = {
+    def findCaretScope(caretInOriginalDocument: CaretInDocument): Option[FindCaretScopeResult] = {
         val lexer = new ApexcodeLexer(caretInOriginalDocument.document.getCharStream)
         val tokens = new CommonTokenStream(lexer)
         findCaretToken(caretInOriginalDocument, tokens) match {
             case Some(caretTokenInApex) if ApexcodeLexer.SoqlLiteral == caretTokenInApex.getType =>
                 // looks like caret is inside SOQL literal
-                findCaretScopeInSoql(caretInOriginalDocument, caretTokenInApex, actionContext)
+                findCaretScopeInSoql(caretInOriginalDocument, caretTokenInApex)
             case Some(caretTokenInApex) =>
-                findCaretScopeInApex(caretInOriginalDocument, caretTokenInApex, actionContext)
+                findCaretScopeInApex(caretInOriginalDocument, caretTokenInApex)
             case None =>
                 None
         }
     }
 
-    private def findCaretScopeInApex(caretInOriginalDocument: CaretInDocument, caretTokenInOriginalDocument: Token, actionContext: ActionContext): Option[FindCaretScopeResult] = {
+    private def findCaretScopeInApex(caretInOriginalDocument: CaretInDocument, caretTokenInOriginalDocument: Token): Option[FindCaretScopeResult] = {
         // alter original document by injecting FIXER_TOKEN
         val fixedDocument = injectFixerToken(caretInOriginalDocument)
         val caret = new CaretInFixedDocument(caretInOriginalDocument.position, fixedDocument, caretInOriginalDocument.document)
@@ -189,7 +189,7 @@ class CaretScopeFinder(project: Project) extends LazyLogging {
         }
     }
 
-    private def findCaretScopeInSoql(caretInOriginalDocument: CaretInDocument, caretTokenInApex: Token, actionContext: ActionContext): Option[FindCaretScopeResult] = {
+    private def findCaretScopeInSoql(caretInOriginalDocument: CaretInDocument, caretTokenInApex: Token): Option[FindCaretScopeResult] = {
         val fixedSoqlDocument = injectFixerTokenInSoql(caretInOriginalDocument, caretTokenInApex)
         val (parser, tokenStream) = SoqlParserUtils.createParserWithCommonTokenStream(fixedSoqlDocument)
 

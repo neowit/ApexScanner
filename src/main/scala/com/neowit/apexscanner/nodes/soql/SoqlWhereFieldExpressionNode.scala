@@ -28,5 +28,5 @@ case class SoqlWhereFieldExpressionNode (range: Range) extends AstNode with HasT
 
     override def nodeType: AstNodeType = SoqlWhereFieldExpressionNodeType
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = findParentInAst(_.nodeType == SoqlWhereNodeType)
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = findParentInAst(_.nodeType == SoqlWhereNodeType)
 }

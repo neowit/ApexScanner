@@ -23,6 +23,7 @@ package com.neowit.apexscanner.nodes
 
 import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.resolvers.{AscendingDefinitionFinder, DescendingDefinitionFinder}
+import com.neowit.apexscanner.scanner.actions.ActionContext
 
 /**
   * Created by Andrey Gavrikov 
@@ -31,11 +32,11 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
     private var _resolvedParts: Array[AstNode] = Array.empty[AstNode]
     private var _resolutionDone = false
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = {
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = {
         val expressions = getExpressions
         // start with unknown head/base definition
         //val lastNode = resolveDefinitionFromHead(container = None, expressions)
-        _resolvedParts = resolveDefinitionFromHead(expressions).toArray
+        _resolvedParts = resolveDefinitionFromHead(expressions, actionContext).toArray
         _resolutionDone = true
         _resolvedParts.lastOption
     }
@@ -87,9 +88,9 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
       * @param part node which is part of current expression
       * @return
       */
-    def getResolvedPartDefinition(part: AstNode): Option[AstNode] = {
+    def getResolvedPartDefinition(part: AstNode, actionContext: ActionContext): Option[AstNode] = {
         if (!_resolutionDone) {
-            resolveDefinition()
+            resolveDefinition(actionContext)
         }
         val index = getExpressionIndex(part)
         if (index >=0 && index < _resolvedParts.length) {
@@ -110,7 +111,7 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
       * @param expressions chain of expressions to be resolved
       * @return
       */
-    private def resolveDefinitionFromHead(expressions: Seq[AbstractExpression]): Seq[AstNode] = {
+    private def resolveDefinitionFromHead(expressions: Seq[AbstractExpression], actionContext: ActionContext): Seq[AstNode] = {
         if (expressions.isEmpty) {
             Seq.empty
         } else {
@@ -121,21 +122,21 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
                     head match {
                         case n:IsTypeDefinition => resolveTailDefinitions(n, tail)
                         case n: ThisExpressionNode =>
-                            n.resolveDefinition() match {
+                            n.resolveDefinition(actionContext) match {
                               case Some(_def: IsTypeDefinition) =>
                                   resolveTailDefinitions(_def, tail)
                               case _ =>
                                     Seq.empty
                             }
                         case n: SuperExpressionNode =>
-                            n.resolveDefinition() match {
+                            n.resolveDefinition(actionContext) match {
                                 case Some(_def: IsTypeDefinition) =>
                                     resolveTailDefinitions(_def, tail)
                                 case _ =>
                                     Seq.empty
                             }
                         case n: LiteralLike =>
-                            n.resolveDefinition() match {
+                            n.resolveDefinition(actionContext) match {
                                 case Some(_def: IsTypeDefinition) =>
                                     resolveTailDefinitions(_def, tail)
                                 case _ =>
@@ -143,7 +144,7 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
                             }
                         case n =>
                             //head of expression has not been resolved yet, find its definition going UPwards
-                            val finder = new AscendingDefinitionFinder()
+                            val finder = new AscendingDefinitionFinder(actionContext)
                             finder.findDefinition(n, n).headOption match {
                                 case Some(_def: IsTypeDefinition) =>
                                     resolveTailDefinitions(_def, tail)

@@ -24,14 +24,15 @@ package com.neowit.apexscanner.nodes
 import com.neowit.apexscanner.antlr.ApexcodeParser.ClassDeclarationContext
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.resolvers.AscendingDefinitionFinder
+import com.neowit.apexscanner.scanner.actions.ActionContext
 
 case class IdentifierNode(name: String, range: Range) extends AbstractExpression {
     override def nodeType: AstNodeType = IdentifierNodeType
     override def getDebugInfo: String = super.getDebugInfo + " " + name
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = {
+    override protected def resolveDefinitionImpl(actionContext: ActionContext): Option[AstNode] = {
         println("resolve definition of identifier: " + name)
-        resolveDefinitionIfPartOfExprDotExpr() match {
+        resolveDefinitionIfPartOfExprDotExpr(actionContext) match {
             case defOpt@ Some(_) =>
                 // this identifier is part of expression1.expression2....
                 defOpt
@@ -42,14 +43,14 @@ case class IdentifierNode(name: String, range: Range) extends AbstractExpression
                         case n: DataTypeNode => n.qualifiedName.exists(_.endsWith(QualifiedName(Array(name))))
                         case _ => false
                     }.flatMap{
-                        case n: DataTypeNode => n.resolveDefinition()
+                        case n: DataTypeNode => n.resolveDefinition(actionContext)
                     }
 
                 dataTypeNodeDef match {
                     case defOpt @ Some(_) =>
                         defOpt
                     case None =>
-                        val finder = new AscendingDefinitionFinder()
+                        val finder = new AscendingDefinitionFinder(actionContext)
                         val res = finder.findDefinition(this, this).headOption
                         res match {
                             case resOpt @ Some(_) => resOpt

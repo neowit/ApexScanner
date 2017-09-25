@@ -27,13 +27,14 @@ import com.neowit.apexscanner.antlr.ApexcodeParser._
 import com.neowit.apexscanner.ast.ApexAstBuilderVisitor
 import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.resolvers.{AscendingDefinitionFinder, NodeBySymbolTextFinder}
+import com.neowit.apexscanner.scanner.actions.ActionContext
 import org.antlr.v4.runtime.tree.{ErrorNode, ParseTree}
 import org.antlr.v4.runtime.{Token, TokenStream}
 
 /**
   * Created by Andrey Gavrikov 
   */
-class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstNode) {
+class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstNode, actionContext: ActionContext) {
     private val _visitor = new ApexAstBuilderVisitor(projectOpt = None, documentOpt = None)
 
     def resolveContext(context: ParseTree, tokens: TokenStream): Option[IsTypeDefinition] = {
@@ -134,7 +135,7 @@ class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstN
                 // add sub-tree to main AST
                 astScopeNode.addChildToAst(n)
                 // finally try to resolve definition of fudged expression
-                n.resolveDefinition() match {
+                n.resolveDefinition(actionContext) match {
                     case defOpt @ Some(_: IsTypeDefinition) =>
                         defOpt.map(_.asInstanceOf[IsTypeDefinition])
                     case x =>
@@ -159,7 +160,7 @@ class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstN
                             Option(_lastChild)
                         case _lastChild: HasTypeDefinition =>
                             // finally try to resolve definition of fudged expression
-                            _lastChild.resolveDefinition() match {
+                            _lastChild.resolveDefinition(actionContext) match {
                                 case defOpt @ Some(_: IsTypeDefinition) =>
                                     defOpt.map(_.asInstanceOf[IsTypeDefinition])
                                 case _ =>
@@ -186,7 +187,7 @@ class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstN
                     case ex: IsTypeDefinition =>
                         Option(ex)
                     case ex: ExpressionStatementNode =>
-                        ex.resolveDefinition() match {
+                        ex.resolveDefinition(actionContext) match {
                             case defOpt @ Some(_: IsTypeDefinition) =>
                                 defOpt.map(_.asInstanceOf[IsTypeDefinition])
                             case _ =>
@@ -242,7 +243,7 @@ class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstN
                 // given node is already a type definition, nothing to search
                 Option(node.asInstanceOf[IsTypeDefinition])
             case _ =>
-                val defFinder = new AscendingDefinitionFinder()
+                val defFinder = new AscendingDefinitionFinder(actionContext)
                 val definitions = defFinder.findDefinition(node, node)
                 definitions match {
                     case Nil =>

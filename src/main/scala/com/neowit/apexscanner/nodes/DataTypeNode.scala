@@ -28,7 +28,7 @@ trait DataTypeNode extends AstNode with IsTypeDefinition {
     def getDataType: ValueType
 
     override def getValueType: Option[ValueType] = Option(getDataType)
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(this)
     override def qualifiedName: Option[QualifiedName] = Option(getDataType.qualifiedName)
 }
 /**

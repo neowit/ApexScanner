@@ -29,7 +29,7 @@ case class MethodNode(range: Range) extends MethodNodeBase { self =>
         getChildInAst[MethodHeaderNode](MethodHeaderNodeType).flatMap(_.methodName)
 
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(this)
 
     def getApexDoc: Option[DocNode] = getChildrenInAst[DocNode](DocNodeType).headOption
 
@@ -86,7 +86,7 @@ object MethodNode {
 
             override def range: Range = Range.INVALID_LOCATION
 
-            override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+            override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(this)
 
             override def getApexDoc: Option[DocNode] = {
                 methodApexDoc match {

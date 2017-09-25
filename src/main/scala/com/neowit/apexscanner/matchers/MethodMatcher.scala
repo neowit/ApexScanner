@@ -23,15 +23,16 @@ package com.neowit.apexscanner.matchers
 
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes.{MethodCallNode, MethodNode, ValueType}
+import com.neowit.apexscanner.scanner.actions.ActionContext
 
 /**
   * Created by Andrey Gavrikov 
   */
-class MethodMatcher(methodName: QualifiedName, paramTypes: Seq[ValueType]) {
+class MethodMatcher(methodName: QualifiedName, paramTypes: Seq[ValueType], actionContext: ActionContext) {
     private val paramTypesLength = paramTypes.length
 
-    def this(methodCallNode: MethodCallNode) = {
-        this(methodCallNode.methodName, methodCallNode.getParameterTypes)
+    def this(methodCallNode: MethodCallNode, actionContext: ActionContext) = {
+        this(methodCallNode.methodName, methodCallNode.getParameterTypes(actionContext), actionContext)
     }
 
     /*

@@ -25,6 +25,7 @@ import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.matchers.MethodMatcher
 import com.neowit.apexscanner.nodes._
+import com.neowit.apexscanner.scanner.actions.ActionContext
 
 import scala.annotation.tailrec
 
@@ -37,8 +38,8 @@ object AscendingDefinitionFinder {
         case _ => false
     }
 
-    def methodMatchFunc(targetCaller: MethodCallNode): NodeMatcherFunc = (n: AstNode) => {
-        val methodMatcher = new MethodMatcher(targetCaller)
+    def methodMatchFunc(targetCaller: MethodCallNode, actionContext: ActionContext): NodeMatcherFunc = (n: AstNode) => {
+        val methodMatcher = new MethodMatcher(targetCaller, actionContext)
         n match {
             case node: MethodNode =>
                 methodMatcher.isSameMethod(node)
@@ -53,7 +54,7 @@ object AscendingDefinitionFinder {
   * this is ASCENDING lookup, starts from the bottom and goes up
   * Use this to find definition in the same file as target node
   */
-class AscendingDefinitionFinder() {
+class AscendingDefinitionFinder(actionContext: ActionContext) {
     import AscendingDefinitionFinder._
 
     /**
@@ -77,7 +78,7 @@ class AscendingDefinitionFinder() {
         nodeFinder.findInside(rootNode) match {
             case Some(targetNode: HasTypeDefinition)=>
                 //targetNode.resolveDefinition()
-                targetNode.resolveDefinition().map(Seq(_)).getOrElse(Seq.empty)
+                targetNode.resolveDefinition(actionContext).map(Seq(_)).getOrElse(Seq.empty)
             case Some(targetNode)=>
                 println("AscendingDefinitionFinder: " + targetNode)
                 // TODO - make sure we do not need this
@@ -136,9 +137,9 @@ class AscendingDefinitionFinder() {
                 // looks like target is a method call
                 // try to resolve call parameter types first
                 //val paramTypes = resolveMethodCallParameters(methodCaller)
-                val paramTypes = methodCaller.getParameterTypes
+                val paramTypes = methodCaller.getParameterTypes(actionContext)
                 methodCaller.setResolvedParameterTypes(paramTypes)
-                val matchFunc = methodMatchFunc(methodCaller)
+                val matchFunc = methodMatchFunc(methodCaller, actionContext)
                 findDefinitionInternal(target, methodCaller.methodName, startNode, matchFunc, Seq.empty)
             case t:IdentifierNode =>
                 val targetName = QualifiedName(Array(t.name))

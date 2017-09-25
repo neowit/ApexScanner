@@ -31,5 +31,5 @@ case class MethodParameterNode(name: String, range: Range) extends AstNode with 
 
     override def qualifiedName: Option[QualifiedName] = Option(QualifiedName(Array(name)))
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = Option(this)
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(this)
 }

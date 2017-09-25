@@ -46,7 +46,7 @@ case class LiteralNode(literalType: Int, valueTerminal: TerminalNode, range: Ran
 
     def getText: String = valueTerminal.getText
 
-    override protected def resolveDefinitionImpl(): Option[AstNode] = {
+    override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = {
         getProject.flatMap(_.getByQualifiedName(getStandardNamespace(literalType)))
     }
 
