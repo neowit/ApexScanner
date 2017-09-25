@@ -24,6 +24,7 @@ package com.neowit.apexscanner.completion
 import com.neowit.apexscanner.{Project, TextBasedDocument, TokenBasedDocument, VirtualDocument}
 import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, SoqlLexer, SoqlParserUtils}
 import com.neowit.apexscanner.nodes.{Position, Range}
+import com.neowit.apexscanner.scanner.actions.ActionContext
 import com.typesafe.scalalogging.LazyLogging
 import org.antlr.v4.runtime._
 
@@ -148,21 +149,21 @@ object CaretScopeFinder extends LazyLogging {
 class CaretScopeFinder(project: Project) extends LazyLogging {
     import CaretScopeFinder._
 
-    def findCaretScope(caretInOriginalDocument: CaretInDocument): Option[FindCaretScopeResult] = {
+    def findCaretScope(caretInOriginalDocument: CaretInDocument, actionContext: ActionContext): Option[FindCaretScopeResult] = {
         val lexer = new ApexcodeLexer(caretInOriginalDocument.document.getCharStream)
         val tokens = new CommonTokenStream(lexer)
         findCaretToken(caretInOriginalDocument, tokens) match {
             case Some(caretTokenInApex) if ApexcodeLexer.SoqlLiteral == caretTokenInApex.getType =>
                 // looks like caret is inside SOQL literal
-                findCaretScopeInSoql(caretInOriginalDocument, caretTokenInApex)
+                findCaretScopeInSoql(caretInOriginalDocument, caretTokenInApex, actionContext)
             case Some(caretTokenInApex) =>
-                findCaretScopeInApex(caretInOriginalDocument, caretTokenInApex)
+                findCaretScopeInApex(caretInOriginalDocument, caretTokenInApex, actionContext)
             case None =>
                 None
         }
     }
 
-    private def findCaretScopeInApex(caretInOriginalDocument: CaretInDocument, caretTokenInOriginalDocument: Token): Option[FindCaretScopeResult] = {
+    private def findCaretScopeInApex(caretInOriginalDocument: CaretInDocument, caretTokenInOriginalDocument: Token, actionContext: ActionContext): Option[FindCaretScopeResult] = {
         // alter original document by injecting FIXER_TOKEN
         val fixedDocument = injectFixerToken(caretInOriginalDocument)
         val caret = new CaretInFixedDocument(caretInOriginalDocument.position, fixedDocument, caretInOriginalDocument.document)
@@ -170,9 +171,12 @@ class CaretScopeFinder(project: Project) extends LazyLogging {
 
         findCaretToken(caret, tokenStream) match {
             case Some(caretToken) =>
+                if (actionContext.isCancelled) {
+                    return None
+                }
                 //now when we found token corresponding caret position try to understand context
                 //collectCandidates(caret, caretToken, parser)
-                val resolver = new CaretExpressionResolver(project)
+                val resolver = new CaretExpressionResolver(project, actionContext)
                 val tokens = parser.getTokenStream
                 resolver.resolveCaretScope(caret, caretToken, tokens) match {
                     case caretScopeOpt @ Some( CaretScope(_, _)) =>
@@ -185,12 +189,15 @@ class CaretScopeFinder(project: Project) extends LazyLogging {
         }
     }
 
-    private def findCaretScopeInSoql(caretInOriginalDocument: CaretInDocument, caretTokenInApex: Token): Option[FindCaretScopeResult] = {
+    private def findCaretScopeInSoql(caretInOriginalDocument: CaretInDocument, caretTokenInApex: Token, actionContext: ActionContext): Option[FindCaretScopeResult] = {
         val fixedSoqlDocument = injectFixerTokenInSoql(caretInOriginalDocument, caretTokenInApex)
         val (parser, tokenStream) = SoqlParserUtils.createParserWithCommonTokenStream(fixedSoqlDocument)
 
         findFixerToken(tokenStream) match { // fixer token corresponds to "caret" token position
             case Some(caretTokenInSoqlDocument) =>
+                if (actionContext.isCancelled) {
+                    return None
+                }
                 // here we need to provide caret with "fixed" Apex document but caretToken from SOQL document
                 // with absolute location inside Apex Document
                 val fixedApexDocumentText = replaceTokenText(caretInOriginalDocument.document, caretTokenInApex, fixedSoqlDocument.getTextContent)
@@ -208,7 +215,7 @@ class CaretScopeFinder(project: Project) extends LazyLogging {
 
                 //now when we found token corresponding to caret position try to understand context
                 //collectCandidates(caret, caretToken, parser)
-                val resolver = new CaretExpressionResolver(project)
+                val resolver = new CaretExpressionResolver(project, actionContext)
                 val tokens = parser.getTokenStream
                 resolver.resolveCaretScope(caret, caretToken, tokens) match {
                     case caretScopeOpt @ Some( CaretScope(_, _)) =>

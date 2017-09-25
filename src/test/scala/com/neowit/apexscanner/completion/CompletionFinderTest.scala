@@ -24,10 +24,13 @@ package com.neowit.apexscanner.completion
 import java.nio.file.{FileSystems, Paths}
 
 import com.neowit.apexscanner.antlr.CaretUtils
+import com.neowit.apexscanner.scanner.actions.{ActionContext, ListCompletionsActionType}
 import com.neowit.apexscanner.{Project, TestConfigProvider}
 import com.neowit.apexscanner.symbols.Symbol
 import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
+
+import scala.util.Random
 
 
 /**
@@ -257,8 +260,8 @@ private val filePath = getProperty("CompletionFinderTest.path")
                 Project(projectPath)
             }
         val caretInDocument = CaretUtils.getCaret(text, Paths.get(documentName))
-
+        val context = ActionContext("CompletionFinderTest-" + Random.nextString(5), ListCompletionsActionType)
         val completionFinder = new CompletionFinder(project)
-        completionFinder.listCompletions(caretInDocument)
+        completionFinder.listCompletions(caretInDocument, context)
     }
 }

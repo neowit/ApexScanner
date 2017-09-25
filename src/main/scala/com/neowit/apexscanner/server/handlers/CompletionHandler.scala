@@ -22,7 +22,7 @@
 package com.neowit.apexscanner.server.handlers
 
 import com.neowit.apexscanner.FileBasedDocument
-import com.neowit.apexscanner.scanner.actions.ListCompletions
+import com.neowit.apexscanner.scanner.actions.{ActionContext, ListCompletions, ListCompletionsActionType}
 import com.neowit.apexscanner.server.protocol.LanguageServer
 import com.neowit.apexscanner.server.protocol.messages.MessageParams.CompletionParams
 import com.neowit.apexscanner.server.protocol.messages._
@@ -30,6 +30,8 @@ import com.typesafe.scalalogging.LazyLogging
 
 import scala.concurrent.{ExecutionContext, Future}
 import io.circe.syntax._
+
+import scala.util.Random
 
 /**
   * Created by Andrey Gavrikov 
@@ -45,12 +47,17 @@ class CompletionHandler() extends MessageHandler with MessageJsonSupport with La
                         case Some(file) =>
                             server.getProject(file) match {
                               case Some(project) =>
+                                  // cancel all currently running Completion Actions
+                                  ActionContext.cancelAll(ListCompletionsActionType)
+                                  // LSP does not support action Id, so have to use random value
+                                  val context = ActionContext("LSP-" + Random.nextString(5), ListCompletionsActionType)
+
                                   val completions = new ListCompletions(project)
                                   val position = params.position
                                   val document = project.getFileContent(file).getOrElse(FileBasedDocument(file))
                                   // Line and Column in LSP are zero based
                                   // while ANTLR uses: Line starting with 1, column starting with 0
-                                  val res = completions.list(document, position.line +1, position.col)
+                                  val res = completions.list(document, position.line +1, position.col, context)
                                   val completionItems = res.options.map(CompletionItem(_))
                                   Future.successful(Right(ResponseMessage(messageIn.id, Option(completionItems.asJson), error = None)))
 

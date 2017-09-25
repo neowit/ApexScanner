@@ -27,9 +27,9 @@ import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, ApexcodePar
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.resolvers.QualifiedNameDefinitionFinder
+import com.neowit.apexscanner.scanner.actions.ActionContext
 import com.typesafe.scalalogging.LazyLogging
 import org.antlr.v4.runtime._
-
 import com.neowit.apexscanner.symbols._
 
 case class FindCaretScopeResult(caretScope: Option[CaretScope], caretToken: Token)
@@ -56,23 +56,32 @@ object CompletionFinder extends LazyLogging {
 }
 class CompletionFinder(project: Project) extends LazyLogging {
 
-    def listCompletions(file: VirtualDocument, line: Int, column: Int): Seq[Symbol] = {
+    def listCompletions(file: VirtualDocument, line: Int, column: Int, actionContext: ActionContext): Seq[Symbol] = {
         val caret = new CaretInDocument(Position(line, column), file)
-        listCompletions(caret)
+        listCompletions(caret, actionContext)
     }
 
-    def listCompletions(caret: CaretInDocument): Seq[Symbol] = {
+    def listCompletions(caret: CaretInDocument, actionContext: ActionContext): Seq[Symbol] = {
         val scopeFinder = new CaretScopeFinder(project)
-        scopeFinder.findCaretScope(caret) match {
+        scopeFinder.findCaretScope(caret, actionContext) match {
             case Some(FindCaretScopeResult(Some(CaretScope(_, Some(typeDefinition))), _)) =>
-                getValueTypeMembers(typeDefinition)
+                if (actionContext.isCancelled) {
+                    return Seq.empty
+                }
+                getValueTypeMembers(typeDefinition, actionContext)
             case Some(FindCaretScopeResult(Some(CaretScope(scopeNode, None)), caretToken)) =>
+                if (actionContext.isCancelled) {
+                    return Seq.empty
+                }
                 // caret definition is not obvious, but we have an AST scope node
                 val (parser, _) = ApexParserUtils.createParserWithCommonTokenStream(caret)
                 val candidates = collectCandidates(caret, caretToken, parser)
                 getCandidateSymbols(scopeNode, candidates)
 
             case Some(FindCaretScopeResult(None, caretToken)) =>
+                if (actionContext.isCancelled) {
+                    return Seq.empty
+                }
                 // caret definition is not obvious, and we do not even have an AST scope node
                 val (parser, _) = ApexParserUtils.createParserWithCommonTokenStream(caret)
                 collectCandidates(caret, caretToken, parser)
@@ -145,13 +154,19 @@ class CompletionFinder(project: Project) extends LazyLogging {
         res
     }
 
-    private def getValueTypeMembers(typeDefinition: IsTypeDefinition): Seq[Symbol] = {
+    private def getValueTypeMembers(typeDefinition: IsTypeDefinition, actionContext: ActionContext): Seq[Symbol] = {
         typeDefinition.resolveDefinition() match {
             case Some(defNode: AstNode with IsTypeDefinition) =>
+                if (actionContext.isCancelled) {
+                    return Seq.empty
+                }
                 val fullyQualifiedName = QualifiedName.getFullyQualifiedValueTypeName(defNode)
                 typeDefinition.getValueType match {
                     case Some(valueType) =>
                         logger.debug("Caret value type: " + valueType)
+                        if (actionContext.isCancelled) {
+                            return Seq.empty
+                        }
                         // first try simple option, by "Value Type" as defined in the code
                         val allSymbols = getValueTypeMembers(valueType, fullyQualifiedName)
                         defNode.filterCompletionSymbols(allSymbols)

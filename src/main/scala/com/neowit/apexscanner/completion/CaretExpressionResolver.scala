@@ -25,6 +25,7 @@ import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, ApexcodePar
 import com.neowit.apexscanner.{Project, VirtualDocument}
 import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.resolvers.{NearestPrecedingNodeFinder, NodeByLocationFinder}
+import com.neowit.apexscanner.scanner.actions.ActionContext
 import com.typesafe.scalalogging.LazyLogging
 import org.antlr.v4.runtime._
 import org.antlr.v4.runtime.misc.Pair
@@ -34,7 +35,7 @@ case class CaretScope(scopeNode: AstNode, typeDefinition: Option[IsTypeDefinitio
 /**
   * Created by Andrey Gavrikov 
   */
-class CaretExpressionResolver(project: Project)  extends LazyLogging {
+class CaretExpressionResolver(project: Project, actionContext: ActionContext)  extends LazyLogging {
 
 
     def resolveCaretScope(caret: CaretInDocument, caretToken: Token, tokens: TokenStream): Option[CaretScope] = {
@@ -42,6 +43,9 @@ class CaretExpressionResolver(project: Project)  extends LazyLogging {
         val document = caret.document
         findAstScopeNode(document, caretToken) match{
           case Some(astScopeNode) =>
+              if (actionContext.isCancelled) {
+                  return None
+              }
               // find list of tokens before caret which are not in AST
               val lastAstNode = getNearestPrecedingAstNode(caret, astScopeNode)
               val lastPosition =

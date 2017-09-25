@@ -45,7 +45,8 @@ object ListCompletions extends LazyLogging {
         //val res = completions.list(FileBasedDocument(path), line +4, 22) //new Object__c(
         //val res = completions.list(FileBasedDocument(path), line +5, 38) //new CompletionTester( Field =
         //val res = completions.list(FileBasedDocument(path), line +6, 44) //new List<Map<String, Set<Integer>>>(
-        val res = completions.list(FileBasedDocument(path), line +7, 57) //String str = new List<Map<String, Set<Integer>>>(
+        val contextId: ActionContext.ActionContextId = "test-1"
+        val res = completions.list(FileBasedDocument(path), line +7, 57, ActionContext(contextId, ListCompletionsActionType)) //String str = new List<Map<String, Set<Integer>>>(
 
         logger.debug( res.toString )
         ()
@@ -55,14 +56,14 @@ object ListCompletions extends LazyLogging {
 
 class ListCompletions(project: Project) extends LazyLogging {
 
-    def list(document: VirtualDocument, position: Position): ListCompletionsResult = {
-        list(document, position.line, position.col)
+    def list(document: VirtualDocument, position: Position, actionContext: ActionContext): ListCompletionsResult = {
+        list(document, position.line, position.col, actionContext)
     }
-    def list(document: VirtualDocument, line: Int, column: Int): ListCompletionsResult = {
+    def list(document: VirtualDocument, line: Int, column: Int, actionContext: ActionContext): ListCompletionsResult = {
         document.fileOpt match {
             case Some(file) =>
                 val finder = new CompletionFinder(project)
-                val symbols  = finder.listCompletions(document, line, column)
+                val symbols  = finder.listCompletions(document, line, column, actionContext)
                 ListCompletionsResult(file, symbols)
             case None =>
                 throw new IllegalArgumentException("Document.file must be provided")
