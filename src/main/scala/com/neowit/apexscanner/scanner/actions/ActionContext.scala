@@ -24,6 +24,8 @@ import com.neowit.apexscanner.scanner.actions.ActionContext.ActionContextId
 import scala.collection.mutable
 import java.util.concurrent.atomic.AtomicBoolean
 
+import com.typesafe.scalalogging.LazyLogging
+
 /**
   * Created by Andrey Gavrikov 
   */
@@ -82,7 +84,7 @@ object ActionContext {
     }
 }
 
-trait ActionContext {
+trait ActionContext extends LazyLogging {
     private val _isCancelled: AtomicBoolean = new AtomicBoolean(false)
     private val _isDone: AtomicBoolean = new AtomicBoolean(false)
 
@@ -95,10 +97,13 @@ trait ActionContext {
       * @return false if this task was already cancelled
       */
     def cancel(): Boolean = {
+        logger.trace("Attempting to cancel ActionContext with Id: " + id)
         if (_isCancelled.get()) {
+            logger.trace("    ActionContext with Id: " + id + " is already cancelled")
             false
         } else {
             _isCancelled.set(true)
+            logger.trace("    Cancelled ActionContext with Id: " + id)
             true
         }
     }
@@ -115,11 +120,14 @@ trait ActionContext {
     def isDone: Boolean = _isDone.get()
 
     def markDone(): Boolean = {
+        logger.trace("Attempting to markDone ActionContext with Id: " + id)
         if (_isDone.get()) {
+            logger.trace("  ActionContext with Id: " + id + " is already Done")
             false
         } else {
             _isDone.set(true)
             ActionContext.forget(this)
+            logger.trace("    Marked as Done ActionContext with Id: " + id)
             true
         }
     }
