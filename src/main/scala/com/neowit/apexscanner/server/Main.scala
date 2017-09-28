@@ -45,7 +45,7 @@ object Main extends LazyLogging {
                 c.copy(communicationMethod = x) ).text("Connection Type - socket | stdio")
             opt[String]('h', "host").action( (x, c) =>
                 c.copy(host = x) ).text("Host address. Ignored if Connection Type is not socket")
-            opt[Int]('h', "port").action( (x, c) =>
+            opt[Int]('p', "port").action( (x, c) =>
                 c.copy(port = x) ).text("Socket Port. Ignored if Connection Type is not socket")
 
         }

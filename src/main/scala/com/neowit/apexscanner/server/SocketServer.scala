@@ -48,7 +48,7 @@ class SocketServer(port: Int, poolSize: Int) {
     private val pool: ExecutorService = Executors.newFixedThreadPool(poolSize)
 
     def start(): Unit = {
-        println("READY to accept connection") // this line is important, otherwise client does not know that server has started
+        println(s"READY to accept connection on localhost:$port") // this line is important, otherwise client does not know that server has started
         try {
             while (true) {
                 // This will block until a connection comes in.
