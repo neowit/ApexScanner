@@ -22,12 +22,6 @@
 package com.neowit.apexscanner.server
 
 
-import java.io.{InputStream, OutputStream}
-
-import com.neowit.apexscanner.server.protocol.LanguageServer
-import com.neowit.apexscanner.server.protocol.messages.NotificationMessage
-import com.typesafe.scalalogging.LazyLogging
-
 import scala.concurrent.ExecutionContext
 
 /**
@@ -35,56 +29,17 @@ import scala.concurrent.ExecutionContext
   */
 object StdInOutServer {
     def main(args: Array[String]): Unit = {
-        val server = new StdInOutServer(System.in, System.out)
+        //val server = new StdInOutServer(System.in, System.out)
+
+        val server = new LanguageServerBase(System.in, System.out){
+            override implicit val ex: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+
+            override def start(): Unit = {
+                logger.debug("Starting StdInOutServer")
+                super.start()
+            }
+        }
         server.start()
     }
 
-}
-// see also: https://twitter.github.io/scala_school/concurrency.html#executor for socket server example
-class StdInOutServer(inStream: InputStream, outStream: OutputStream) extends LanguageServer with LazyLogging {
-    //TODO review method of obtaining ExecutionContext
-    implicit val ex: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
-
-    private val reader = new MessageReader(inStream)
-    private val writer = new MessageWriter(outStream)
-
-    /*
-    def start(): Unit = {
-        val reader = new MessageReader(inStream)
-        val data = reader.read()
-        logger.debug("Received:")
-        logger.debug(data.mkString)
-    }
-
-    override def shutdown(): Unit = {
-        inStream.close()
-        outStream.close()
-    }
-    */
-    def start(): Unit = {
-        logger.debug("Starting StdInOutServer")
-        while (!reader.isStreamClosed) {
-            reader.read().foreach{message =>
-                //logger.debug("Received:")
-                //logger.debug(message.toString)
-
-                process(message) map {
-                    case Right(response) =>
-                        writer.write(response)
-                    case Left(_) =>
-                }
-
-            }
-        }
-        shutdown()
-    }
-
-    override def sendNotification(notification: NotificationMessage): Unit = {
-        writer.write(notification)
-    }
-
-    override def shutdown(): Unit = {
-        logger.debug("SHUTDOWN...")
-        sys.exit(0)
-    }
 }

@@ -21,13 +21,8 @@
 
 package com.neowit.apexscanner.server
 
-import java.io.{InputStream, OutputStream}
-import java.net.{ServerSocket, Socket}
+import java.net.ServerSocket
 import java.util.concurrent.{ExecutorService, Executors}
-
-import com.neowit.apexscanner.server.protocol.LanguageServer
-import com.neowit.apexscanner.server.protocol.messages.NotificationMessage
-import com.typesafe.scalalogging.LazyLogging
 
 import scala.concurrent.ExecutionContext
 
@@ -36,6 +31,7 @@ import scala.concurrent.ExecutionContext
   * Created by Andrey Gavrikov
   */
 object SocketServer {
+    implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
     def main(args: Array[String]): Unit = {
         val server = new SocketServer(65001, 2)
         server.start()
@@ -43,7 +39,7 @@ object SocketServer {
 
 }
 // see also: https://twitter.github.io/scala_school/concurrency.html#executor for socket server example
-class SocketServer(port: Int, poolSize: Int) {
+class SocketServer(port: Int, poolSize: Int)(implicit val ex: ExecutionContext) {thisServer =>
     val serverSocket = new ServerSocket(port)
     private val pool: ExecutorService = Executors.newFixedThreadPool(poolSize)
 
@@ -53,7 +49,25 @@ class SocketServer(port: Int, poolSize: Int) {
             while (true) {
                 // This will block until a connection comes in.
                 val socket = serverSocket.accept()
-                pool.execute(new SocketLanguageServer(socket))
+                //pool.execute(new SocketLanguageServer(socket))
+                val langServer = new LanguageServerBase(socket.getInputStream, socket.getOutputStream) with Runnable {
+                    override implicit val ex: ExecutionContext = thisServer.ex
+
+                    override protected def isConnectionOpen: Boolean = super.isConnectionOpen && !socket.isClosed
+
+                    override def shutdown(): Unit = {
+                        socket.close()
+                        super.shutdown()
+                    }
+
+                    override def run(): Unit = start()
+
+                    override def start(): Unit = {
+                        logger.debug("Starting SocketServer")
+                        super.start()
+                    }
+                }
+                pool.execute(langServer)
             }
         } finally {
             shutdown()
@@ -66,39 +80,4 @@ class SocketServer(port: Int, poolSize: Int) {
     }
 }
 
-class SocketLanguageServer(socket: Socket) extends Runnable with LanguageServer with LazyLogging {
-    //TODO review method of obtaining ExecutionContext
-    implicit val ex: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-    private val inStream: InputStream = socket.getInputStream
-    private val outStream: OutputStream = socket.getOutputStream
-    private val reader = new MessageReader(inStream)
-    private val writer = new MessageWriter(outStream)
-    //def message = (Thread.currentThread.getName() + "\n").getBytes
-    def run(): Unit = {
-        while (!reader.isStreamClosed && !socket.isClosed) {
-            reader.read().foreach{message =>
-                //logger.debug("Received:")
-                //logger.debug(message.toString)
-
-                process(message).map {
-                    case Right(response) =>
-                        writer.write(response)
-                    case Left(_) =>
-                }
-
-            }
-        }
-        shutdown()
-    }
-
-
-    override def sendNotification(notification: NotificationMessage): Unit = {
-        writer.write(notification)
-    }
-
-    override def shutdown(): Unit = {
-        socket.close()
-        sys.exit(0)
-    }
-}

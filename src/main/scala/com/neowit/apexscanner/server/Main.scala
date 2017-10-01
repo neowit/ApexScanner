@@ -23,6 +23,8 @@ package com.neowit.apexscanner.server
 
 import com.typesafe.scalalogging.LazyLogging
 
+import scala.concurrent.ExecutionContext
+
 //import ch.qos.logback.classic.{Level, LoggerContext}
 //import org.slf4j.LoggerFactory
 
@@ -30,6 +32,8 @@ import com.typesafe.scalalogging.LazyLogging
   * Created by Andrey Gavrikov 
   */
 object Main extends LazyLogging {
+    implicit val execContext: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+
     case class Config (
                           communicationMethod:String = "socket",
                           host:String = "localhost",
@@ -63,7 +67,14 @@ object Main extends LazyLogging {
                       //rootLogger.setLevel(Level.DEBUG)
                       System.setProperty("STDOUT_LEVEL", "debug")
 
-                      val server = new StdInOutServer(System.in, System.out)
+                      val server = new LanguageServerBase(System.in, System.out){
+                          override implicit val ex: ExecutionContext = execContext
+
+                          override def start(): Unit = {
+                              logger.debug("Starting StdInOutServer")
+                              super.start()
+                          }
+                      }
                       server.start()
                   case _ =>
               }
