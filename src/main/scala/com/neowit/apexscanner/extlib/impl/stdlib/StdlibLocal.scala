@@ -24,6 +24,7 @@ package com.neowit.apexscanner.extlib.impl.stdlib
 import java.io.File
 
 import com.neowit.apexscanner.Project
+import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.extlib.CodeLibrary
 import io.circe.jawn._
 
@@ -59,6 +60,12 @@ private class StdlibLocal(project: Project, fileOpt: Option[File] = None) extend
             _isLoaded = true
         }
         this
+    }
+
+    override protected def getDefaultNamespaces: Seq[QualifiedName] = {
+        Seq(
+            QualifiedName("System"), //e.g. Test.isRunningTest() instead of Test.isRunningTest()
+        )
     }
 
     private def getSourceFile: File = {

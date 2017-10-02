@@ -233,9 +233,31 @@ private val filePath = getProperty("CompletionFinderTest.path")
         result match {
             case symbols if symbols.nonEmpty =>
                 assert(symbols.length >= 2, "Result contains less items than expected")
-                assert(symbols.exists(_.symbolName == "isEmpty"), "Missing expected symbol: name()")
-                assert(symbols.exists(_.symbolName == "isNotBlank"), "Missing expected symbol: ordinal()")
-                assert(symbols.exists(_.symbolName == "isNotEmpty"), "Missing expected symbol: equals()")
+                assert(symbols.exists(_.symbolName == "isEmpty"), "Missing expected symbol")
+                assert(symbols.exists(_.symbolName == "isNotBlank"), "Missing expected symbol")
+                assert(symbols.exists(_.symbolName == "isNotEmpty"), "Missing expected symbol")
+            case _ =>
+                fail("Expected non empty result")
+        }
+    }
+
+    test("testListCompletions: `Test.<CARET>`") {
+        val text =
+            """
+              |class CompletionTester {
+              |
+              | public void testCompletion() {
+              |     Test.<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = listCompletions(text, "", loadStdLib = true)
+        result match {
+            case symbols if symbols.nonEmpty =>
+                assert(symbols.length >= 2, "Result contains less items than expected")
+                assert(symbols.exists(_.symbolName == "isRunningTest"), "Missing expected symbol")
+                assert(symbols.exists(_.symbolName == "startTest"), "Missing expected symbol")
+                assert(symbols.exists(_.symbolName == "stopTest"), "Missing expected symbol")
             case _ =>
                 fail("Expected non empty result")
         }

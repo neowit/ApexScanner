@@ -72,7 +72,7 @@ trait CodeLibrary {
             //check if this name is in one of available namespaces
             // first try to find namespace which contains class with name == qualifiedName
             val namespaceQNameOpt =
-            _namespaceByQName.keySet.find{ qName =>
+            getDefaultNamespaces.find{ qName =>
                 val fullName = QualifiedName(qName, qualifiedName)
                 _containerByQName.contains(fullName)
             }
@@ -84,5 +84,15 @@ trait CodeLibrary {
                 case None => None
             }
         }
+    }
+
+    /**
+      * if getByQualifiedName(qualifiedName) returns nothing then there are may be cases when we can look for specific qualifiedName
+      * inside default namespaces, i.e. namespaces which do not require namespace name to be specified
+      * e.g. System.Test.isRunningTest() and Test.isRunningTest() are both allowed
+      * @return
+      */
+    protected def getDefaultNamespaces: Seq[QualifiedName] = {
+        Seq.empty
     }
 }
