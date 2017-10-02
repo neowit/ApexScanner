@@ -262,6 +262,73 @@ private val filePath = getProperty("CompletionFinderTest.path")
                 fail("Expected non empty result")
         }
     }
+    test("testListCompletions: `Test.<CARET>` NEW_LINE String Str; ") {
+        val text =
+            """
+              |class CompletionTester {
+              |
+              | public void testCompletion() {
+              |     Test.<CARET>
+              |     String str;
+              | }
+              |}
+            """.stripMargin
+        val result = listCompletions(text, "", loadStdLib = true)
+        result match {
+            case symbols if symbols.nonEmpty =>
+                assert(symbols.length >= 2, "Result contains less items than expected")
+                assert(symbols.exists(_.symbolName == "isRunningTest"), "Missing expected symbol")
+                assert(symbols.exists(_.symbolName == "startTest"), "Missing expected symbol")
+                assert(symbols.exists(_.symbolName == "stopTest"), "Missing expected symbol")
+            case _ =>
+                fail("Expected non empty result")
+        }
+    }
+    test("testListCompletions: `System.<CARET>`") {
+        val text =
+            """
+              |class CompletionTester {
+              |
+              | public void testCompletion() {
+              |     System.<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = listCompletions(text, "", loadStdLib = true)
+        result match {
+            case symbols if symbols.nonEmpty =>
+                assert(symbols.length >= 2, "Result contains less items than expected")
+                assert(symbols.exists(_.symbolName == "debug"), "Missing expected symbol")
+                assert(symbols.exists(_.symbolName == "now"), "Missing expected symbol")
+                assert(symbols.exists(_.symbolName == "today"), "Missing expected symbol")
+                assert(symbols.exists(_.symbolName == "assertEquals"), "Missing expected symbol")
+            case _ =>
+                fail("Expected non empty result")
+        }
+    }
+
+    test("testListCompletions: `Database.<CARET>`") {
+        val text =
+            """
+              |class CompletionTester {
+              |
+              | public void testCompletion() {
+              |     Database.<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = listCompletions(text, "", loadStdLib = true)
+        result match {
+            case symbols if symbols.nonEmpty =>
+                assert(symbols.length >= 2, "Result contains less items than expected")
+                assert(symbols.exists(_.symbolName == "update"), "Missing expected symbol")
+                assert(symbols.exists(_.symbolName == "upsert"), "Missing expected symbol")
+                assert(symbols.exists(_.symbolName == "delete"), "Missing expected symbol")
+                assert(symbols.exists(_.symbolName == "undelete"), "Missing expected symbol")
+            case _ =>
+                fail("Expected non empty result")
+        }
+    }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     var _projectWithStdLib: Option[Project] = None
     def listCompletions(text: String, documentName: String = "test", loadStdLib: Boolean = false): scala.Seq[Symbol] = {

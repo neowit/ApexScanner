@@ -25,14 +25,15 @@ import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeParser}
 import com.neowit.apexscanner.ast.ApexAstBuilderVisitor
 import com.neowit.apexscanner.extlib.CodeLibrary
 import com.neowit.apexscanner.nodes.{AstNode, ClassNode, DataTypeNode, DocNode, EnumConstantNode, EnumNode, IdentifierNode, MethodNodeBase, MethodParameterNode, NamespaceNode, Range, ValueType}
+import com.neowit.apexscanner.symbols
 import com.typesafe.scalalogging.LazyLogging
 
 /**
   * Created by Andrey Gavrikov 
   */
 class StdlibJsonVisitor(lib: CodeLibrary) extends StdlibJsonBaseVisitor[AstNode] with LazyLogging {
-    val astBuilderVisitor = new ApexAstBuilderVisitor(projectOpt = None, documentOpt = None)
-
+    private val astBuilderVisitor = new ApexAstBuilderVisitor(projectOpt = None, documentOpt = None)
+    private var _systemNamespaceNode: Option[NamespaceNode] = None
     /**
       * this is the main method which should be called after Apex API JSON file is parsed
       * @param apexApiJson root node of Apex API definition
@@ -48,7 +49,19 @@ class StdlibJsonVisitor(lib: CodeLibrary) extends StdlibJsonBaseVisitor[AstNode]
     }
 
     override def visitApexApiJsonNamespace(name: String, context: ApexApiJsonNamespace): AstNode = {
-        val namespace = NamespaceNode(Option(name))
+        val namespace = new NamespaceNode(Option(name)) {
+            override def getSymbolsForCompletion: Seq[symbols.Symbol] = {
+                name match {
+                    case Some(namespaceName) =>
+                        getSystemSymbols(lib, namespaceName) ++ super.getSymbolsForCompletion
+                    case _ =>
+                        super.getSymbolsForCompletion
+                }
+            }
+        }
+        if ("system" == name.toLowerCase) {
+            _systemNamespaceNode = Option(namespace)
+        }
         // tooling API does not return ENUMS correctly
         // it returns them as normal classes , e.g. ApexPages.Severity
         // so having to detect Enums by name
@@ -64,6 +77,31 @@ class StdlibJsonVisitor(lib: CodeLibrary) extends StdlibJsonBaseVisitor[AstNode]
                 lib.addByQualifiedName(clsNode.asInstanceOf[ClassNode])
         }
         namespace
+    }
+
+    /**
+      * special handling for classes under namespace "System"
+      * classes under namespace System are allowed to be referenced without namespace name
+      * e.g. System.Database.insert() is the same as Database.insert()
+      * in order to resolve such cases we have to do additional query inside "System" namespace
+      * @param name potential class name under namespace "System"
+      * @return
+      */
+    private def getSystemSymbols(lib: CodeLibrary, name: String): Seq[com.neowit.apexscanner.symbols.Symbol] = {
+        if (null == name || name.isEmpty) {
+            Seq.empty
+        } else {
+            val nameLower = name.toLowerCase
+            _systemNamespaceNode match {
+                case Some(systemNamespaceNode) =>
+                    systemNamespaceNode.findChildInAst{
+                        case ClassNode(Some(className), _) => className.toLowerCase == nameLower
+                        case _ => false
+                    }.map(_.getSymbolsForCompletion).getOrElse(Seq.empty)
+                case None => Seq.empty
+            }
+
+        }
     }
 
     override def visitApexApiJsonClass(name: String, context: ApexApiJsonClass): AstNode = {
