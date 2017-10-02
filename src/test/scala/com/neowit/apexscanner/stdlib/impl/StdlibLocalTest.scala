@@ -67,8 +67,8 @@ class StdlibLocalTest extends FunSuite with TestConfigProvider with ScalaFutures
         }
     }
 
-    test("test: SaveResult") {// Database.SaveResult
-        val qName = QualifiedName(Array("SaveResult"))
+    test("test: Database.SaveResult") {// Database.SaveResult
+        val qName = QualifiedName(Array("Database", "SaveResult"))
         project.getByQualifiedName(qName) match {
             case Some(node) =>
                 val methods = node.getSymbolsOfKind(SymbolKind.Method)
