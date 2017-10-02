@@ -47,14 +47,18 @@ trait LanguageServer extends LazyLogging {
     def initialiseProject(params: InitializeParams): Future[Option[Project]] = Future {
         params.rootUri.path match {
             case Some(path) =>
-                val project = Project(path)
-                _projectByPath += path -> project
-                project.loadStdLib
-                Option(project)
+                initialiseProjectImpl(params) match {
+                    case Some(project) =>
+                        _projectByPath += path -> project
+                        Option(project)
+                    case None => None
+                }
             case None =>
                 None
         }
     }
+
+    protected def initialiseProjectImpl(params: InitializeParams): Option[Project]
 
     /**
       * given the file path, try to determine its project from the list of initialized projects

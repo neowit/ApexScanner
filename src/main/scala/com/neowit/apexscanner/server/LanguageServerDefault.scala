@@ -23,14 +23,16 @@ package com.neowit.apexscanner.server
 
 import java.io.{InputStream, OutputStream}
 
+import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.server.protocol.LanguageServer
+import com.neowit.apexscanner.server.protocol.messages.MessageParams.InitializeParams
 import com.neowit.apexscanner.server.protocol.messages.NotificationMessage
 import com.typesafe.scalalogging.LazyLogging
 
 /**
   * Created by Andrey Gavrikov 
   */
-abstract class LanguageServerBase(inputStream: InputStream, outputStream: OutputStream) extends LanguageServer with LazyLogging {
+abstract class LanguageServerDefault(inputStream: InputStream, outputStream: OutputStream) extends LanguageServer with LazyLogging {
 
     private val reader = new MessageReader(inputStream)
     private val writer = new MessageWriter(outputStream)
@@ -41,6 +43,18 @@ abstract class LanguageServerBase(inputStream: InputStream, outputStream: Output
         writer.write(notification)
     }
 
+
+    override protected def initialiseProjectImpl(params: InitializeParams): Option[Project] = {
+        params.rootUri.path match {
+            case Some(path) =>
+                val project = Project(path)
+                project.loadStdLib()
+                Option(project)
+            case None =>
+                None
+        }
+
+    }
 
     def start(): Unit = {
         while (isConnectionOpen) {

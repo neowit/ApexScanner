@@ -31,7 +31,7 @@ object StdInOutServer {
     def main(args: Array[String]): Unit = {
         //val server = new StdInOutServer(System.in, System.out)
 
-        val server = new LanguageServerBase(System.in, System.out){
+        val server = new LanguageServerDefault(System.in, System.out){
             override implicit val ex: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
             override def start(): Unit = {

@@ -67,7 +67,7 @@ object Main extends LazyLogging {
                       //rootLogger.setLevel(Level.DEBUG)
                       System.setProperty("STDOUT_LEVEL", "debug")
 
-                      val server = new LanguageServerBase(System.in, System.out){
+                      val server = new LanguageServerDefault(System.in, System.out){
                           override implicit val ex: ExecutionContext = execContext
 
                           override def start(): Unit = {

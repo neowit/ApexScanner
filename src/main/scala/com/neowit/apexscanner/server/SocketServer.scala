@@ -50,7 +50,7 @@ class SocketServer(port: Int, poolSize: Int)(implicit val ex: ExecutionContext) 
                 // This will block until a connection comes in.
                 val socket = serverSocket.accept()
                 //pool.execute(new SocketLanguageServer(socket))
-                val langServer = new LanguageServerBase(socket.getInputStream, socket.getOutputStream) with Runnable {
+                val langServer = new LanguageServerDefault(socket.getInputStream, socket.getOutputStream) with Runnable {
                     override implicit val ex: ExecutionContext = thisServer.ex
 
                     override protected def isConnectionOpen: Boolean = super.isConnectionOpen && !socket.isClosed
