@@ -24,7 +24,7 @@ package com.neowit.apexscanner.server.protocol
 import java.nio.file.Path
 
 import com.neowit.apexscanner.Project
-import com.neowit.apexscanner.server.handlers.{CompletionHandler, DidChangeHandler, DidSaveHandler, InitializeHandler}
+import com.neowit.apexscanner.server.handlers._
 import com.neowit.apexscanner.server.protocol.messages.MessageParams.InitializeParams
 import com.neowit.apexscanner.server.protocol.messages._
 import com.typesafe.scalalogging.LazyLogging
@@ -90,6 +90,10 @@ trait LanguageServer extends LazyLogging {
                     None
                 case m @ RequestMessage(id, "textDocument/completion", params, _) =>
                     val handler = new CompletionHandler()
+                    val msg = handler.handle(this, m)
+                    Option(msg)
+                case m @ RequestMessage(id, "textDocument/definition", params, _) =>
+                    val handler = new DefinitionHandler()
                     val msg = handler.handle(this, m)
                     Option(msg)
                 case NotificationMessage("$/cancelRequest", _, _) =>

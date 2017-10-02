@@ -21,22 +21,25 @@
 
 package com.neowit.apexscanner.server.handlers
 
-import com.neowit.apexscanner.FileBasedDocument
-import com.neowit.apexscanner.scanner.actions.{ActionContext, ListCompletions, ListCompletionsActionType}
+import java.nio.file.{Path, Paths}
+
+import com.neowit.apexscanner.{FileBasedDocument, Project}
+import com.neowit.apexscanner.nodes._
+import com.neowit.apexscanner.resolvers.AscendingDefinitionFinder
+import com.neowit.apexscanner.scanner.actions.{ActionContext, FindSymbolActionType}
 import com.neowit.apexscanner.server.protocol.LanguageServer
 import com.neowit.apexscanner.server.protocol.messages.MessageParams.TextDocumentPositionParams
 import com.neowit.apexscanner.server.protocol.messages._
 import com.typesafe.scalalogging.LazyLogging
-
-import scala.concurrent.{ExecutionContext, Future}
 import io.circe.syntax._
 
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Random
 
 /**
   * Created by Andrey Gavrikov 
   */
-class CompletionHandler() extends MessageHandler with MessageJsonSupport with LazyLogging {
+class DefinitionHandler() extends MessageHandler with MessageJsonSupport with LazyLogging {
     override protected def handleImpl(server: LanguageServer, messageIn: RequestMessage)(implicit ex: ExecutionContext): Future[Either[ResponseError, ResponseMessage]] = {
         messageIn.params match {
           case Some(json) =>
@@ -48,18 +51,28 @@ class CompletionHandler() extends MessageHandler with MessageJsonSupport with La
                             server.getProject(file) match {
                               case Some(project) =>
                                   // cancel all currently running Completion Actions
-                                  ActionContext.cancelAll(ListCompletionsActionType)
+                                  ActionContext.cancelAll(FindSymbolActionType)
                                   // LSP does not support action Id, so have to use random value
-                                  val context = ActionContext("LSP-" + Random.nextString(5), ListCompletionsActionType)
+                                  val context = ActionContext("LSP-" + Random.nextString(5), FindSymbolActionType)
 
-                                  val completions = new ListCompletions(project)
-                                  val position = params.position
-                                  val document = project.getFileContent(file).getOrElse(FileBasedDocument(file))
                                   // Line and Column in LSP are zero based
                                   // while ANTLR uses: Line starting with 1, column starting with 0
-                                  val res = completions.list(document, position.line +1, position.col, context)
-                                  val completionItems = res.options.map(CompletionItem(_))
-                                  Future.successful(Right(ResponseMessage(messageIn.id, Option(completionItems.asJson), error = None)))
+                                  val position = params.position.copy(line = params.position.line +1)
+                                  val document = project.getFileContent(file).getOrElse(FileBasedDocument(file))
+                                  val locations: Seq[Location] =
+                                      project.getAst(document) match {
+                                          case Some(result) =>
+                                              val finder = new AscendingDefinitionFinder(context)
+                                              val allDefNodes = finder.findUltimateDefinition(result.rootNode, position, project)
+                                              val _locations = allDefNodes.filter {
+                                                  case defNode: AstNode if Range.INVALID_LOCATION != defNode.range => true
+                                                  case _ => false
+                                              }.map { defNode => toLspLocation(project, defNode) }
+                                              _locations
+
+                                          case _ => Seq.empty
+                                      }
+                                  Future.successful(Right(ResponseMessage(messageIn.id, Option(locations.asJson), error = None)))
 
 
                               case None =>
@@ -73,6 +86,27 @@ class CompletionHandler() extends MessageHandler with MessageJsonSupport with La
               }
           case None =>
               Future.successful(Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Missing params.")))
+        }
+    }
+
+    def toLspLocation(proj: Project, astNode: AstNode): Location = {
+        new Location {
+            override def project: Project = proj
+
+            // Line and Column in LSP are zero based
+            // while ANTLR uses: Line starting with 1, column starting with 0
+            override def range: Range = {
+                val start = astNode.range.start
+                val end = astNode.range.end
+                Range(start.copy(line = start.line - 1), end.copy(line = end.line -1), Position(0, 0))
+            }
+
+            override def path: Path = {
+                astNode.getFileNode.map(_.file) match {
+                    case Some(_path) => _path
+                    case None => Paths.get("")
+                }
+            }
         }
     }
 }

@@ -46,7 +46,7 @@ case class ServerCapabilities(
      /**
        * The server provides goto definition support.
        */
-     definitionProvider: Boolean = false,
+     definitionProvider: Boolean = true,
      /**
        * The server provides find references support.
        */

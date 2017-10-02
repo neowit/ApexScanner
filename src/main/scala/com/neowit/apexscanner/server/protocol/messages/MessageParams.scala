@@ -60,6 +60,7 @@ object MessageParams {
     case class DidSaveParams(textDocument: TextDocument) extends MessageParams
 
     case class CompletionParams(position: Position, textDocument: TextDocument) extends MessageParams
+    case class TextDocumentPositionParams(position: Position, textDocument: TextDocument) extends MessageParams
 
 
     case class DidChangeTextDocumentParams (
