@@ -79,6 +79,13 @@ trait AstNode {
     def getSymbolsOfKinds(kinds: Seq[SymbolKind]): Seq[Symbol] = {
         kinds.flatMap(getSymbolsOfKind)
     }
+
+    /**
+      * return all children/symbols which may participate when code completion is run from this node
+      * @return
+      */
+    def getSymbolsForCompletion: Seq[Symbol] = findChildrenInAst(_.isSymbol).map(_.asInstanceOf[Symbol])
+
     /**
       * override this method in SOQL and SOSL nodes
       * @return

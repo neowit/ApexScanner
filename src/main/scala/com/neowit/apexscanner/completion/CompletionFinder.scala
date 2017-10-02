@@ -212,7 +212,7 @@ class CompletionFinder(project: Project) extends LazyLogging {
         val res =
         qualifiedNameDefinitionFinder.findDefinition(qualifiedName) match {
             case Some(node) =>
-                node.findChildrenInAst(_.isSymbol).map(_.asInstanceOf[com.neowit.apexscanner.symbols.Symbol])
+                node.getSymbolsForCompletion
             case None => Seq.empty
         }
         res
