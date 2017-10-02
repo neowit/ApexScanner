@@ -23,7 +23,7 @@ package com.neowit.apexscanner.completion
 
 import com.neowit.apexscanner.antlr.CodeCompletionCore.CandidatesCollection
 import com.neowit.apexscanner.{Project, VirtualDocument}
-import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, ApexcodeParser, CodeCompletionCore}
+import com.neowit.apexscanner.antlr.{ApexcodeLexer, ApexcodeParser, CodeCompletionCore}
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.resolvers.QualifiedNameDefinitionFinder
@@ -73,24 +73,31 @@ class CompletionFinder(project: Project) extends LazyLogging {
                 if (actionContext.isCancelled) {
                     return Seq.empty
                 }
+                /*
                 // caret definition is not obvious, but we have an AST scope node
                 val (parser, _) = ApexParserUtils.createParserWithCommonTokenStream(caret)
                 val candidates = collectCandidates(caret, caretToken, parser)
                 getCandidateSymbols(scopeNode, candidates)
+                */
+
+                Seq.empty
 
             case Some(FindCaretScopeResult(None, caretToken)) =>
                 if (actionContext.isCancelled) {
                     return Seq.empty
                 }
+                /*
                 // caret definition is not obvious, and we do not even have an AST scope node
                 val (parser, _) = ApexParserUtils.createParserWithCommonTokenStream(caret)
                 collectCandidates(caret, caretToken, parser)
-                ???
+                */
+                Seq.empty
             case _ =>
                 Seq.empty
         }
     }
 
+    /*
     private def getCandidateSymbols(scope: AstNode, candidates: CandidatesCollection): Seq[Symbol] = {
         val kindsBuilder = Seq.newBuilder[SymbolKind]
         // TODO continue here
@@ -108,6 +115,7 @@ class CompletionFinder(project: Project) extends LazyLogging {
         val allSymbolKinds = kindsBuilder.result()
         scope.getSymbolsOfKinds(allSymbolKinds)
     }
+    */
 
 
 

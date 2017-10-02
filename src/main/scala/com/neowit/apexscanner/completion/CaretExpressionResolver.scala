@@ -140,7 +140,8 @@ class CaretExpressionResolver(project: Project, actionContext: ActionContext)  e
                         }
                     case n =>
                         println(n)
-                        ??? //should we give up ?
+                        //should we give up ?
+                        None
                 }
         }
     }
