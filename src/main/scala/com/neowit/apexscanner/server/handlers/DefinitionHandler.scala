@@ -21,9 +21,7 @@
 
 package com.neowit.apexscanner.server.handlers
 
-import java.nio.file.{Path, Paths}
-
-import com.neowit.apexscanner.{FileBasedDocument, Project}
+import com.neowit.apexscanner.FileBasedDocument
 import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.resolvers.AscendingDefinitionFinder
 import com.neowit.apexscanner.scanner.actions.{ActionContext, FindSymbolActionType}
@@ -57,7 +55,7 @@ class DefinitionHandler() extends MessageHandler with MessageJsonSupport with La
 
                                   // Line and Column in LSP are zero based
                                   // while ANTLR uses: Line starting with 1, column starting with 0
-                                  val position = params.position.copy(line = params.position.line +1)
+                                  val position = fromLspToAntlr4Position(params.position)
                                   val document = project.getFileContent(file).getOrElse(FileBasedDocument(file))
                                   val locations: Seq[Location] =
                                       project.getAst(document) match {
@@ -89,24 +87,5 @@ class DefinitionHandler() extends MessageHandler with MessageJsonSupport with La
         }
     }
 
-    def toLspLocation(proj: Project, astNode: AstNode): Location = {
-        new Location {
-            override def project: Project = proj
 
-            // Line and Column in LSP are zero based
-            // while ANTLR uses: Line starting with 1, column starting with 0
-            override def range: Range = {
-                val start = astNode.range.start
-                val end = astNode.range.end
-                Range(start.copy(line = start.line - 1), end.copy(line = end.line -1), Position(0, 0))
-            }
-
-            override def path: Path = {
-                astNode.getFileNode.map(_.file) match {
-                    case Some(_path) => _path
-                    case None => Paths.get("")
-                }
-            }
-        }
-    }
 }

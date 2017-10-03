@@ -21,6 +21,10 @@
 
 package com.neowit.apexscanner.server.handlers
 
+import java.nio.file.{Path, Paths}
+
+import com.neowit.apexscanner.Project
+import com.neowit.apexscanner.nodes.{AstNode, Location, Position, Range}
 import com.neowit.apexscanner.server.protocol.LanguageServer
 import com.neowit.apexscanner.server.protocol.messages.{ErrorCodes, RequestMessage, ResponseError, ResponseMessage}
 import com.typesafe.scalalogging.LazyLogging
@@ -40,4 +44,37 @@ trait MessageHandler extends LazyLogging {
                 Left(ResponseError(ErrorCodes.InternalError, e.getMessage))
         }
     }
+
+    def fromLspToAntlr4Position(p: Position): Position = {
+        // Line and Column in LSP are zero based
+        // while ANTLR uses: Line starting with 1, column starting with 0
+        p.copy(line = p.line +1)
+    }
+    def fromAntlr4ToLspPosition(p: Position): Position = {
+        // Line and Column in LSP are zero based
+        // while ANTLR uses: Line starting with 1, column starting with 0
+        p.copy(line = p.line -1)
+    }
+
+    def toLspLocation(proj: Project, astNode: AstNode): Location = {
+        new Location {
+            override def project: Project = proj
+
+            // Line and Column in LSP are zero based
+            // while ANTLR uses: Line starting with 1, column starting with 0
+            override def range: Range = {
+                val start = astNode.range.start
+                val end = astNode.range.end
+                Range(fromAntlr4ToLspPosition(start), fromAntlr4ToLspPosition(end), Position(0, 0))
+            }
+
+            override def path: Path = {
+                astNode.getFileNode.map(_.file) match {
+                    case Some(_path) => _path
+                    case None => Paths.get("")
+                }
+            }
+        }
+    }
+
 }
