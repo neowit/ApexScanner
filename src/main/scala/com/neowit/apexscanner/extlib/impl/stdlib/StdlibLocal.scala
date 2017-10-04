@@ -21,7 +21,8 @@
 
 package com.neowit.apexscanner.extlib.impl.stdlib
 
-import java.io.File
+import java.io.{File, FileInputStream, InputStream}
+import java.nio.ByteBuffer
 
 import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.ast.QualifiedName
@@ -50,9 +51,9 @@ private class StdlibLocal(project: Project, fileOpt: Option[File] = None) extend
 
     def load(project: Project): CodeLibrary = {
         if (!isLoaded) {
-            val file = getSourceFile
-            decodeFile[ApexApiJson](file) match {
-                case Left(failure) => throw new IllegalArgumentException("Failed to parse file: '" + file.getPath + "'; " + failure.getMessage)
+            val source = toByteBuffer(getSourceStream)
+            decodeByteBuffer[ApexApiJson](source) match {
+                case Left(failure) => throw new IllegalArgumentException("StdLib: Failed to parse source file; " + failure.getMessage)
                 case Right(apexAPI) =>
                     val visitor = new StdlibJsonVisitor(this)
                     visitor.visit(apexAPI)
@@ -68,21 +69,29 @@ private class StdlibLocal(project: Project, fileOpt: Option[File] = None) extend
         )
     }
 
-    private def getSourceFile: File = {
+    private def getSourceStream: InputStream = {
         fileOpt match {
-            case Some(providedFile) if providedFile.canRead => providedFile
-            case None => getDefaultFile
+            case Some(providedFile) if providedFile.canRead => new FileInputStream(providedFile)
+            case None => getDefaultStream
         }
     }
 
-    private def getDefaultFile: File = {
-        val url = getClass.getClassLoader.getResource("apex-api-v40.json")
-        if (null != url) {
-            new File(url.toURI)
+    private def getDefaultStream: InputStream = {
+        // when reading resource from inside .jar have use getResourceAsStream() instead of getResource()
+        val is = getClass.getClassLoader.getResourceAsStream("apex-api-v40.json")
+        if (null != is) {
+            is
         } else {
             throw new IllegalStateException("Standard Apex Library resource is not available")
         }
+
     }
+
+    private def toByteBuffer(is: InputStream): ByteBuffer = {
+        val bytesArray = Iterator.continually(is.read).takeWhile(_ != -1).map(_.toByte).toArray
+        ByteBuffer.wrap(bytesArray)
+    }
+
 }
 
 
