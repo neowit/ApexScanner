@@ -329,6 +329,49 @@ private val filePath = getProperty("CompletionFinderTest.path")
                 fail("Expected non empty result")
         }
     }
+
+    test("testListCompletions: `Site.<CARET>`") {
+        val text =
+            """
+              |class CompletionTester {
+              |
+              | public void testCompletion() {
+              |     Site.<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = listCompletions(text, "", loadStdLib = true)
+        result match {
+            case symbols if symbols.nonEmpty =>
+                assert(symbols.length >= 2, "Result contains less items than expected")
+                assert(symbols.exists(_.symbolName == "getSiteType"), "Missing expected symbol")
+                assert(symbols.exists(_.symbolName == "getPathPrefix"), "Missing expected symbol")
+                assert(symbols.exists(_.symbolName == "getMasterLabel"), "Missing expected symbol")
+                assert(symbols.exists(_.symbolName == "getSiteId"), "Missing expected symbol")
+            case _ =>
+                fail("Expected non empty result")
+        }
+    }
+
+    test("testListCompletions: `ApexPages.currentPage().<CARET>`") {
+        val text =
+            """
+              |class CompletionTester {
+              |
+              | public void testCompletion() {
+              |     ApexPages.currentPage().<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = listCompletions(text, "", loadStdLib = true)
+        result match {
+            case symbols if symbols.nonEmpty =>
+                assert(symbols.length >= 2, "Result contains less items than expected")
+                assert(symbols.exists(_.symbolName == "getParameters"), "Missing expected symbol")
+            case _ =>
+                fail("Expected non empty result")
+        }
+    }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     var _projectWithStdLib: Option[Project] = None
     def listCompletions(text: String, documentName: String = "test", loadStdLib: Boolean = false): scala.Seq[Symbol] = {

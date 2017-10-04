@@ -52,11 +52,23 @@ class StdlibJsonVisitor(lib: CodeLibrary) extends StdlibJsonBaseVisitor[AstNode]
         val namespace = new NamespaceNode(Option(name)) {
             override def getSymbolsForCompletion: Seq[symbols.Symbol] = {
                 name match {
-                    case Some(namespaceName) =>
+                    case Some(namespaceName)  =>
                         getSystemSymbols(lib, namespaceName) ++ super.getSymbolsForCompletion
                     case _ =>
                         super.getSymbolsForCompletion
                 }
+            }
+
+            override def findChildInAst(filter: (AstNode) => Boolean): Option[AstNode] = {
+                super.findChildInAst(filter).orElse{
+                    name match {
+                        case Some(namespaceName) if "System" != namespaceName =>
+                            findChildInSystem(lib, namespaceName, filter)
+                        case _ =>
+                            None
+                    }
+                }
+
             }
         }
         if ("system" == name.toLowerCase) {
@@ -99,6 +111,30 @@ class StdlibJsonVisitor(lib: CodeLibrary) extends StdlibJsonBaseVisitor[AstNode]
                         case _ => false
                     }.map(_.getSymbolsForCompletion).getOrElse(Seq.empty)
                 case None => Seq.empty
+            }
+        }
+    }
+
+    /**
+      * special handling for classes under namespace "System"
+      * classes under namespace System are allowed to be referenced without namespace name
+      * e.g. System.Database.insert() is the same as Database.insert()
+      * in order to resolve such cases we have to do additional query inside "System" namespace
+      * @param filter filter to apply to find a child under namespace "System"
+      * @return
+      */
+    private def findChildInSystem(lib: CodeLibrary, namespaceName: String, filter: (AstNode) => Boolean): Option[AstNode] = {
+        if (null == namespaceName || namespaceName.isEmpty) {
+            None
+        } else {
+            val nameLower = namespaceName.toLowerCase
+            _systemNamespaceNode match {
+                case Some(systemNamespaceNode) =>
+                    systemNamespaceNode.findChildInAst{
+                        case ClassNode(Some(className), _) => className.toLowerCase == nameLower
+                        case _ => false
+                    }.flatMap(_.findChildInAst(filter))
+                case None => None
             }
 
         }
