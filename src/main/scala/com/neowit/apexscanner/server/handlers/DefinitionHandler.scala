@@ -60,13 +60,17 @@ class DefinitionHandler() extends MessageHandler with MessageJsonSupport with La
                                   val locations: Seq[Location] =
                                       project.getAst(document) match {
                                           case Some(result) =>
-                                              val finder = new AscendingDefinitionFinder(context)
-                                              val allDefNodes = finder.findUltimateDefinition(result.rootNode, position, project)
-                                              val _locations = allDefNodes.filter {
-                                                  case defNode: AstNode if Range.INVALID_LOCATION != defNode.range => true
-                                                  case _ => false
-                                              }.map { defNode => toLspLocation(project, defNode) }
-                                              _locations
+                                              if (context.isCancelled) {
+                                                  Seq.empty
+                                              } else {
+                                                  val finder = new AscendingDefinitionFinder(context)
+                                                  val allDefNodes = finder.findUltimateDefinition(result.rootNode, position, project)
+                                                  val _locations = allDefNodes.filter {
+                                                      case defNode: AstNode if Range.INVALID_LOCATION != defNode.range => true
+                                                      case _ => false
+                                                  }.map { defNode => toLspLocation(project, defNode) }
+                                                  _locations
+                                              }
 
                                           case _ => Seq.empty
                                       }
