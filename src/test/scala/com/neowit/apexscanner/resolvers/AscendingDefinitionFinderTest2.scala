@@ -40,6 +40,36 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
 
     // for cases when we do not really care about project path - get something random
     private val projectPath: Path = Paths.get(System.getProperty("java.io.tmpdir"))
+    ///////////////////////////////////////////////////////////////////////////////////
+    var _projectWithStdLib: Option[Project] = None
+    private def findDefinition(text: String, documentName: String = "test", loadStdLib: Boolean = false): scala.Seq[AstNode] = {
+        val project =
+            if (loadStdLib) {
+                _projectWithStdLib match {
+                    case Some(_project) =>
+                        // re-use previously loaded project because loading StdLib takes a lot of time
+                        _project
+                    case None =>
+                        val _project = Project(projectPath)
+                        _project.loadStdLib() // force loading of StandardLibrary
+                        _projectWithStdLib = Option(_project)
+                        _project
+                }
+
+            } else {
+                Project(projectPath)
+            }
+        val caretInDocument = CaretUtils.getCaret(text, Paths.get(documentName))
+        project.getAst(caretInDocument.document) match {
+            case Some(result) =>
+                val actionContext = ActionContext("AscendingDefinitionFinderTest2-" + Random.nextString(5), FindSymbolActionType)
+                val finder = new AscendingDefinitionFinder(actionContext)
+                finder.findDefinition(result.rootNode, caretInDocument.position)
+            case _ =>
+                Seq.empty
+        }
+    }
+    ///////////////////////////////////////////////////////////////////////////////////
 
     test("findDefinition: `method1(valByKey);`") {
         val text =
@@ -440,33 +470,25 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////
-    var _projectWithStdLib: Option[Project] = None
-    private def findDefinition(text: String, documentName: String = "test", loadStdLib: Boolean = false): scala.Seq[AstNode] = {
-        val project =
-            if (loadStdLib) {
-                _projectWithStdLib match {
-                    case Some(_project) =>
-                        // re-use previously loaded project because loading StdLib takes a lot of time
-                        _project
-                    case None =>
-                        val _project = Project(projectPath)
-                        _project.loadStdLib() // force loading of StandardLibrary
-                        _projectWithStdLib = Option(_project)
-                        _project
-                }
+    test("findDefinition: apex inside SOQL statement: WHERE Name = :som<CARET>eValue") {
+        val text =
+            """
+              |class CompletionTester {
+              | String someValue = '';
+              | Integer i = [select Id from Account where Name = :som<CARET>eValue];
+              |}
+            """.stripMargin
 
-            } else {
-                Project(projectPath)
-            }
-        val caretInDocument = CaretUtils.getCaret(text, Paths.get(documentName))
-        project.getAst(caretInDocument.document) match {
-            case Some(result) =>
-                val actionContext = ActionContext("AscendingDefinitionFinderTest2-" + Random.nextString(5), FindSymbolActionType)
-                val finder = new AscendingDefinitionFinder(actionContext)
-                finder.findDefinition(result.rootNode, caretInDocument.position)
+        val resultNodes = findDefinition(text)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName("CompletionTester", "someValue")), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                assertResult(Option(QualifiedName("String")), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
             case _ =>
-                Seq.empty
+                fail( "Failed to locate correct node.")
         }
     }
+
 }

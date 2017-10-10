@@ -36,7 +36,7 @@ trait AstBuilderVisitor {
 
     def onComplete(): Unit
 
-    protected def visitChildren(parent: AstNode, ruleNode: RuleNode): AstNode = {
+    def visitChildren(parent: AstNode, ruleNode: RuleNode): AstNode = {
         for (i <- scala.collection.immutable.Range(0, ruleNode.getChildCount)) {
             val elem = ruleNode.getChild(i)
             val node = visit(elem)
