@@ -40,6 +40,13 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     private val _soqlAstBuilder = new AstBuilder(projectOpt, SoqlAstBuilderVisitor.VISITOR_CREATOR_FUN)
     private val _soqlScanner = SoqlScanner.createDefaultScanner(_soqlAstBuilder)
 
+    private val _documentOffsetPosition: Position = {
+        documentOpt.flatMap(_.offset) match {
+            case Some(_offset) => _offset
+            case None => Position(0, 0)
+        }
+    } 
+    
     def getClassLikeNodes: List[ClassLike] = _classLikeListBuilder.result()
 
     override def defaultResult(): AstNode = NullNode
@@ -47,7 +54,7 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     override def visitChildren(node: RuleNode): AstNode = {
 
         val range = node match {
-            case n: ParserRuleContext => Range(n)
+            case n: ParserRuleContext => Range(n, _documentOffsetPosition)
             case _ =>
                 throw new NotImplementedError("Unhandled case is this really a node without location ?" + node)
         }
@@ -83,7 +90,7 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
                     case Some(project) =>
                         document.fileOpt match {
                             case Some(file) =>
-                                visitChildren(FileNode(project, file, Range(ctx)), ctx)
+                                visitChildren(FileNode(project, file, Range(ctx, _documentOffsetPosition)), ctx)
                             case None => NullNode
                         }
                     case None =>
@@ -96,7 +103,7 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
 
     override def visitTerminal(node: TerminalNode): AstNode = {
         if (ApexcodeParser.Identifier == node.getSymbol.getType) {
-            IdentifierNode(node.getText, Range(node))
+            IdentifierNode(node.getText, Range(node, _documentOffsetPosition))
         } else {
             NullNode // TODO - check if we need to return this
         }
@@ -105,7 +112,7 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     override def visitClassDef(ctx: ClassDefContext): AstNode = {
         if (null != ctx.classDeclaration().className()) {
             val nameOpt = Option(ctx.classDeclaration().className().getText)
-            val classNode = ClassNode(nameOpt, Range(ctx))
+            val classNode = ClassNode(nameOpt, Range(ctx, _documentOffsetPosition))
             visitChildren(classNode, ctx)
             _classLikeListBuilder += classNode
             classNode
@@ -118,7 +125,7 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     override def visitInterfaceDef(ctx: InterfaceDefContext): AstNode = {
         if (null != ctx.interfaceDeclaration().interfaceName()) {
             val nameOpt = Option(ctx.interfaceDeclaration().interfaceName().getText)
-            val interfaceNode = InterfaceNode(nameOpt, Range(ctx))
+            val interfaceNode = InterfaceNode(nameOpt, Range(ctx, _documentOffsetPosition))
             visitChildren(interfaceNode, ctx)
 
             _classLikeListBuilder += interfaceNode
@@ -132,7 +139,7 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     override def visitTriggerDef(ctx: TriggerDefContext): AstNode = {
         if (null != ctx.triggerDeclaration().triggerName()) {
             val nameOpt = Option(ctx.triggerDeclaration().triggerName().getText)
-            val triggerNode = TriggerNode(nameOpt, Range(ctx))
+            val triggerNode = TriggerNode(nameOpt, Range(ctx, _documentOffsetPosition))
             visitChildren(triggerNode, ctx)
 
             _classLikeListBuilder += triggerNode
@@ -146,7 +153,7 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     override def visitEnumDef(ctx: EnumDefContext): AstNode = {
         if (null != ctx.enumDeclaration().enumName()) {
             val nameOpt = Option(ctx.enumDeclaration().enumName().getText)
-            val enumNode = EnumNode(nameOpt, Range(ctx))
+            val enumNode = EnumNode(nameOpt, Range(ctx, _documentOffsetPosition))
             visitChildren(enumNode, ctx)
 
             _classLikeListBuilder += enumNode
@@ -158,7 +165,7 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
 
     override def visitEnumConstant(ctx: EnumConstantContext): AstNode = {
         if (null != ctx.Identifier()) {
-            val node = EnumConstantNode(ctx.Identifier().getSymbol.getText, Range(ctx))
+            val node = EnumConstantNode(ctx.Identifier().getSymbol.getText, Range(ctx, _documentOffsetPosition))
             EnumConstantNode.addStandardMethods(node)
             node
         } else {
@@ -167,7 +174,7 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     }
 
     override def visitClassName(ctx: ClassNameContext): AstNode = {
-        IdentifierNode(ctx.getText, Range(ctx))
+        IdentifierNode(ctx.getText, Range(ctx, _documentOffsetPosition))
     }
 
     override def visitClassOrInterfaceModifier(ctx: ClassOrInterfaceModifierContext): AstNode = {
@@ -187,16 +194,16 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     }
 
     override def visitExtendsDeclaration(ctx: ExtendsDeclarationContext): AstNode = {
-        visitChildren(ExtendsNode(Range(ctx)), ctx)
+        visitChildren(ExtendsNode(Range(ctx, _documentOffsetPosition)), ctx)
     }
 
 
     override def visitImplementsDeclaration(ctx: ImplementsDeclarationContext): AstNode = {
-        visitChildren(ImplementsInterfaceNode(Range(ctx)), ctx)
+        visitChildren(ImplementsInterfaceNode(Range(ctx, _documentOffsetPosition)), ctx)
     }
 
     override def visitTypeArguments(ctx: TypeArgumentsContext): AstNode = {
-        val typeArgumentsNode = TypeArgumentsNode(Range(ctx))
+        val typeArgumentsNode = TypeArgumentsNode(Range(ctx, _documentOffsetPosition))
         ctx.dataType().iterator().forEachRemaining{elem =>
             val dataType = visitDataType(elem)
             typeArgumentsNode.addChildToAst(dataType)
@@ -207,12 +214,12 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
 
     override def visitDataType(ctx: DataTypeContext): AstNode = {
         if (null != ctx.VOID()) {
-            DataTypeNodeVoid(Range(ctx))
+            DataTypeNodeVoid(Range(ctx, _documentOffsetPosition))
         } else {
             val qualifiedNameNode = visit(ctx.qualifiedName()).asInstanceOf[QualifiedNameNode]
             val dataTypeNode =
             if (null != ctx.arrayType) {
-                DataTypeNodeArray(qualifiedNameNode, Range(ctx))
+                DataTypeNodeArray(qualifiedNameNode, Range(ctx, _documentOffsetPosition))
             } else if(null != ctx.typeArguments()) {
                 //val qualifiedNameNode = visit(ctx.qualifiedName()).asInstanceOf[QualifiedNameNode]
                 val typeArgumentsNode =
@@ -220,11 +227,11 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
                         Option(visit(ctx.typeArguments()).asInstanceOf[TypeArgumentsNode])
                     else
                         None
-                DataTypeNodeGeneric(qualifiedNameNode, typeArgumentsNode, Range(ctx))
+                DataTypeNodeGeneric(qualifiedNameNode, typeArgumentsNode, Range(ctx, _documentOffsetPosition))
             } else {
                 // last option
                 //val qualifiedNameNode = visit(ctx.qualifiedName()).asInstanceOf[QualifiedNameNode]
-                DataTypeNodeGeneric(qualifiedNameNode, typeArgumentsOpt = None, Range(ctx))
+                DataTypeNodeGeneric(qualifiedNameNode, typeArgumentsOpt = None, Range(ctx, _documentOffsetPosition))
             }
             // add qualifiedNameNode as a child in order to be able to split type name by individual components/nodes
             dataTypeNode.addChildToAst(qualifiedNameNode)
@@ -233,125 +240,125 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     }
 
     override def visitQualifiedName(ctx: QualifiedNameContext): AstNode = {
-        visitChildren(QualifiedNameNode(Range(ctx)), ctx)
+        visitChildren(QualifiedNameNode(Range(ctx, _documentOffsetPosition)), ctx)
     }
 
     override def visitClassVariable(ctx: ClassVariableContext): AstNode = {
-        visitChildren(ClassVariableNode(Range(ctx)), ctx)
+        visitChildren(ClassVariableNode(Range(ctx, _documentOffsetPosition)), ctx)
     }
 
     override def visitClassVariableModifier(ctx: ClassVariableModifierContext): AstNode = {
         if (null != ctx.PROTECTED()) {
-            return ModifierNode(ModifierNode.PROTECTED, Range(ctx.PROTECTED()))
+            return ModifierNode(ModifierNode.PROTECTED, Range(ctx.PROTECTED(), _documentOffsetPosition))
         }
         if (null != ctx.GLOBAL()) {
-            return ModifierNode(ModifierNode.GLOBAL, Range(ctx.GLOBAL()))
+            return ModifierNode(ModifierNode.GLOBAL, Range(ctx.GLOBAL(), _documentOffsetPosition))
         }
         if (null != ctx.PRIVATE()) {
-            return ModifierNode(ModifierNode.PRIVATE, Range(ctx.PRIVATE()))
+            return ModifierNode(ModifierNode.PRIVATE, Range(ctx.PRIVATE(), _documentOffsetPosition))
         }
         if (null != ctx.PUBLIC()) {
-            return ModifierNode(ModifierNode.PUBLIC, Range(ctx.PUBLIC()))
+            return ModifierNode(ModifierNode.PUBLIC, Range(ctx.PUBLIC(), _documentOffsetPosition))
         }
         if (null != ctx.TRANSIENT()) {
-            return ModifierNode(ModifierNode.TRANSIENT, Range(ctx.TRANSIENT()))
+            return ModifierNode(ModifierNode.TRANSIENT, Range(ctx.TRANSIENT(), _documentOffsetPosition))
         }
         NullNode
     }
 
     override def visitClassProperty(ctx: ClassPropertyContext): AstNode = {
-        visitChildren(ClassPropertyNode(Range(ctx)), ctx)
+        visitChildren(ClassPropertyNode(Range(ctx, _documentOffsetPosition)), ctx)
     }
 
     /////////////////// constructor ////////////////////////////////
 
     override def visitPropertyModifier(ctx: PropertyModifierContext): AstNode = {
         if (null != ctx.PROTECTED()) {
-            return ModifierNode(ModifierNode.PROTECTED, Range(ctx.PROTECTED()))
+            return ModifierNode(ModifierNode.PROTECTED, Range(ctx.PROTECTED(), _documentOffsetPosition))
         }
         if (null != ctx.GLOBAL()) {
-            return ModifierNode(ModifierNode.GLOBAL, Range(ctx.GLOBAL()))
+            return ModifierNode(ModifierNode.GLOBAL, Range(ctx.GLOBAL(), _documentOffsetPosition))
         }
         if (null != ctx.PRIVATE()) {
-            return ModifierNode(ModifierNode.PRIVATE, Range(ctx.PRIVATE()))
+            return ModifierNode(ModifierNode.PRIVATE, Range(ctx.PRIVATE(), _documentOffsetPosition))
         }
         if (null != ctx.PUBLIC()) {
-            return ModifierNode(ModifierNode.PUBLIC, Range(ctx.PUBLIC()))
+            return ModifierNode(ModifierNode.PUBLIC, Range(ctx.PUBLIC(), _documentOffsetPosition))
         }
         if (null != ctx.TRANSIENT()) {
-            return ModifierNode(ModifierNode.TRANSIENT, Range(ctx.TRANSIENT()))
+            return ModifierNode(ModifierNode.TRANSIENT, Range(ctx.TRANSIENT(), _documentOffsetPosition))
         }
         NullNode
     }
 
     override def visitClassConstructor(ctx: ClassConstructorContext): AstNode = {
-        visitChildren(ConstructorNode(Range(ctx)), ctx)
+        visitChildren(ConstructorNode(Range(ctx, _documentOffsetPosition)), ctx)
     }
 
     override def visitClassConstructorModifier(ctx: ClassConstructorModifierContext): AstNode = {
         if (null != ctx.PROTECTED()) {
-            return ModifierNode(ModifierNode.PROTECTED, Range(ctx.PROTECTED()))
+            return ModifierNode(ModifierNode.PROTECTED, Range(ctx.PROTECTED(), _documentOffsetPosition))
         }
         if (null != ctx.GLOBAL()) {
-            return ModifierNode(ModifierNode.GLOBAL, Range(ctx.GLOBAL()))
+            return ModifierNode(ModifierNode.GLOBAL, Range(ctx.GLOBAL(), _documentOffsetPosition))
         }
         if (null != ctx.PRIVATE()) {
-            return ModifierNode(ModifierNode.PRIVATE, Range(ctx.PRIVATE()))
+            return ModifierNode(ModifierNode.PRIVATE, Range(ctx.PRIVATE(), _documentOffsetPosition))
         }
         if (null != ctx.PUBLIC()) {
-            return ModifierNode(ModifierNode.PUBLIC, Range(ctx.PUBLIC()))
+            return ModifierNode(ModifierNode.PUBLIC, Range(ctx.PUBLIC(), _documentOffsetPosition))
         }
         if (null != ctx.VIRTUAL()) {
-            return ModifierNode(ModifierNode.VIRTUAL, Range(ctx.VIRTUAL()))
+            return ModifierNode(ModifierNode.VIRTUAL, Range(ctx.VIRTUAL(), _documentOffsetPosition))
         }
         NullNode
     }
 
     /////////////////// method ////////////////////////////////
     override def visitClassMethod(ctx: ClassMethodContext): AstNode = {
-        visitChildren(MethodNode(Range(ctx)), ctx)
+        visitChildren(MethodNode(Range(ctx, _documentOffsetPosition)), ctx)
     }
 
     override def visitMethodHeader(ctx: MethodHeaderContext): AstNode = {
-        visitChildren(MethodHeaderNode(Range(ctx)), ctx)
+        visitChildren(MethodHeaderNode(Range(ctx, _documentOffsetPosition)), ctx)
     }
 
     override def visitMethodHeaderModifier(ctx: MethodHeaderModifierContext): AstNode = {
         if (null != ctx.PROTECTED()) {
-            return ModifierNode(ModifierNode.PROTECTED, Range(ctx.PROTECTED()))
+            return ModifierNode(ModifierNode.PROTECTED, Range(ctx.PROTECTED(), _documentOffsetPosition))
         }
         if (null != ctx.GLOBAL()) {
-            return ModifierNode(ModifierNode.GLOBAL, Range(ctx.GLOBAL()))
+            return ModifierNode(ModifierNode.GLOBAL, Range(ctx.GLOBAL(), _documentOffsetPosition))
         }
         if (null != ctx.PRIVATE()) {
-            return ModifierNode(ModifierNode.PRIVATE, Range(ctx.PRIVATE()))
+            return ModifierNode(ModifierNode.PRIVATE, Range(ctx.PRIVATE(), _documentOffsetPosition))
         }
         if (null != ctx.PUBLIC()) {
-            return ModifierNode(ModifierNode.PUBLIC, Range(ctx.PUBLIC()))
+            return ModifierNode(ModifierNode.PUBLIC, Range(ctx.PUBLIC(), _documentOffsetPosition))
         }
         if (null != ctx.VIRTUAL()) {
-            return ModifierNode(ModifierNode.VIRTUAL, Range(ctx.VIRTUAL()))
+            return ModifierNode(ModifierNode.VIRTUAL, Range(ctx.VIRTUAL(), _documentOffsetPosition))
         }
         NullNode
     }
 
 
     override def visitDefinedMethodName(ctx: DefinedMethodNameContext): AstNode = {
-        MethodNameNode(ctx.Identifier().getText, Range(ctx))
+        MethodNameNode(ctx.Identifier().getText, Range(ctx, _documentOffsetPosition))
     }
 
     override def visitCalledMethodName(ctx: CalledMethodNameContext): AstNode = {
-        MethodNameNode(ctx.func.getText, Range(ctx))
+        MethodNameNode(ctx.func.getText, Range(ctx, _documentOffsetPosition))
     }
 
     /*
     override def visitMethodName(ctx: CalledMethodNameContext): AstNode = {
-        MethodNameNode(ctx.Identifier().getText, Range(ctx))
+        MethodNameNode(ctx.Identifier().getText, Range(ctx, _documentOffsetPosition))
     }
     */
 
     override def visitMethodParameter(ctx: MethodParameterContext): AstNode = {
-        val methodParameterNode = MethodParameterNode(ctx.methodParameterName().getText, Range(ctx))
+        val methodParameterNode = MethodParameterNode(ctx.methodParameterName().getText, Range(ctx, _documentOffsetPosition))
         visitChildren(methodParameterNode, ctx)
         methodParameterNode
     }
@@ -360,7 +367,7 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     override def visitMethodBody(ctx: MethodBodyContext): AstNode = {
         if (null != ctx.codeBlock()) {
             // concrete method
-            visitChildren(MethodBodyNode(Range(ctx.codeBlock())), ctx.codeBlock())
+            visitChildren(MethodBodyNode(Range(ctx.codeBlock(), _documentOffsetPosition)), ctx.codeBlock())
         } else {
             throw new NotImplementedError("visitMethodBody with null ctx.codeBlock() is not implemented")
         }
@@ -368,7 +375,7 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
 
     override def visitBlockStatement(ctx: BlockStatementContext): AstNode = {
        if (null != ctx.localVariableDeclaration()) {
-           visitChildren(LocalVariableNode(Range(ctx.localVariableDeclaration())), ctx.localVariableDeclaration())
+           visitChildren(LocalVariableNode(Range(ctx.localVariableDeclaration(), _documentOffsetPosition)), ctx.localVariableDeclaration())
        } else if (null != ctx.statement()){
            visit(ctx.statement())
        } else {
@@ -377,18 +384,18 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     }
 
     override def visitExpressionStmt(ctx: ExpressionStmtContext): AstNode = {
-        visitChildren(ExpressionStatementNode(Range(ctx)), ctx)
+        visitChildren(ExpressionStatementNode(Range(ctx, _documentOffsetPosition)), ctx)
     }
 
     override def visitMethodCallExpr(ctx: MethodCallExprContext): AstNode = {
-        visitChildren(MethodCallNode(ctx.func.getText, Range(ctx)), ctx)
+        visitChildren(MethodCallNode(ctx.func.getText, Range(ctx, _documentOffsetPosition)), ctx)
     }
 
     override def visitExpressionList(ctx: ExpressionListContext): AstNode = {
         import scala.collection.JavaConverters._
         if (null != ctx.expression()) {
             val expressions: Seq[AstNode] = ctx.expression().asScala.map(visit)
-            val expressionListNode = ExpressionListNode(expressions, Range(ctx))
+            val expressionListNode = ExpressionListNode(expressions, Range(ctx, _documentOffsetPosition))
             expressions.map(_.setParentInAst(expressionListNode))
             visitChildren(expressionListNode, ctx)
         } else {
@@ -397,7 +404,7 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     }
 
     override def visitExprDotExpression(ctx: ExprDotExpressionContext): AstNode = {
-        visitChildren(ExpressionDotExpressionNode(Range(ctx)), ctx)
+        visitChildren(ExpressionDotExpressionNode(Range(ctx, _documentOffsetPosition)), ctx)
     }
 
 
@@ -405,7 +412,7 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
         if (null != ctx.enhancedForControl()) {
             visitEnhancedForControl(ctx.enhancedForControl())
         } else if (null != ctx.forInit()) {
-            val forControlNode = ForControlNode(Range(ctx))
+            val forControlNode = ForControlNode(Range(ctx, _documentOffsetPosition))
             visitChildren(forControlNode, ctx)
         } else {
             NullNode
@@ -413,10 +420,10 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     }
 
     override def visitEnhancedForControl(ctx: EnhancedForControlContext): AstNode = {
-        val forControlNode = ForControlNode(Range(ctx))
+        val forControlNode = ForControlNode(Range(ctx, _documentOffsetPosition))
         if (null != ctx.dataType() && null != ctx.variableName()) {
             val dataType = visitDataType(ctx.dataType()).asInstanceOf[DataTypeNode]
-            forControlNode.addChildToAst(EnhancedForVariableNode(dataType, Option(ctx.variableName().getText), Range(ctx)))
+            forControlNode.addChildToAst(EnhancedForVariableNode(dataType, Option(ctx.variableName().getText), Range(ctx, _documentOffsetPosition)))
             visitChildren(forControlNode, ctx.expression())
         } else {
             NullNode
@@ -426,7 +433,7 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
 
     override def visitForInit(ctx: ForInitContext): AstNode  = {
         if (null != ctx.localVariableDeclaration()) {
-            visitChildren(LocalVariableNode(Range(ctx.localVariableDeclaration())), ctx.localVariableDeclaration())
+            visitChildren(LocalVariableNode(Range(ctx.localVariableDeclaration(), _documentOffsetPosition)), ctx.localVariableDeclaration())
         } else if (null != ctx.expressionList()) {
             visitChildren(ctx.expressionList())
         } else {
@@ -437,15 +444,15 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     override def visitPrimaryExpr(ctx: PrimaryExprContext): AstNode = {
         val primary = ctx.primary()
         if (null != primary.Identifier()) {
-            IdentifierNode(primary.getText, Range(primary))
+            IdentifierNode(primary.getText, Range(primary, _documentOffsetPosition))
         } else if (null != primary.THIS()) {
-            ThisExpressionNode(Range(primary))
+            ThisExpressionNode(Range(primary, _documentOffsetPosition))
         } else if (null != primary.SUPER()) {
-            SuperExpressionNode(Range(primary))
+            SuperExpressionNode(Range(primary, _documentOffsetPosition))
         } else if (null != primary.dataType()) {
             //dataType '.' CLASS
             val dataType = visitDataType(primary.dataType()).asInstanceOf[DataTypeNode]
-            ApexTypeExpressionNode(dataType, Range(primary))
+            ApexTypeExpressionNode(dataType, Range(primary, _documentOffsetPosition))
         } else {
             // parExpr, literal
             visitChildren(ctx)
@@ -453,48 +460,48 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     }
 
     override def visitCreatorExpression(ctx: CreatorExpressionContext): AstNode = {
-        visitChildren(CreatorNode(Range(ctx)), ctx)
+        visitChildren(CreatorNode(Range(ctx, _documentOffsetPosition)), ctx)
     }
 
     override def visitTypeCastExpr(ctx: TypeCastExprContext): AstNode = {
-        visitChildren(TypeCastNode(Range(ctx)), ctx)
+        visitChildren(TypeCastNode(Range(ctx, _documentOffsetPosition)), ctx)
     }
 
     ///////////////// literals ///////////////////////////////
     override def visitIntLiteral(ctx: IntLiteralContext): AstNode = {
-        LiteralNode(IntegerLiteral, ctx.IntegerLiteral(), Range(ctx))
+        LiteralNode(IntegerLiteral, ctx.IntegerLiteral(), Range(ctx, _documentOffsetPosition))
     }
 
     override def visitLongLiteral(ctx: LongLiteralContext): AstNode = {
-        LiteralNode(LongLiteral, ctx.LongLiteral(), Range(ctx))
+        LiteralNode(LongLiteral, ctx.LongLiteral(), Range(ctx, _documentOffsetPosition))
     }
 
     override def visitFpLiteral(ctx: FpLiteralContext): AstNode = {
-        LiteralNode(FloatingPointLiteral, ctx.FloatingPointLiteral(), Range(ctx))
+        LiteralNode(FloatingPointLiteral, ctx.FloatingPointLiteral(), Range(ctx, _documentOffsetPosition))
     }
 
     override def visitStrLiteral(ctx: StrLiteralContext): AstNode = {
-        LiteralNode(StringLiteral, ctx.StringLiteral(), Range(ctx))
+        LiteralNode(StringLiteral, ctx.StringLiteral(), Range(ctx, _documentOffsetPosition))
     }
 
     override def visitBoolLiteral(ctx: BoolLiteralContext): AstNode = {
-        LiteralNode(BooleanLiteral, ctx.BooleanLiteral(), Range(ctx))
+        LiteralNode(BooleanLiteral, ctx.BooleanLiteral(), Range(ctx, _documentOffsetPosition))
     }
 
     override def visitNullLiteral(ctx: NullLiteralContext): AstNode = {
-        LiteralNode(NULL, ctx.NULL(), Range(ctx))
+        LiteralNode(NULL, ctx.NULL(), Range(ctx, _documentOffsetPosition))
     }
 
     override def visitSoslLiteral(ctx: SoslLiteralContext): AstNode = {
-        LiteralNode(SoslLiteral, ctx.SoslLiteral(), Range(ctx))
+        LiteralNode(SoslLiteral, ctx.SoslLiteral(), Range(ctx, _documentOffsetPosition))
     }
 
     override def visitSoqlLiteral(ctx: SoqlLiteralContext): AstNode = {
-        //LiteralNode(SoqlLiteral, ctx.SoqlLiteral(), Range(ctx))
+        //LiteralNode(SoqlLiteral, ctx.SoqlLiteral(), Range(ctx, _documentOffsetPosition))
         if (null != ctx.SoqlLiteral()) {
-            val offsetPosition = Range(ctx).start // position of SOQL statement in the outer document/class
+            val offsetPosition = Range(ctx, _documentOffsetPosition).start // position of SOQL statement in the outer document/class
             val soqlQueryStr = ctx.SoqlLiteral().getText
-            //SoqlQueryNode(ctx.SoqlLiteral().getText, Range(ctx))
+            //SoqlQueryNode(ctx.SoqlLiteral().getText, Range(ctx, _documentOffsetPosition))
             val soqlDocument = TextBasedDocument(soqlQueryStr, fileOpt = None, Option(offsetPosition))
             _soqlAstBuilder.build(soqlDocument, _soqlScanner)
             _soqlAstBuilder.getAst(soqlDocument) match {
