@@ -24,10 +24,7 @@ package com.neowit.apexscanner.ast
 import com.neowit.apexscanner.antlr.{ApexParserUtils, SoqlBaseVisitor, SoqlParser}
 import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.nodes.soql._
-import com.neowit.apexscanner.scanner.ApexcodeScanner
-import com.neowit.apexscanner.scanner.actions.SyntaxChecker
-import com.neowit.apexscanner.{Project, TextBasedDocument, VirtualDocument}
-import org.antlr.v4.runtime.atn.PredictionMode
+import com.neowit.apexscanner.{Project, VirtualDocument}
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.RuleNode
 
@@ -179,39 +176,10 @@ class SoqlAstBuilderVisitor(override val projectOpt: Option[Project],
     override def visitIgnoredApexExpression(ctx: SoqlParser.IgnoredApexExpressionContext): AstNode = {
         val exprContext = if (null != ctx.apexBlock()) ctx.apexBlock() else ctx.apexExpression()
         if (null != exprContext) {
-            parseAsApexExpression(exprContext)
+            val apexExpressionText = ApexParserUtils.getTextFromContext(exprContext)
+            ApexExpressionInSoqlNode(apexExpressionText, Range(exprContext, _documentOffsetPosition), documentOpt.flatMap(_.fileOpt))
         } else {
             NullNode
-        }
-    }
-
-    /**
-      * convert exprContext TO STRING and parse with apex parse
-      * and add result as a child of this ExpressionStatementNode
-      * tokens inside exprContext are not good because these are SOQL grammar tokens and we need Apex grammar tokens
-      * @param ctx ParserRuleContext which may contain Apex Expression
-      * @return
-      */
-    private def parseAsApexExpression(ctx: ParserRuleContext): AstNode = {
-        projectOpt match {
-            case Some(project) =>
-                // add offset relatively main Apex class
-                val expressionDocumentOffset =
-                    _documentOffsetPosition.copy(
-                        line = _documentOffsetPosition.line + ctx.getStart.getLine - 1,
-                        col = _documentOffsetPosition.col + ctx.getStart.getCharPositionInLine
-                    )
-
-                //val apexExpressionText = ctx.getText
-                val apexExpressionText = ApexParserUtils.getTextFromContext(ctx)
-                val doc = TextBasedDocument(apexExpressionText, fileOpt = documentOpt.flatMap(_.fileOpt), Option(expressionDocumentOffset) )
-                val errorListener = SyntaxChecker.errorListenerCreator(doc)
-                val parser = ApexcodeScanner.createDefaultParser(doc, PredictionMode.SLL, errorListener)
-                val exprCtx = parser.expression()
-                val visitor = new ApexAstBuilderVisitor(Option(project), Option(doc))
-                val node = visitor.visit(exprCtx)
-                node
-            case None => NullNode
         }
     }
 

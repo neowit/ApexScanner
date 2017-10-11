@@ -96,6 +96,30 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
         }
 
     }
+    test("findDefinition: `method1(123);`") {
+        val text =
+            """
+              |class CompletionTester {
+              | private void test() {
+              |     meth<CARET>od1(123);
+              | }
+              |
+              | public void method1(final Integer i) {
+              | }
+              |}
+            """.stripMargin
+        //val resultNodes = findDefinition(text).futureValue
+        val resultNodes = findDefinition(text)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName(Array("CompletionTester", "method1"))), "Wrong caret type detected. Expected 'method1()'")(typeDefinition.qualifiedName)
+            case _ =>
+                fail("Failed to locate correct node. Expected method1()")
+        }
+
+    }
 
     test("findDefinition: `result = method1(valByKey);`") {
         val text =
@@ -485,6 +509,27 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
         resultNodes.head match {
             case typeDefinition: IsTypeDefinition =>
                 assertResult(Option(QualifiedName("CompletionTester", "someValue")), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                assertResult(Option(QualifiedName("String")), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
+            case _ =>
+                fail( "Failed to locate correct node.")
+        }
+    }
+
+    test("findDefinition: apex inside SOQL statement: WHERE Name = :meth<CARET>od1()") {
+        val text =
+            """
+              |class CompletionTester {
+              | String method1() {}
+              | System.debug([select Id from Account where Name = : meth<CARET>od1()]);
+              |}
+            """.stripMargin
+
+        val resultNodes = findDefinition(text)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName("CompletionTester", "method1")), "Wrong caret type detected.")(typeDefinition.qualifiedName)
                 assertResult(Option(QualifiedName("String")), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
             case _ =>
                 fail( "Failed to locate correct node.")
