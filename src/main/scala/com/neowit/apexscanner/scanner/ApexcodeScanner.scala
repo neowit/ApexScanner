@@ -45,6 +45,21 @@ object ApexcodeScanner {
         }
         apexScanner
     }
+
+    def createDefaultParser(document: VirtualDocument,
+                            predictionMode: PredictionMode /*= PredictionMode.SLL*/,
+                            errorListener: ApexErrorListener): ApexcodeParser = {
+        val lexer = new ApexcodeLexer(document.getCharStream)
+
+        val tokenStream = new CommonTokenStream(lexer)
+        val parser = new ApexcodeParser(tokenStream)
+        // do not dump parse errors into console (or any other default listeners)
+        parser.removeErrorListeners()
+        parser.addErrorListener(errorListener)
+        parser.setErrorHandler(new BailErrorStrategy)
+        parser.getInterpreter.setPredictionMode(predictionMode)
+        parser
+    }
 }
 abstract class ApexcodeScanner() extends Scanner() {
 
@@ -57,16 +72,21 @@ abstract class ApexcodeScanner() extends Scanner() {
 
     def scan(document: VirtualDocument, predictionMode: PredictionMode,
              documentTokenStreamOpt: Option[CommonTokenStream]): DocumentScanResult = {
+        val errorListener = errorListenerFactory(document)
+        /*
         val lexer = new ApexcodeLexer(document.getCharStream)
 
         val tokenStream = new CommonTokenStream(lexer)
         val parser = new ApexcodeParser(tokenStream)
         // do not dump parse errors into console (or any other default listeners)
         parser.removeErrorListeners()
-        val errorListener = errorListenerFactory(document)
         parser.addErrorListener(errorListener)
         parser.setErrorHandler(new BailErrorStrategy)
         parser.getInterpreter.setPredictionMode(predictionMode)
+        */
+        val parser = ApexcodeScanner.createDefaultParser(document, predictionMode, errorListener)
+        val tokenStream = parser.getTokenStream.asInstanceOf[CommonTokenStream]
+
 
         // run actual scan
         val compilationUnit:ParserRuleContext =
