@@ -100,6 +100,16 @@ object ApexParserUtils {
     }
 
     /**
+      * recover original text (with white-space) for given ParserRuleContext
+      * @return
+      */
+    def getTextFromContext(ctx: ParserRuleContext): String = {
+        val a: Int = ctx.start.getStartIndex
+        val b: Int = ctx.stop.getStopIndex
+        val interval: Interval = new Interval(a, b)
+        ctx.start.getInputStream.getText(interval)
+    }
+    /**
       *
       * @param tokens "stream" must be initialised and loaded from lexer
       * @param startTokenIndex index of start token

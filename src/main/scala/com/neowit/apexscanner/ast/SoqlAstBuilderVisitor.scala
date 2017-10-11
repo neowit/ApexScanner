@@ -21,7 +21,7 @@
 
 package com.neowit.apexscanner.ast
 
-import com.neowit.apexscanner.antlr.{SoqlBaseVisitor, SoqlParser}
+import com.neowit.apexscanner.antlr.{ApexParserUtils, SoqlBaseVisitor, SoqlParser}
 import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.nodes.soql._
 import com.neowit.apexscanner.scanner.ApexcodeScanner
@@ -201,7 +201,9 @@ class SoqlAstBuilderVisitor(override val projectOpt: Option[Project],
                         line = _documentOffsetPosition.line + ctx.getStart.getLine - 1,
                         col = _documentOffsetPosition.col + ctx.getStart.getCharPositionInLine
                     )
-                val apexExpressionText = ctx.getText
+
+                //val apexExpressionText = ctx.getText
+                val apexExpressionText = ApexParserUtils.getTextFromContext(ctx)
                 val doc = TextBasedDocument(apexExpressionText, fileOpt = documentOpt.flatMap(_.fileOpt), Option(expressionDocumentOffset) )
                 val errorListener = SyntaxChecker.errorListenerCreator(doc)
                 val parser = ApexcodeScanner.createDefaultParser(doc, PredictionMode.SLL, errorListener)

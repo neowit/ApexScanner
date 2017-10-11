@@ -54,12 +54,12 @@ class AscendingDefinitionFinderTest3 extends FunSuite {
                         _project
                     case None =>
                         val _project = Project(projectPath)
-                        if (loadStdLib && !_project.getExternalLibraries.exists(_.getName == "StdLib")) {
-                            _project.loadStdLib() // force loading of StandardLibrary
-                        }
                         _projectWithStdLib = Option(_project)
                         _project
                 }
+        if (loadStdLib && !project.getExternalLibraries.exists(_.getName == "StdLib")) {
+            project.loadStdLib() // force loading of StandardLibrary
+        }
 
         project
     }
@@ -85,7 +85,7 @@ class AscendingDefinitionFinderTest3 extends FunSuite {
         val textParent =
             """
               |class BaseClass {
-              | public String method1() {
+              | public String method1(Integer i) {
               |     return '';
               | }
               |}
@@ -95,7 +95,7 @@ class AscendingDefinitionFinderTest3 extends FunSuite {
         val text =
             """
               |class DefinitionTester extends BaseClass {
-              | System.debug(meth<CARET>od1());
+              | System.debug(meth<CARET>od1(0));
               |}
             """.stripMargin
 
@@ -138,6 +138,36 @@ class AscendingDefinitionFinderTest3 extends FunSuite {
         resultNodes.head match {
             case typeDefinition: IsTypeDefinition =>
                 assertResult(Option(QualifiedName("DefinitionTester", "method1")), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                assertResult(Option(QualifiedName("String")), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
+            case _ =>
+                fail( "Failed to locate correct node.")
+        }
+    }
+
+    test("findDefinition: method defined in parent AND child class called from SOQL") {
+        val textParent =
+            """
+              |class BaseClass {
+              | public String method1(Integer i) {
+              |     return '';
+              | }
+              |}
+            """.stripMargin
+        loadDocument(getProject(), new TestDocument(textParent, "BaseClass"))
+
+        val text =
+            """
+              |class DefinitionTester extends BaseClass {
+              | System.debug([select Id from Account where Name = : meth<CARET>od1(123)]);
+              |}
+            """.stripMargin
+
+        val resultNodes = findDefinition(text, loadStdLib = true) // need StdLib to because resolving literal type: Integer
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName("BaseClass", "method1")), "Wrong caret type detected.")(typeDefinition.qualifiedName)
                 assertResult(Option(QualifiedName("String")), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
             case _ =>
                 fail( "Failed to locate correct node.")
