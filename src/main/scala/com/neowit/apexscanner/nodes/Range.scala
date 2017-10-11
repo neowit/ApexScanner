@@ -80,9 +80,9 @@ object Position {
     }
     def getAbsoluteLine(position: Position, offset: Option[Position]): Int = {
         offset match {
-            case Some(Position(offsetLine, _)) =>
+            case Some(Position(offsetLine, _)) if offsetLine > 0 =>
                 offsetLine + position.line - 1
-            case None => position.line
+            case _ => position.line
         }
     }
 
@@ -168,15 +168,17 @@ case class Range(start: Position, end: Position, offset: Position = Position(0, 
       * @return true if given location is inside current LocationInterval
       */
     def includesLocation(location: Position, ignoreOffset: Boolean): Boolean = {
-        val startLine = if (ignoreOffset || offset.line < 1) start.line else (start.line - 1) + offset.line //-1 because lines start with 1
-        val startCol = if (ignoreOffset) start.col else start.col + offset.col
+        val absoluteStartPos = if (ignoreOffset) start else Position.toAbsolutePosition(start, Option(offset))
+        val startLine = absoluteStartPos.line
+        val startCol = absoluteStartPos.col
 
         if (startLine > location.line || startLine == location.line && startCol > location.col) {
             return false
         }
 
-        val endLine = if (ignoreOffset) end.line else end.line + offset.line
-        val endCol = if (ignoreOffset) end.col else end.col + offset.col
+        val absoluteEndPos = if (ignoreOffset) end else Position.toAbsolutePosition(end, Option(offset))
+        val endLine = absoluteEndPos.line
+        val endCol = absoluteEndPos.col
 
         if (endLine < location.line || endLine == location.line && endCol < location.col) {
             return false

@@ -458,7 +458,8 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
         val text =
             """
               |class CompletionTester {
-              | Integer i = [select Id from Account where <CARET>];
+              | Integer i = [select Id from Account where
+              | <CARET>];
               |}
             """.stripMargin
         //val resultNodes = findDefinition(text).futureValue
@@ -467,7 +468,8 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
         assertResult(1,"Wrong number of results found") (resultNodes.length)
         resultNodes.head match {
             case typeDefinition: IsTypeDefinition =>
-                assertResult(Option(QualifiedName("Account")), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                //qualified name in case of SoqlQueryNode is its string content, e.g. "selectIdfromAccountwhere"
+                //assertResult(Option(QualifiedName("Account")), "Wrong caret type detected.")(typeDefinition.qualifiedName)
                 assertResult(Option(QualifiedName("Account")), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
             case _ =>
                 fail( "Failed to locate correct node.")
@@ -487,7 +489,8 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
         assertResult(1,"Wrong number of results found") (resultNodes.length)
         resultNodes.head match {
             case typeDefinition: IsTypeDefinition =>
-                assertResult(Option(QualifiedName("Account")), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                //qualified name in case of SoqlQueryNode is its string content, e.g. "selectIdfromAccountwhereName=''and"
+                //assertResult(Option(QualifiedName("Account")), "Wrong caret type detected.")(typeDefinition.qualifiedName)
                 assertResult(Option(QualifiedName("Account")), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
             case _ =>
                 fail( "Failed to locate correct node.")
@@ -520,7 +523,8 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
             """
               |class CompletionTester {
               | String method1() {}
-              | System.debug([select Id from Account where Name = : meth<CARET>od1()]);
+              | System.debug([select Id from Account
+              |where Name =: meth<CARET>od1()]);
               |}
             """.stripMargin
 
