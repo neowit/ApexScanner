@@ -424,7 +424,10 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
         if (null != ctx.dataType() && null != ctx.variableName()) {
             val dataType = visitDataType(ctx.dataType()).asInstanceOf[DataTypeNode]
             forControlNode.addChildToAst(EnhancedForVariableNode(dataType, Option(ctx.variableName().getText), Range(ctx, _documentOffsetPosition)))
-            visitChildren(forControlNode, ctx.expression())
+
+            if (null != ctx.expression()) {
+                forControlNode.addChildToAst(visit(ctx.expression()))
+            }
         } else {
             NullNode
         }

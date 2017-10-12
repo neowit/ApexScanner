@@ -118,7 +118,6 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
             case _ =>
                 fail("Failed to locate correct node. Expected method1()")
         }
-
     }
 
     test("findDefinition: `result = method1(valByKey);`") {
@@ -540,4 +539,30 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
         }
     }
 
+    test("findDefinition: `for ( String str: method1(123)) `") {
+        val text =
+            """
+              |class CompletionTester {
+              | private void test() {
+              |     for ( String str: met<CARET>hod1(123)) {
+              |
+              |     }
+              | }
+              |
+              | public List<String> method1(final Integer i) {
+              | }
+              |}
+            """.stripMargin
+        //val resultNodes = findDefinition(text).futureValue
+        val resultNodes = findDefinition(text)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName(Array("CompletionTester", "method1"))), "Wrong caret type detected. Expected 'method1()'")(typeDefinition.qualifiedName)
+            case _ =>
+                fail("Failed to locate correct node. Expected method1()")
+        }
+
+    }
 }
