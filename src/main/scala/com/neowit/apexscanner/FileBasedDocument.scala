@@ -43,7 +43,7 @@ case class FileBasedDocument(file: Path) extends VirtualDocument {
 
     override def getTextContent: Option[String] = {
         Try{
-            val source = scala.io.Source.fromFile(file.toFile)(StandardCharsets.UTF_8)
+            val source = scala.io.Source.fromInputStream(this.inputStream, StandardCharsets.UTF_8.name())
             source.getLines().mkString("\\n")
         }.toOption
     }
