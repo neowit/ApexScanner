@@ -24,11 +24,12 @@ package com.neowit.apexscanner.resolvers
 import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes._
+import com.typesafe.scalalogging.LazyLogging
 
 /**
   * Created by Andrey Gavrikov 
   */
-class DescendingDefinitionFinder(project: Project) {
+class DescendingDefinitionFinder(project: Project) extends LazyLogging {
     /**
       * try to find definition of target inside containerNode
       * target can be
@@ -53,8 +54,18 @@ class DescendingDefinitionFinder(project: Project) {
         targetNameOpt match {
             case Some(targetName) =>
                 // check if target is inside container node
+
+                // for different container types use different "find" methods
+                val _find = containerNode match {
+                    case _containerNode: ClassLike =>
+                        logger.trace("use findChildInHierarchy")
+                        _containerNode.findChildInAstThenHierarchy _
+                    case _containerNode =>
+                        logger.trace("use findChildInAst")
+                        _containerNode.findChildInAst _
+                }
                 val containerNodeChildOpt =
-                    containerNode.findChildInAst{
+                    _find{
                         case child:IsTypeDefinition =>
                             child.qualifiedName match {
                                 case Some(childName) => targetName.couldBeMatch(childName)
@@ -62,6 +73,7 @@ class DescendingDefinitionFinder(project: Project) {
                             }
                         case _ => false
                     }
+
                 containerNodeChildOpt match {
                     case Some(foundInAst) => Seq(foundInAst)
                     case None =>

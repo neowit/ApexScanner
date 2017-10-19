@@ -60,6 +60,24 @@ trait ClassLike extends AstNode with HasApexDoc with IsTypeDefinition with Symbo
         }.map(_.asInstanceOf[ClassLike])
     }
 
+    /**
+      * ClassLike nodes may be inherited from super ClassLike nodes
+      * thsi method checks both
+      * - normal AST of current Node
+      * AND
+      * - AST of parent nodes in inheritance hierarchy
+      * @return
+      */
+   def findChildInAstThenHierarchy(filter: (AstNode) => Boolean): Option[AstNode] = {
+        this.findChildInAst(filter).orElse{
+            getSuperClassOrInterface match {
+                case Some(parentCls) =>
+                    parentCls.findChildInAstThenHierarchy(filter)
+                case None => None
+            }
+        }
+    }
+
     override def findChildrenInAst(filter: (AstNode) => Boolean, recursively: Boolean): Seq[AstNode] = {
         val thisChildren = super.findChildrenInAst(filter, recursively)
         val superChildren =

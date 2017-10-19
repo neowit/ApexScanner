@@ -173,4 +173,50 @@ class AscendingDefinitionFinderTest3 extends FunSuite {
                 fail( "Failed to locate correct node.")
         }
     }
+
+    test("findDefinition: method defined in the base of 3 class hierarchy") {
+        val textParentLevel1 =
+            """
+              |class BaseClassLevel1 {
+              | public String method1(Integer i) {
+              |     return '';
+              | }
+              |}
+            """.stripMargin
+        loadDocument(getProject(), new TestDocument(textParentLevel1, "BaseClassLevel1"))
+
+        val textParentLevel2 =
+            """
+              |class BaseClassLevel2 extends BaseClassLevel1 {
+              |}
+            """.stripMargin
+        loadDocument(getProject(), new TestDocument(textParentLevel2, "BaseClassLevel2"))
+
+        val textClass =
+            """
+              |class TestClass extends BaseClassLevel2 {
+              |}
+            """.stripMargin
+        loadDocument(getProject(), new TestDocument(textClass, "TestClass"))
+
+
+        val text =
+            """
+              |class DefinitionTester {
+              | TestClass cls;
+              | cls.meth<CARET>od1(123)]);
+              |}
+            """.stripMargin
+
+        val resultNodes = findDefinition(text, loadStdLib = true) // need StdLib to because resolving literal type: Integer
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName("BaseClassLevel1", "method1")), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                assertResult(Option(QualifiedName("String")), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
+            case _ =>
+                fail( "Failed to locate correct node.")
+        }
+    }
 }

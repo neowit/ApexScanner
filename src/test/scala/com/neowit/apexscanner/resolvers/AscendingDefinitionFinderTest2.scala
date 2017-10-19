@@ -331,7 +331,7 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
                 assertResult(Option(QualifiedName(Array("CompletionTester", "var"))), "Wrong caret type detected.")(typeDefinition.qualifiedName)
                 assertResult(Option(QualifiedName(Array("CompletionTester", "InnerClass"))), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
             case _ =>
-                fail( "Failed to locate correct node. Expected method1()")
+                fail( "Failed to locate correct node.")
         }
     }
 
@@ -358,7 +358,7 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
                 assertResult(Option(QualifiedName(Array("CompletionTester", "InnerClass", "refEnum"))), "Wrong caret type detected.")(typeDefinition.qualifiedName)
                 assertResult(Option(QualifiedName(Array("CompletionTester", "TestEnum"))), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
             case _ =>
-                fail( "Failed to locate correct node. Expected method1()")
+                fail( "Failed to locate correct node.")
         }
     }
 
@@ -553,7 +553,7 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
               | }
               |}
             """.stripMargin
-        //val resultNodes = findDefinition(text).futureValue
+
         val resultNodes = findDefinition(text)
         assert(resultNodes.nonEmpty, "Expected to find non empty result")
         assertResult(1,"Wrong number of results found") (resultNodes.length)
@@ -563,6 +563,30 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
             case _ =>
                 fail("Failed to locate correct node. Expected method1()")
         }
+    }
 
+    test("findDefinition: `cls.method1(123) `") {
+        val text =
+            """
+              |class CompletionTester {
+              | private void test() {
+              |     CompletionTester cls;
+              |     cls.met<CARET>hod1(123);
+              | }
+              |
+              | public List<String> method1(final Integer i) {
+              | }
+              |}
+            """.stripMargin
+
+        val resultNodes = findDefinition(text)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName(Array("CompletionTester", "method1"))), "Wrong caret type detected. Expected 'method1()'")(typeDefinition.qualifiedName)
+            case _ =>
+                fail("Failed to locate correct node. Expected method1()")
+        }
     }
 }
