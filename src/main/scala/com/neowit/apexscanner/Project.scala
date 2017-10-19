@@ -27,7 +27,7 @@ import java.nio.file._
 import com.neowit.apexscanner.ast.{ApexAstBuilderVisitor, AstBuilder, AstBuilderResult, QualifiedName}
 import com.neowit.apexscanner.extlib.CodeLibrary
 import com.neowit.apexscanner.extlib.impl.stdlib.StdlibLocal
-import com.neowit.apexscanner.nodes.AstNode
+import com.neowit.apexscanner.nodes.{AstNode, ClassLike}
 import com.neowit.apexscanner.scanner.{ApexcodeScanner, Scanner}
 
 import scala.annotation.tailrec
@@ -85,7 +85,7 @@ object Project {
   *             no check is made to ensure that provided path points to correct folder
   */
 case class Project(path: Path)/*(implicit ex: ExecutionContext)*/ extends CodeLibrary {
-    private val astBuilder: AstBuilder = new AstBuilder(Option(this), ApexAstBuilderVisitor.VISITOR_CREATOR_FUN)
+    private val _astBuilder: AstBuilder = new AstBuilder(Option(this), ApexAstBuilderVisitor.VISITOR_CREATOR_FUN)
     private val _externalLibraries = new collection.mutable.ListBuffer[CodeLibrary]
 
     private val _fileContentByPath = new mutable.HashMap[Path, VirtualDocument]()
@@ -110,9 +110,23 @@ case class Project(path: Path)/*(implicit ex: ExecutionContext)*/ extends CodeLi
     def getFileContent(file: Path): Option[VirtualDocument] = {
         _fileContentByPath.get(file)
     }
+
     def clearFileContent(file: Path): Future[Unit] = {
         _fileContentByPath -= file
+        getQualifiedClassName(file).foreach(qName => removeByQualifiedName(qName))
+        _astBuilder.clearDocumentAst(file)
         Future.successful(())
+    }
+
+    private def getQualifiedClassName(file: Path): Option[QualifiedName] = {
+        _astBuilder.getAstByFilePath(file).map(_.rootNode) match {
+            case Some(rootNode) =>
+                rootNode.findChildInAst(_.isInstanceOf[ClassLike])
+                    .flatMap{
+                        case cls: ClassLike => cls.qualifiedName
+                    }
+            case None => None
+        }
     }
 
     override def getName: String = "project"
@@ -181,12 +195,12 @@ case class Project(path: Path)/*(implicit ex: ExecutionContext)*/ extends CodeLi
       * @return
       */
     def getAst(document: VirtualDocument, forceRebuild: Boolean = false): Option[AstBuilderResult] = {
-        astBuilder.getAst(document) match {
+        _astBuilder.getAst(document) match {
             case Some(_ast) if !forceRebuild => Option(_ast)
             case _ =>
                 // looks like AST for given file has not been built yet, let's fix it
-                astBuilder.build(document, scanner = ApexcodeScanner.createDefaultScanner(astBuilder))
-                astBuilder.getAst(document)
+                _astBuilder.build(document, scanner = ApexcodeScanner.createDefaultScanner(_astBuilder))
+                _astBuilder.getAst(document)
         }
     }
 

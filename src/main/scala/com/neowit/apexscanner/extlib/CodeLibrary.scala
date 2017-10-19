@@ -56,6 +56,17 @@ trait CodeLibrary {
         }
     }
 
+    /**
+      * use this to purge from "node-by-QualifiedName" cache all nodes added from specific ClassLike file
+      * useful when source has changed and its AST needs to be re-built next time when it is required
+      * @param qualifiedName e.g. class name
+      */
+    def removeByQualifiedName(qualifiedName: QualifiedName): Unit = {
+        // remove all nodes with key starting with given QualifiedName
+        _containerByQName.filterKeys(_.startsWith(qualifiedName))
+            .foreach(key => _containerByQName.remove(qualifiedName))
+    }
+
     def getByQualifiedName(qualifiedNameOpt: Option[QualifiedName]): Option[AstNode] = {
         qualifiedNameOpt match {
             case Some(qualifiedName) => getByQualifiedName(qualifiedName)

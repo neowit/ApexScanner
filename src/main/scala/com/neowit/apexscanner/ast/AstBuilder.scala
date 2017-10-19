@@ -38,8 +38,8 @@ object AstBuilder {
 
 class AstBuilder(projectOpt: Option[Project], visitorCreator: AstBuilder.VisitorCreatorFun = ApexAstBuilderVisitor.VISITOR_CREATOR_FUN) {self =>
 
-    private val astCache = new collection.mutable.HashMap[VirtualDocument.DocumentId, AstBuilderResult]
-    private val fileNameCache = Map.newBuilder[String, VirtualDocument]
+    private val _astCache = new collection.mutable.HashMap[VirtualDocument.DocumentId, AstBuilderResult]
+    private val _documentByFileNameCache = new collection.mutable.HashMap[String, VirtualDocument]
 
     def build(path: Path, scanner: Scanner)(implicit ex: ExecutionContext): Future[Unit] = {
         scanner.scan(path)
@@ -57,16 +57,20 @@ class AstBuilder(projectOpt: Option[Project], visitorCreator: AstBuilder.Visitor
         val compileUnit = visitor.visit(result.parseContext)
         //new AstWalker().walk(compileUnit, new DebugVisitor)
         val sourceDocument = result.document
-        astCache += sourceDocument.getId -> AstBuilderResult(result, compileUnit)
-        sourceDocument.getFileName.foreach{fileName =>
-            fileNameCache += sourceDocument.getFileName.toString -> sourceDocument
+        _astCache += sourceDocument.getId -> AstBuilderResult(result, compileUnit)
+        sourceDocument.getFileName.foreach{filePath =>
+            _documentByFileNameCache += getFileName(filePath) -> sourceDocument
         }
         // finalise
         visitor.onComplete()
         result
     }
+
+    private def getFileName(path: Path): String = {
+        path.getFileName.toString.toLowerCase
+    }
     private def getDocument(fileName: String): Option[VirtualDocument] = {
-        fileNameCache.result().get(fileName)
+        _documentByFileNameCache.result().get(fileName.toLowerCase)
     }
 
     /**
@@ -75,10 +79,27 @@ class AstBuilder(projectOpt: Option[Project], visitorCreator: AstBuilder.Visitor
       * @return
       */
     def getAst(document: VirtualDocument): Option[AstBuilderResult] = {
-        astCache.get(document.getId)
+        _astCache.get(document.getId)
     }
+
+    /**
+      * @param fileName last part of file path, e.g. /some/path/Name.cls => Name.cls
+      * @return
+      */
     def getAstByFilename(fileName: String): Option[AstBuilderResult] = {
-        getDocument(fileName).flatMap(path => getAst(path))
+        getDocument(fileName).flatMap(doc => getAst(doc))
+    }
+    def getAstByFilePath(path: Path): Option[AstBuilderResult] = {
+        getDocument(getFileName(path)).flatMap(doc => getAst(doc))
+    }
+
+    /**
+      * remove existing AST build based on specified document
+      */
+    def clearDocumentAst(path: Path): Option[VirtualDocument] = {
+        val fileName = getFileName(path)
+        getDocument(fileName).map(doc => _astCache.remove(doc.getId) )
+        _documentByFileNameCache.remove(fileName)
     }
 }
 

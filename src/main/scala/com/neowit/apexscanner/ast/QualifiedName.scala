@@ -47,6 +47,7 @@ case class QualifiedName(components: Array[String]) {
     }
 
     def endsWith(name: QualifiedName): Boolean = componentsLower.endsWith(name.componentsLower)
+    def startsWith(name: QualifiedName): Boolean = componentsLower.startsWith(name.componentsLower)
 
     def contains(name: String): Boolean = {
         null != name && componentsLower.contains(name.toLowerCase)
