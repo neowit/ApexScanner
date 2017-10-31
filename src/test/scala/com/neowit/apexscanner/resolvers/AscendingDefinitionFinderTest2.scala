@@ -589,4 +589,30 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
                 fail("Failed to locate correct node. Expected method1()")
         }
     }
+
+    test("findDefinition: `getOrElse(xx, 0) + 1`") {
+        val text =
+            """
+              |class CompletionTester {
+              | private void test() {
+              |     Integer i = 0;
+              |     final Decimal count = getOr<CARET>Else((Decimal)i, 0) + 1; // 0 has type Integer
+              | }
+              |
+              | private static Decimal getOrElse(final Decimal val, final Decimal defaultVal) { } // line 8
+              | private static Decimal getOrElse(final Decimal val, final Integer defaultVal) { } // line 9
+              |}
+            """.stripMargin
+
+        val resultNodes = findDefinition(text, "getOrElse", loadStdLib = true)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName(Array("CompletionTester", "getOrElse"))), "Wrong caret type detected. Expected 'method1()'")(typeDefinition.qualifiedName)
+                assertResult(9, "expected method on line 9")(typeDefinition.range.start.line)
+            case _ =>
+                fail("Failed to locate correct node")
+        }
+    }
 }

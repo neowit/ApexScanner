@@ -21,6 +21,7 @@
 
 package com.neowit.apexscanner.nodes
 import com.neowit.apexscanner.ast.QualifiedName
+import com.neowit.apexscanner.matchers.MethodMatcher
 import com.neowit.apexscanner.resolvers.AscendingDefinitionFinder
 import com.neowit.apexscanner.scanner.actions.ActionContext
 
@@ -52,8 +53,19 @@ case class MethodCallNode(methodName: QualifiedName, range: Range) extends Abstr
                 defOpt
             case _ =>
                 val finder = new AscendingDefinitionFinder(actionContext)
-                val res = finder.findDefinition(this, this).headOption
-                res
+                val methods = finder.findDefinition(this, this)
+                if (methods.nonEmpty && methods.length > 1) {
+                    // try to find more precise match using exact parameter types, do NOT allow apex conversions (e.g. Integer <> Decimal)
+                    val matcher = new MethodMatcher(this, actionContext)
+                    val preciseMatchMethodOpt =
+                        methods.find{
+                            case m @ MethodNode(_) => matcher.isSameMethod(m, withApexConversions = false)
+                            case _ => false
+                        }
+                    preciseMatchMethodOpt
+                } else {
+                    methods.headOption
+                }
         }
 
     }

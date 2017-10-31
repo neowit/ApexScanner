@@ -43,7 +43,7 @@ class FindMethodVisitor(methodName: QualifiedName, paramTypes: Seq[ValueType], a
             val methodNode = node.asInstanceOf[MethodNode]
             methodNode.qualifiedName match {
                 case Some(otherMethodName) =>
-                    if (matcher.isSameMethod(otherMethodName, methodNode.getParameterTypes)) {
+                    if (matcher.isSameMethod(otherMethodName, methodNode.getParameterTypes, withApexConversions = true)) {
                         foundMethodNode = Option(methodNode)
                     }
                 case _ =>

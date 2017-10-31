@@ -23,11 +23,38 @@ package com.neowit.apexscanner.nodes
 
 import com.neowit.apexscanner.ast.QualifiedName
 
+object ValueType {
+    /**
+      * compare two types taking inti account potential Type conversion which can be performed by Apex
+      * @param leftDataType first type to compare with second
+      * @param rightDataType second type to compare with first
+      * @return true if types may be equal according to potential Apex conversions
+      *         e.g. Decimal is "equal" to "Integer"
+      */
+    def isSameTypeWithConversion(leftDataType: ValueType, rightDataType: ValueType): Boolean = {
+        // try standard Apex type conversions
+        leftDataType.qualifiedName.getLastComponent.toLowerCase match {
+            case "integer" =>
+                rightDataType.qualifiedName.endsWith(QualifiedName("Integer")) ||
+                    rightDataType.qualifiedName.endsWith(QualifiedName("Decimal"))
+            case "decimal" =>
+                rightDataType.qualifiedName.endsWith(QualifiedName("Integer")) ||
+                    rightDataType.qualifiedName.endsWith(QualifiedName("Decimal"))
+            case _ => false
+        }
+    }
+}
 trait ValueType {
     def qualifiedName: QualifiedName
     def typeArguments: Seq[ValueType]
 
-    def isSameType(otherDataType: ValueType): Boolean = {
+    /**
+      * @param otherDataType type to compare with
+      * @param withApexConversions if true then (in case if no exact match found) apply check if potential Apex conversions
+      *                            e.g. Decimal == Integer
+      * @return
+      */
+    def isSameType(otherDataType: ValueType, withApexConversions: Boolean = true): Boolean = {
         otherDataType match {
             case ValueTypeAny => true
             case _ =>
@@ -57,11 +84,34 @@ case class ValueTypeComplex(qualifiedName: QualifiedName, typeArguments: Seq[Val
 // String
 case class ValueTypeSimple(qualifiedName: QualifiedName) extends ValueType {
     override def typeArguments: Seq[ValueType] = Seq.empty
+
+    override def isSameType(otherDataType: ValueType, withApexConversions: Boolean = true): Boolean = {
+        if (super.isSameType(otherDataType)) {
+            true
+        } else {
+            if (withApexConversions) {
+                ValueType.isSameTypeWithConversion(this, otherDataType)
+            } else {
+                false
+            }
+        }
+    }
 }
 
 case class ValueTypeClass(qualifiedName: QualifiedName) extends ValueType {
     override def typeArguments: Seq[ValueType] = Seq.empty
 
+    override def isSameType(otherDataType: ValueType, withApexConversions: Boolean = true): Boolean = {
+        if (super.isSameType(otherDataType)) {
+            true
+        } else {
+            if (withApexConversions) {
+                ValueType.isSameTypeWithConversion(this, otherDataType)
+            } else {
+                false
+            }
+        }
+    }
     override def toString: String = {
         "class: " + qualifiedName
     }
@@ -112,7 +162,7 @@ case object ValueTypeAny extends ValueType {
 
     override def typeArguments: Seq[ValueType] = Seq.empty
 
-    override def isSameType(otherDataType: ValueType): Boolean = true
+    override def isSameType(otherDataType: ValueType, withApexConversions: Boolean) = true
 }
 
 //Some[] - array type

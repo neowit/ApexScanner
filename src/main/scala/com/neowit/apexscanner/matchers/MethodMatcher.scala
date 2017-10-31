@@ -40,8 +40,10 @@ class MethodMatcher(methodName: QualifiedName, paramTypes: Seq[ValueType], actio
       *                   List("integer", "list❮String❯") <br/>
       *                   List("integer", "*") - "*" means any type of second argument is a match
       *
+      * @param withApexConversions if true then (in case if no exact match found) apply check if potential Apex conversions
+      *                            e.g. Decimal == Integer
      */
-    def isSameMethod(otherMethodName: QualifiedName, otherParamTypes: Seq[ValueType]): Boolean = {
+    def isSameMethod(otherMethodName: QualifiedName, otherParamTypes: Seq[ValueType], withApexConversions: Boolean): Boolean = {
         val nameMatch = methodName.couldBeMatch(otherMethodName)
 
         if (nameMatch && paramTypesLength == otherParamTypes.length) {
@@ -54,7 +56,7 @@ class MethodMatcher(methodName: QualifiedName, paramTypes: Seq[ValueType], actio
                 val notExactMatch =
                     typePairs.exists {
                         case (left, right) =>
-                            !left.isSameType(right)
+                            !left.isSameType(right, withApexConversions)
                     }
                 // found target method if number of parameter match
                 !notExactMatch
@@ -66,9 +68,9 @@ class MethodMatcher(methodName: QualifiedName, paramTypes: Seq[ValueType], actio
         }
     }
 
-    def isSameMethod(otherMethod: MethodNode): Boolean = {
+    def isSameMethod(otherMethod: MethodNode, withApexConversions: Boolean): Boolean = {
         otherMethod.qualifiedName match {
-          case Some(otherMethodName) => isSameMethod(otherMethodName, otherMethod.getParameterTypes)
+          case Some(otherMethodName) => isSameMethod(otherMethodName, otherMethod.getParameterTypes, withApexConversions)
           case None => false
         }
     }

@@ -40,7 +40,7 @@ class FindMethodUsagesVisitor(targetToFind: MethodNode, actionContext: ActionCon
         if (MethodCallNodeType == node.nodeType) {
             val methodCallNode = node.asInstanceOf[MethodCallNode]
             methodMatcher match {
-              case Some(matcher) if matcher.isSameMethod(methodCallNode.methodName, methodCallNode.getParameterTypes(actionContext))=>
+              case Some(matcher) if matcher.isSameMethod(methodCallNode.methodName, methodCallNode.getParameterTypes(actionContext), withApexConversions = true)=>
                   foundNodesBuilder += methodCallNode
               case _ =>
             }

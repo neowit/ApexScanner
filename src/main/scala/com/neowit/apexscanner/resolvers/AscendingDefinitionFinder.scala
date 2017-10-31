@@ -26,6 +26,7 @@ import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.matchers.MethodMatcher
 import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.scanner.actions.ActionContext
+import com.typesafe.scalalogging.LazyLogging
 
 import scala.annotation.tailrec
 
@@ -42,7 +43,7 @@ object AscendingDefinitionFinder {
         val methodMatcher = new MethodMatcher(targetCaller, actionContext)
         n match {
             case node: MethodNode =>
-                methodMatcher.isSameMethod(node)
+                methodMatcher.isSameMethod(node, withApexConversions = true)
             case _ => false
         }
     }
@@ -54,7 +55,7 @@ object AscendingDefinitionFinder {
   * this is ASCENDING lookup, starts from the bottom and goes up
   * Use this to find definition in the same file as target node
   */
-class AscendingDefinitionFinder(actionContext: ActionContext) {
+class AscendingDefinitionFinder(actionContext: ActionContext) extends LazyLogging {
     import AscendingDefinitionFinder._
 
     /**
@@ -81,9 +82,10 @@ class AscendingDefinitionFinder(actionContext: ActionContext) {
                 targetNode.resolveDefinition(actionContext).map(Seq(_)).getOrElse(Seq.empty)
             case Some(targetNode)=>
                 println("AscendingDefinitionFinder: " + targetNode)
-                // TODO - make sure we do not need this
+                logger.debug("Document must be too broken to find definition. Bail out.")
                 //findDefinition(targetNode, targetNode)
-                throw new NotImplementedError("Handling of node without HasTypeDefinition is not implemented and should not be needed")
+                //throw new NotImplementedError("Handling of node without HasTypeDefinition is not implemented and should not be needed")
+                Seq.empty
             case None =>
                 Seq.empty
         }
