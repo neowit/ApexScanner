@@ -32,7 +32,7 @@ import com.neowit.apexscanner.scanner.actions.ActionContext
 
 class FindMethodUsagesVisitor(targetToFind: MethodNode, actionContext: ActionContext) extends AstVisitor {
     private val methodMatcher: Option[MethodMatcher] = targetToFind.qualifiedName match {
-        case Some(methodName) => Option(new MethodMatcher(methodName, targetToFind.getParameterTypes, actionContext))
+        case Some(methodName) => Option(new MethodMatcher(methodName, targetToFind.getParameterTypes, actionContext, targetToFind.getProject))
         case None => None
     }
     private val foundNodesBuilder = Seq.newBuilder[MethodCallNode]
@@ -40,7 +40,7 @@ class FindMethodUsagesVisitor(targetToFind: MethodNode, actionContext: ActionCon
         if (MethodCallNodeType == node.nodeType) {
             val methodCallNode = node.asInstanceOf[MethodCallNode]
             methodMatcher match {
-              case Some(matcher) if matcher.isSameMethod(methodCallNode.methodName, methodCallNode.getParameterTypes(actionContext), withApexConversions = true)=>
+              case Some(matcher) if matcher.isSameMethod(methodCallNode.methodName, methodCallNode.getParameterTypes(actionContext), withTypeModifications = true)=>
                   foundNodesBuilder += methodCallNode
               case _ =>
             }

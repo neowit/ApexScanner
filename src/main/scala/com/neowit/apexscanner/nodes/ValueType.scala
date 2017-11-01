@@ -32,15 +32,17 @@ object ValueType {
       *         e.g. Decimal is "equal" to "Integer"
       */
     def isSameTypeWithConversion(leftDataType: ValueType, rightDataType: ValueType): Boolean = {
-        // try standard Apex type conversions
-        leftDataType.qualifiedName.getLastComponent.toLowerCase match {
-            case "integer" =>
-                rightDataType.qualifiedName.endsWith(QualifiedName("Integer")) ||
+        if (rightDataType.qualifiedName.endsWith(QualifiedName("Object"))) {
+            true
+        } else {
+            // try standard Apex type conversions
+            leftDataType.qualifiedName.getLastComponent.toLowerCase match {
+                case "integer" =>
                     rightDataType.qualifiedName.endsWith(QualifiedName("Decimal"))
-            case "decimal" =>
-                rightDataType.qualifiedName.endsWith(QualifiedName("Integer")) ||
-                    rightDataType.qualifiedName.endsWith(QualifiedName("Decimal"))
-            case _ => false
+                case "decimal" =>
+                    rightDataType.qualifiedName.endsWith(QualifiedName("Integer"))
+                case _ => false
+            }
         }
     }
 }
@@ -50,28 +52,46 @@ trait ValueType {
 
     /**
       * @param otherDataType type to compare with
-      * @param withApexConversions if true then (in case if no exact match found) apply check if potential Apex conversions
+      * @param withTypeModifications if true then (in case if no exact match found) apply check for potential Apex conversions
       *                            e.g. Decimal == Integer
       * @return
       */
-    def isSameType(otherDataType: ValueType, withApexConversions: Boolean = true): Boolean = {
-        otherDataType match {
-            case ValueTypeAny => true
-            case _ =>
-                val namesMatch = qualifiedName.couldBeMatch(otherDataType.qualifiedName)
+    def isSameType(otherDataType: ValueType, withTypeModifications: Boolean = true): Boolean = {
+        val isExactMatch =
+            otherDataType match {
+                case ValueTypeAny => true
+                case _ =>
+                    val namesMatch = qualifiedName.couldBeMatch(otherDataType.qualifiedName)
 
-                //names match, now compare type arguments
-                if (namesMatch && typeArguments.length == otherDataType.typeArguments.length) {
-                    val numOfMatchingArgs =
-                        typeArguments.zip(otherDataType.typeArguments).count{
-                            case (left, right) => left.isSameType(right)
-                        }
-                    numOfMatchingArgs == typeArguments.length
-                } else {
-                    false
-                }
+                    //names match, now compare type arguments
+                    if (namesMatch && typeArguments.length == otherDataType.typeArguments.length) {
+                        val numOfMatchingArgs =
+                            typeArguments.zip(otherDataType.typeArguments).count{
+                                case (left, right) => left.isSameType(right)
+                            }
+                        numOfMatchingArgs == typeArguments.length
+                    } else {
+                        false
+                    }
+            }
+        if (!isExactMatch && withTypeModifications) {
+            isEquivalentTo(otherDataType)
+        } else {
+            isExactMatch
         }
     }
+
+    /**
+      * check if current DataType can be automatically converted by Apex to otherDataType
+      *  This method is mainly useful for checking if given value can be passed to a method with parameter of different type
+      * e.g.
+      *  - Integer is equivalent to Decimal
+      *  - Child Class is equivalent to Parent class
+      *
+      * @param otherDataType type to check equivalence with
+      * @return
+      */
+    def isEquivalentTo(otherDataType: ValueType): Boolean = false
 
     override def toString: String = {
         val arguments = if (typeArguments.isEmpty) "" else "<" + typeArguments.mkString(",") + ">"
@@ -85,33 +105,21 @@ case class ValueTypeComplex(qualifiedName: QualifiedName, typeArguments: Seq[Val
 case class ValueTypeSimple(qualifiedName: QualifiedName) extends ValueType {
     override def typeArguments: Seq[ValueType] = Seq.empty
 
-    override def isSameType(otherDataType: ValueType, withApexConversions: Boolean = true): Boolean = {
-        if (super.isSameType(otherDataType)) {
-            true
-        } else {
-            if (withApexConversions) {
-                ValueType.isSameTypeWithConversion(this, otherDataType)
-            } else {
-                false
-            }
-        }
-    }
+    override def isEquivalentTo(otherDataType: ValueType): Boolean = ValueType.isSameTypeWithConversion(this, otherDataType)
 }
 
 case class ValueTypeClass(qualifiedName: QualifiedName) extends ValueType {
     override def typeArguments: Seq[ValueType] = Seq.empty
 
-    override def isSameType(otherDataType: ValueType, withApexConversions: Boolean = true): Boolean = {
-        if (super.isSameType(otherDataType)) {
+    override def isEquivalentTo(otherDataType: ValueType): Boolean = {
+        if (ValueType.isSameTypeWithConversion(this, otherDataType)) {
             true
         } else {
-            if (withApexConversions) {
-                ValueType.isSameTypeWithConversion(this, otherDataType)
-            } else {
-                false
-            }
+            // check if otherDataType represents a super class of given class
+            ???
         }
     }
+
     override def toString: String = {
         "class: " + qualifiedName
     }

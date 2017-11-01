@@ -590,7 +590,7 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
         }
     }
 
-    test("findDefinition: `getOrElse(xx, 0) + 1`") {
+    test("findDefinition: `test apex auto conversion Integer to Decimal in method parameters`") {
         val text =
             """
               |class CompletionTester {
@@ -609,8 +609,68 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
         assertResult(1,"Wrong number of results found") (resultNodes.length)
         resultNodes.head match {
             case typeDefinition: IsTypeDefinition =>
-                assertResult(Option(QualifiedName(Array("CompletionTester", "getOrElse"))), "Wrong caret type detected. Expected 'method1()'")(typeDefinition.qualifiedName)
+                assertResult(Option(QualifiedName(Array("CompletionTester", "getOrElse"))), "Wrong caret type detected. Expected 'getOrElse()'")(typeDefinition.qualifiedName)
                 assertResult(9, "expected method on line 9")(typeDefinition.range.start.line)
+            case _ =>
+                fail("Failed to locate correct node")
+        }
+    }
+
+    test("findDefinition: `test automatic class casting in method parameters - Inheritance`") {
+        val text =
+            """
+              |class CompletionTester {
+              | virtual class Base { }
+              | virtual class Level1 extends Base { }
+              | virtual class Level2 extends Level1 { }
+              | private void test() {
+              |     Level1 x = new Level2();
+              |     meth<CARET>od1(x);
+              | }
+              |
+              | private static void method1(Level2 v) { } // line 11
+              | // private static void method1(Level1 v) { } // line 12
+              | private static void method1(Base v) { } // line 13
+              |}
+            """.stripMargin
+
+        val resultNodes = findDefinition(text)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName(Array("CompletionTester", "method1"))), "Wrong caret type detected. Expected 'method1()'")(typeDefinition.qualifiedName)
+                assertResult(13, "expected method on line 13 - Base")(typeDefinition.range.start.line)
+            case _ =>
+                fail("Failed to locate correct node")
+        }
+    }
+
+    test("findDefinition: `test automatic class casting in method parameters - Object`") {
+        val text =
+            """
+              |class CompletionTester {
+              | virtual class Base { }
+              | virtual class Level1 extends Base { }
+              | virtual class Level2 extends Level1 { }
+              | private void test() {
+              |     Level1 x = new Level2();
+              |     meth<CARET>od1(x);
+              | }
+              |
+              | private static void method1(Level2 v) { } // line 11
+              | // private static void method1(Level1 v) { } // line 12
+              | private static void method1(Object v) { } // line 13
+              |}
+            """.stripMargin
+
+        val resultNodes = findDefinition(text)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName(Array("CompletionTester", "method1"))), "Wrong caret type detected. Expected 'method1()'")(typeDefinition.qualifiedName)
+                assertResult(13, "expected method on line 13 - Base")(typeDefinition.range.start.line)
             case _ =>
                 fail("Failed to locate correct node")
         }

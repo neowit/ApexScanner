@@ -35,7 +35,7 @@ import com.neowit.apexscanner.scanner.actions.ActionContext
   *
   */
 class FindMethodVisitor(methodName: QualifiedName, paramTypes: Seq[ValueType], actionContext: ActionContext) extends AstVisitor {
-    private val matcher = new MethodMatcher(methodName, paramTypes, actionContext)
+    private val matcher = new MethodMatcher(methodName, paramTypes, actionContext, projectOpt = None)
     private var foundMethodNode: Option[MethodNode] = None
 
     override def visit(node: AstNode): Boolean = {
@@ -43,7 +43,7 @@ class FindMethodVisitor(methodName: QualifiedName, paramTypes: Seq[ValueType], a
             val methodNode = node.asInstanceOf[MethodNode]
             methodNode.qualifiedName match {
                 case Some(otherMethodName) =>
-                    if (matcher.isSameMethod(otherMethodName, methodNode.getParameterTypes, withApexConversions = true)) {
+                    if (matcher.isSameMethod(otherMethodName, methodNode.getParameterTypes, withTypeModifications = true)) {
                         foundMethodNode = Option(methodNode)
                     }
                 case _ =>

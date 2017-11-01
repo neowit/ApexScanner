@@ -21,18 +21,24 @@
 
 package com.neowit.apexscanner.matchers
 
+import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes.{MethodCallNode, MethodNode, ValueType}
+import com.neowit.apexscanner.resolvers.{ChildOf, InheritanceChecker, SameType}
 import com.neowit.apexscanner.scanner.actions.ActionContext
+
+import scala.collection.mutable
 
 /**
   * Created by Andrey Gavrikov 
   */
-class MethodMatcher(methodName: QualifiedName, paramTypes: Seq[ValueType], actionContext: ActionContext) {
+class MethodMatcher(methodName: QualifiedName, paramTypes: Seq[ValueType], actionContext: ActionContext, projectOpt: Option[Project]) {
     private val paramTypesLength = paramTypes.length
+    private val _inheritanceCheckersCache: mutable.HashMap[ValueType, InheritanceChecker] = new mutable.HashMap[ValueType, InheritanceChecker]()
+
 
     def this(methodCallNode: MethodCallNode, actionContext: ActionContext) = {
-        this(methodCallNode.methodName, methodCallNode.getParameterTypes(actionContext), actionContext)
+        this(methodCallNode.methodName, methodCallNode.getParameterTypes(actionContext), actionContext, methodCallNode.getProject)
     }
 
     /*
@@ -43,7 +49,7 @@ class MethodMatcher(methodName: QualifiedName, paramTypes: Seq[ValueType], actio
       * @param withApexConversions if true then (in case if no exact match found) apply check if potential Apex conversions
       *                            e.g. Decimal == Integer
      */
-    def isSameMethod(otherMethodName: QualifiedName, otherParamTypes: Seq[ValueType], withApexConversions: Boolean): Boolean = {
+    def isSameMethod(otherMethodName: QualifiedName, otherParamTypes: Seq[ValueType], withTypeModifications: Boolean): Boolean = {
         val nameMatch = methodName.couldBeMatch(otherMethodName)
 
         if (nameMatch && paramTypesLength == otherParamTypes.length) {
@@ -56,7 +62,8 @@ class MethodMatcher(methodName: QualifiedName, paramTypes: Seq[ValueType], actio
                 val notExactMatch =
                     typePairs.exists {
                         case (left, right) =>
-                            !left.isSameType(right, withApexConversions)
+                            //!left.isSameType(right, withTypeModifications)
+                            !isSameType(left, right, withTypeModifications)
                     }
                 // found target method if number of parameter match
                 !notExactMatch
@@ -72,6 +79,38 @@ class MethodMatcher(methodName: QualifiedName, paramTypes: Seq[ValueType], actio
         otherMethod.qualifiedName match {
           case Some(otherMethodName) => isSameMethod(otherMethodName, otherMethod.getParameterTypes, withApexConversions)
           case None => false
+        }
+    }
+
+    def isSameType(left: ValueType, right: ValueType, withTypeModifications: Boolean):Boolean = {
+        if (left.isSameType(right, withTypeModifications)) {
+            true
+        } else if (withTypeModifications) {
+            getInheritanceChecker(left) match {
+                case Some(checker) =>
+                    checker.getRelation(right) match {
+                        case SameType => true
+                        case ChildOf => true
+                        case _ => false
+                    }
+                case None => false // inheritance checker can not be created
+            }
+        } else {
+            false // no match, even with type conversion & inheritance
+        }
+    }
+
+    private def getInheritanceChecker(valueType: ValueType): Option[InheritanceChecker] = {
+        projectOpt match {
+            case Some(project) =>
+                _inheritanceCheckersCache.get(valueType) match {
+                    case checkerOpt @ Some(_) => checkerOpt
+                    case None =>
+                        val checker = new InheritanceChecker(project, valueType)
+                        _inheritanceCheckersCache += valueType -> checker
+                        Option(checker)
+                }
+            case None => None
         }
     }
 }
