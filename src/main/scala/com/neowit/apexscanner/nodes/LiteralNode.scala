@@ -36,6 +36,7 @@ object LiteralNode {
             case StringLiteral => QualifiedName(Array("System", "String"))
             case FloatingPointLiteral => QualifiedName(Array("System", "Decimal"))
             case BooleanLiteral => QualifiedName(Array("System", "Boolean"))
+            case NULL => QualifiedName(Array("System", "Object"))
             //TODO add SoslLiteral & SoqlLiteral
             case x => throw new NotImplementedError(s"Support for literal of type $x is not implemented")
         }
