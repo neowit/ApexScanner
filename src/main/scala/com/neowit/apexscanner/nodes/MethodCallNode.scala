@@ -57,12 +57,16 @@ case class MethodCallNode(methodName: QualifiedName, range: Range) extends Abstr
                 if (methods.nonEmpty && methods.length > 1) {
                     // try to find more precise match using exact parameter types, do NOT allow apex conversions (e.g. Integer <> Decimal)
                     val matcher = new MethodMatcher(this, actionContext)
-                    val preciseMatchMethodOpt =
-                        methods.find{
-                            case m @ MethodNode(_) => matcher.isSameMethod(m, withApexConversions = false)
-                            case _ => false
-                        }
-                    preciseMatchMethodOpt
+                    val sortedMethods =
+                    methods.sortWith{
+                        case (left: MethodNode, right: MethodNode) =>
+                            val diff =
+                            matcher.getSimilarityScore(left, withApexConversions = false) -
+                                matcher.getSimilarityScore(right, withApexConversions = false)
+                            diff > 0
+                        case _ => false
+                    }
+                    sortedMethods.headOption
                 } else {
                     methods.headOption
                 }
