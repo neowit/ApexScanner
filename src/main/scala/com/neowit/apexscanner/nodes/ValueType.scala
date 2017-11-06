@@ -27,20 +27,28 @@ object ValueType {
     /**
       * compare two types taking inti account potential Type conversion which can be performed by Apex
       * @param leftDataType first type to compare with second
-      * @param rightDataType second type to compare with first
+      * @param definitionParamDataType second type to compare with first
       * @return true if types may be equal according to potential Apex conversions
       *         e.g. Decimal is "equal" to "Integer"
       */
-    def isSameTypeWithConversion(leftDataType: ValueType, rightDataType: ValueType): Boolean = {
-        if (rightDataType.qualifiedName.endsWith(QualifiedName("Object"))) {
+    def isSameTypeWithConversion(leftDataType: ValueType, definitionParamDataType: ValueType): Boolean = {
+        if (definitionParamDataType.qualifiedName.endsWith(QualifiedName("Object"))) {
             true
         } else {
             // try standard Apex type conversions
+            // leftDataType - usually parameter defined in method caller
+            // rightDataType - usually parameter defined in method definition
+            // i.e. public void method(Decimal) can accept
+            // - call some.method(Integer)
+            // - call some.method(Double)
+            // i.e. public void method(Double) can accept
+            // - call some.method(Integer)
             leftDataType.qualifiedName.getLastComponent.toLowerCase match {
                 case "integer" =>
-                    rightDataType.qualifiedName.endsWith(QualifiedName("Decimal"))
-                case "decimal" =>
-                    rightDataType.qualifiedName.endsWith(QualifiedName("Integer"))
+                    definitionParamDataType.qualifiedName.endsWith(QualifiedName("Double")) ||
+                        definitionParamDataType.qualifiedName.endsWith(QualifiedName("Decimal"))
+                case "double" =>
+                    definitionParamDataType.qualifiedName.endsWith(QualifiedName("Decimal"))
                 case _ => false
             }
         }
@@ -51,22 +59,22 @@ trait ValueType {
     def typeArguments: Seq[ValueType]
 
     /**
-      * @param otherDataType type to compare with
+      * @param definitionParamDataType type to compare with
       * @param withTypeModifications if true then (in case if no exact match found) apply check for potential Apex conversions
       *                            e.g. Decimal == Integer
       * @return
       */
-    def isSameType(otherDataType: ValueType, withTypeModifications: Boolean = true): Boolean = {
+    def isSameType(definitionParamDataType: ValueType, withTypeModifications: Boolean = true): Boolean = {
         val isExactMatch =
-            otherDataType match {
+            definitionParamDataType match {
                 case ValueTypeAny => true
                 case _ =>
-                    val namesMatch = qualifiedName.couldBeMatch(otherDataType.qualifiedName)
+                    val namesMatch = qualifiedName.couldBeMatch(definitionParamDataType.qualifiedName)
 
                     //names match, now compare type arguments
-                    if (namesMatch && typeArguments.length == otherDataType.typeArguments.length) {
+                    if (namesMatch && typeArguments.length == definitionParamDataType.typeArguments.length) {
                         val numOfMatchingArgs =
-                            typeArguments.zip(otherDataType.typeArguments).count{
+                            typeArguments.zip(definitionParamDataType.typeArguments).count{
                                 case (left, right) => left.isSameType(right)
                             }
                         numOfMatchingArgs == typeArguments.length
@@ -75,7 +83,7 @@ trait ValueType {
                     }
             }
         if (!isExactMatch && withTypeModifications) {
-            isEquivalentTo(otherDataType)
+            isEquivalentTo(definitionParamDataType)
         } else {
             isExactMatch
         }
@@ -88,10 +96,10 @@ trait ValueType {
       *  - Integer is equivalent to Decimal
       *  - Child Class is equivalent to Parent class
       *
-      * @param otherDataType type to check equivalence with
+      * @param definitionParamDataType type (used in method definition) to check equivalence with
       * @return
       */
-    def isEquivalentTo(otherDataType: ValueType): Boolean = false
+    def isEquivalentTo(definitionParamDataType: ValueType): Boolean = false
 
     override def toString: String = {
         val arguments = if (typeArguments.isEmpty) "" else "<" + typeArguments.mkString(",") + ">"
@@ -111,8 +119,8 @@ case class ValueTypeSimple(qualifiedName: QualifiedName) extends ValueType {
 case class ValueTypeClass(qualifiedName: QualifiedName) extends ValueType {
     override def typeArguments: Seq[ValueType] = Seq.empty
 
-    override def isEquivalentTo(otherDataType: ValueType): Boolean = {
-        if (ValueType.isSameTypeWithConversion(this, otherDataType)) {
+    override def isEquivalentTo(definitionParamDataType: ValueType): Boolean = {
+        if (ValueType.isSameTypeWithConversion(this, definitionParamDataType)) {
             true
         } else {
             // check if otherDataType represents a super class of given class
