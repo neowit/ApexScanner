@@ -123,8 +123,8 @@ case class ValueTypeClass(qualifiedName: QualifiedName) extends ValueType {
         if (ValueType.isSameTypeWithConversion(this, definitionParamDataType)) {
             true
         } else {
-            // check if otherDataType represents a super class of given class
-            ???
+            // fall back to exact qualified name comparison
+            qualifiedName.couldBeMatch(definitionParamDataType.qualifiedName)
         }
     }
 
