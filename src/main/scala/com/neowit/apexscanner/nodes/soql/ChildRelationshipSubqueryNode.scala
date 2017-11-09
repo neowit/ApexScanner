@@ -34,7 +34,7 @@ case class ChildRelationshipSubqueryNode(queryStr: String, range: Range) extends
     override val qualifiedName: Option[QualifiedName] = Option(new QualifiedName(Array(queryStr)))
 
     override def getValueType: Option[ValueType] = {
-        getFromNodes match {
+        getFromNodes.toList match {
             case Nil =>
                 //return all child relationships
                 SoqlAstUtils.findParentFromNode(this, aliasOpt = None) match {
