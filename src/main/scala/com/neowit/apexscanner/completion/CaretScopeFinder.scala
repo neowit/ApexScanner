@@ -120,7 +120,7 @@ object CaretScopeFinder extends LazyLogging {
 
         findCaretToken(caret, tokens) match {
             case Some(caretToken) if caretToken.getType == SoqlLexer.WS =>
-                rewriter.insertAfter(caretToken.getTokenIndex, fixerTokenText + " ")
+                rewriter.insertAfter(caretToken.getTokenIndex, getSoqlFixerTokenText(caretToken, tokens, fixerTokenText) + " ")
             case Some(caretToken) if caretToken.getText.isEmpty || !ApexParserUtils.isWordToken(caretToken)=>
                 rewriter.insertBefore(caretToken, fixerTokenText)
             case Some(caretToken) if caretToken.getText.nonEmpty && ApexParserUtils.isWordToken(caretToken) =>
@@ -129,6 +129,32 @@ object CaretScopeFinder extends LazyLogging {
         }
         val fixedSoqlDocument = TextBasedDocument(rewriter.getText, caret.document.fileOpt, soqlDocument.offset)
         fixedSoqlDocument
+    }
+
+    /**
+      * check if caret token is in situation like this
+      *     select Id, <CARET> (select ...) ... from Object
+      * in this situation parser needs help to split <CARET> from following "( select ... )"
+      * @return
+      */
+    private def isCaretFollowedByInnerQuery(caretToken: Token, tokens: CommonTokenStream): Boolean = {
+        val caretIndex = caretToken.getTokenIndex
+        if (tokens.size() > caretIndex + 2) {
+            tokens.get(caretIndex + 1).getText == "(" && tokens.get(caretIndex + 2).getType == SoqlLexer.SELECT
+        } else {
+            false
+        }
+    }
+    private def getSoqlFixerTokenText(caretToken: Token, tokens: CommonTokenStream, fixerTokenText: String): String = {
+        if (isCaretFollowedByInnerQuery(caretToken, tokens)) {
+            // looks like we have a situation like this
+            //     select Id, <CARET> (select ...) ... from Object
+            //in this situation parser needs help to split <CARET> from following "( select ... )"
+            // so we add extra comma
+            fixerTokenText + " ,"
+        } else {
+            fixerTokenText
+        }
     }
 
     private def replaceTokenText(document: VirtualDocument, tokenToReplace: Token, newTextOpt: Option[String]): String = {
