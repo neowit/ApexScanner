@@ -47,9 +47,13 @@ object Project {
     /**
       * using provided path try to find src (root) project folder
       * project root is usually same folder that contains package.xml file
-      * @param path starting from provided path
+      * @param pathOpt starting from provided path
       * @return
       */
+    def findApexProjectRoot(pathOpt: Option[Path]): Option[Path] = {
+        pathOpt.flatMap(findApexProjectRoot)
+    }
+
     def findApexProjectRoot(path: Path): Option[Path] = {
         findApexProjectRoot(path, maxDepth = 10)
     }

@@ -46,10 +46,10 @@ trait LanguageServer extends LazyLogging {
 
     def initialiseProject(params: InitializeParams): Future[Option[Project]] = Future {
         params.rootUri.path match {
-            case Some(path) =>
+            case Some(_) => // can not use params.rootUri.path directly because it may not point to project root
                 initialiseProjectImpl(params) match {
                     case Some(project) =>
-                        _projectByPath += path -> project
+                        _projectByPath += project.path -> project
                         Option(project)
                     case None => None
                 }
