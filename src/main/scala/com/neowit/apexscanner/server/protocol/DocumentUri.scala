@@ -24,22 +24,31 @@ package com.neowit.apexscanner.server.protocol
 import java.net.URI
 import java.nio.file.{Path, Paths}
 
-import scala.util.Try
+import com.typesafe.scalalogging.LazyLogging
+
+import scala.util.{Failure, Success, Try}
 
 /**
   * Created by Andrey Gavrikov 
   */
 case class DocumentUri(uri: String) {
 
-    val path: Option[Path] = {
-        Try{
-            Paths.get(URI.create(uri))
-        }.toOption
-    }
+    val path: Option[Path] = DocumentUri.uriToPath(uri)
 }
 
-object DocumentUri {
+object DocumentUri extends LazyLogging {
     def apply(file: Path): DocumentUri = {
         DocumentUri(file.toUri.toASCIIString)
+    }
+
+    def uriToPath(uri: String): Option[Path] = {
+        Try{
+            Paths.get(URI.create(uri))
+        } match {
+            case Success(_path) => Option(_path)
+            case Failure(ex) =>
+                logger.error(s"URI to Path conversion failed for: $uri. " + ex)
+                None
+        }
     }
 }
