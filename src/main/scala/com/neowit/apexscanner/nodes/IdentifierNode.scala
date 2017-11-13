@@ -25,13 +25,14 @@ import com.neowit.apexscanner.antlr.ApexcodeParser.ClassDeclarationContext
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.resolvers.AscendingDefinitionFinder
 import com.neowit.apexscanner.scanner.actions.ActionContext
+import com.typesafe.scalalogging.LazyLogging
 
-case class IdentifierNode(name: String, range: Range) extends AbstractExpression {
+case class IdentifierNode(name: String, range: Range) extends AbstractExpression with LazyLogging {
     override def nodeType: AstNodeType = IdentifierNodeType
     override def getDebugInfo: String = super.getDebugInfo + " " + name
 
     override protected def resolveDefinitionImpl(actionContext: ActionContext): Option[AstNode] = {
-        println("resolve definition of identifier: " + name)
+        logger.debug("resolve definition of identifier: " + name)
         resolveDefinitionIfPartOfExprDotExpr(actionContext) match {
             case defOpt@ Some(_) =>
                 // this identifier is part of expression1.expression2....
