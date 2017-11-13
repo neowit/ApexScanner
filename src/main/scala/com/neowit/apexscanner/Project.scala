@@ -37,27 +37,26 @@ import scala.concurrent.Future
 /**
   * Created by Andrey Gavrikov 
   */
-object Project {
-
-    val defaultIsIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath
-    def getClassOrTriggerMatcher(name: String): PathMatcher = {
-        FileSystems.getDefault.getPathMatcher("""regex:(?i).*\b""" + name + """\.(cls|trigger)$""")
-    }
-
+class ProjectRootFinder {
     /**
       * using provided path try to find src (root) project folder
       * project root is usually same folder that contains package.xml file
-      * @param pathOpt starting from provided path
+      * @param path starting from provided path
       * @return
       */
-    def findApexProjectRoot(pathOpt: Option[Path]): Option[Path] = {
-        pathOpt.flatMap(findApexProjectRoot)
-    }
-
     def findApexProjectRoot(path: Path): Option[Path] = {
-        findApexProjectRoot(path, maxDepth = 10)
+        if (isProjectRoot(path)) {
+            Option(path)
+        } else {
+            // check if this is parent of "src" folder
+            val potentialSrcDir = new File(path.toFile, "src")
+            if (potentialSrcDir.isDirectory) {
+                Option(potentialSrcDir.toPath)
+            } else {
+                findApexProjectRoot(path, maxDepth = 10)
+            }
+        }
     }
-
     /**
       *
       * @param path start path
@@ -80,8 +79,33 @@ object Project {
 
     private def isProjectRoot(path: Path): Boolean = {
         // check if path points to a folder that either has name "src" or contains file package.xml
-        null != path && path.toFile.isDirectory && (path.endsWith("src") || new File(path.toString, "package.xml").canRead)
+        null != path && path.toFile.isDirectory && (path.endsWith("src") || new File(path.toFile, "package.xml").canRead)
     }
+}
+object Project {
+    // this is var because we need to be able to override it in tests
+    var _projectRootFinder: ProjectRootFinder = new ProjectRootFinder
+
+    val defaultIsIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath
+    def getClassOrTriggerMatcher(name: String): PathMatcher = {
+        FileSystems.getDefault.getPathMatcher("""regex:(?i).*\b""" + name + """\.(cls|trigger)$""")
+    }
+
+    /**
+      * using provided path try to find src (root) project folder
+      * project root is usually same folder that contains package.xml file
+      * @param pathOpt starting from provided path
+      * @return
+      */
+    def findApexProjectRoot(pathOpt: Option[Path]): Option[Path] = {
+        pathOpt.flatMap(findApexProjectRoot)
+    }
+
+    def findApexProjectRoot(path: Path): Option[Path] = {
+        _projectRootFinder.findApexProjectRoot(path)
+    }
+
+
 }
 
 /**
