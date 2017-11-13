@@ -44,14 +44,16 @@ abstract class LanguageServerDefault(inputStream: InputStream, outputStream: Out
     }
 
 
-    override protected def initialiseProjectImpl(params: InitializeParams): Option[Project] = {
+    override protected def initialiseProjectImpl(params: InitializeParams): Either[String, Project] = {
         params.rootUri.path match {
             case Some(path) =>
                 val project = Project(path)
                 project.loadStdLib()
-                Option(project)
+                Right(project)
             case None =>
-                None
+                val err = "Failed to create project - InitializeParams.rootUri.path is missing: "
+                logger.error(err)
+                Left(err)
         }
 
     }

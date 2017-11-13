@@ -44,21 +44,23 @@ trait LanguageServer extends LazyLogging {
 
     def sendNotification(notification: NotificationMessage): Unit
 
-    def initialiseProject(params: InitializeParams): Future[Option[Project]] = Future {
+    def initialiseProject(params: InitializeParams): Future[Either[String, Project]] = Future {
         params.rootUri.path match {
             case Some(_) => // can not use params.rootUri.path directly because it may not point to project root
                 initialiseProjectImpl(params) match {
-                    case Some(project) =>
+                    case Right(project) =>
                         _projectByPath += project.path -> project
-                        Option(project)
-                    case None => None
+                        Right(project)
+                    case err => err
                 }
             case None =>
-                None
+                val err = "Failed to create project - InitializeParams.rootUri.path is missing: "
+                logger.error(err)
+                Left(err)
         }
     }
 
-    protected def initialiseProjectImpl(params: InitializeParams): Option[Project]
+    protected def initialiseProjectImpl(params: InitializeParams): Either[String, Project]
 
     /**
       * given the file path, try to determine its project from the list of initialized projects
