@@ -120,25 +120,25 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
                     val head = lst.head
                     val tail = lst.tail
                     head match {
-                        case n:IsTypeDefinition => resolveTailDefinitions(n, tail)
+                        case n:IsTypeDefinition => resolveTailDefinitions(n, tail, actionContext)
                         case n: ThisExpressionNode =>
                             n.resolveDefinition(actionContext) match {
                               case Some(_def: IsTypeDefinition) =>
-                                  resolveTailDefinitions(_def, tail)
+                                  resolveTailDefinitions(_def, tail, actionContext)
                               case _ =>
                                     Seq.empty
                             }
                         case n: SuperExpressionNode =>
                             n.resolveDefinition(actionContext) match {
                                 case Some(_def: IsTypeDefinition) =>
-                                    resolveTailDefinitions(_def, tail)
+                                    resolveTailDefinitions(_def, tail, actionContext)
                                 case _ =>
                                     Seq.empty
                             }
                         case n: LiteralLike =>
                             n.resolveDefinition(actionContext) match {
                                 case Some(_def: IsTypeDefinition) =>
-                                    resolveTailDefinitions(_def, tail)
+                                    resolveTailDefinitions(_def, tail, actionContext)
                                 case _ =>
                                     Seq.empty
                             }
@@ -147,13 +147,13 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
                             val finder = new AscendingDefinitionFinder(actionContext)
                             finder.findDefinition(n, n).headOption match {
                                 case Some(_def: IsTypeDefinition) =>
-                                    resolveTailDefinitions(_def, tail)
+                                    resolveTailDefinitions(_def, tail, actionContext)
                                 case _ =>
                                     n match {
                                         case identifier @ IdentifierNode(_, _) =>
                                             identifier.resolveDefinitionByQualifiedName() match {
                                                 case Some(_def: IsTypeDefinition) =>
-                                                    resolveTailDefinitions(_def, tail)
+                                                    resolveTailDefinitions(_def, tail, actionContext)
                                                 case _ =>
                                                     Seq.empty
                                             }
@@ -171,7 +171,8 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
       * @param expressionsToResolve all other expressions, except head one
       * @return Head + tail expression definitions
       */
-    private def resolveTailDefinitions(container: AstNode with IsTypeDefinition, expressionsToResolve: Seq[AbstractExpression] ): Seq[AstNode] = {
+    private def resolveTailDefinitions(container: AstNode with IsTypeDefinition, expressionsToResolve: Seq[AbstractExpression],
+                                       actionContext: ActionContext): Seq[AstNode] = {
 
         def _resolveTailDefinitions(project: Project, container: AstNode with IsTypeDefinition, expressionsToResolve: Seq[AbstractExpression],
                                     resolvedExpressions: Seq[AstNode]): Seq[AstNode] = {
@@ -181,7 +182,7 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
             } else {
                 val head = expressionsToResolve.head
                 val tail = expressionsToResolve.tail
-                val finder = new DescendingDefinitionFinder(project)
+                val finder = new DescendingDefinitionFinder(project, actionContext)
                 finder.findDefinition(head, container).headOption match {
                     case Some(_def: IsTypeDefinition) =>
                         _resolveTailDefinitions(project, _def, tail, resolvedExpressions ++ Seq(_def))

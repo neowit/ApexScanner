@@ -29,7 +29,7 @@ import com.typesafe.scalalogging.LazyLogging
 /**
   * Created by Andrey Gavrikov 
   */
-class DescendingDefinitionFinder(project: Project) extends LazyLogging {
+class DescendingDefinitionFinder(project: Project, actionContext: ActionContext) extends LazyLogging {
     /**
       * try to find definition of target inside containerNode
       * target can be
