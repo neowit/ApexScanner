@@ -33,53 +33,6 @@ import scala.util.Random
   */
 class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
 
-    test("Multi-File methods - trigger: other class -> inner class") {
-        // from TRIGGER - looking for method in inner class of a class
-        val projectData = ResolverTestUtils.getResolverTestData("AscendingDefinitionFinderTest.testFindMultiFileDefinition.Project.path")
-        val testFileData = ResolverTestUtils.getResolverTestData("AscendingDefinitionFinderTest.testFindMultiFileDefinition.CurrentFile.trigger.path", Option(projectData.project))
-        // inner class method
-        val testTag = "#findMethodFromInnerClassOfAnotherClass#"
-        val lineNos = getLineNoByTag(testFileData.path, testTag)
-        assertResult(1, s"Invalid test data, expected to find line with tag: $testTag in file: " + testFileData.filePath)(lineNos.length)
-        val lineNo = lineNos.head
-
-        val typeNameStr =
-            getNodeDefinition(testTag, testFileData.rootNode.get, Position(lineNo, 18)) match {
-                case nodes if nodes.nonEmpty =>
-                    assertResult(1, "Expected exactly 1 local variable definition")(nodes.length)
-                    val node = nodes.head
-                    assertResult(MethodNodeType)(node.asInstanceOf[AstNode].nodeType)
-
-                    node.asInstanceOf[IsTypeDefinition].getValueType.map(_.toString).getOrElse("NOT FOUND")
-                case _ => "NOT FOUND"
-            }
-        assert(typeNameStr.nonEmpty, testTag + ": NOT FOUND")
-        assertResult("M2Inner_I_S")(typeNameStr)
-    }
-
-    test("Multi-File methods - other class -> inner class") {
-        val projectData = ResolverTestUtils.getResolverTestData("AscendingDefinitionFinderTest.testFindMultiFileDefinition.Project.path")
-        val testFileData = ResolverTestUtils.getResolverTestData("AscendingDefinitionFinderTest.testFindMultiFileDefinition.CurrentFile.path", Option(projectData.project))
-        // inner class method
-        val testTag = "#findMethodFromInnerClassOfAnotherClass#"
-        val lineNos = getLineNoByTag(testFileData.path, testTag)
-        assertResult(1, s"Invalid test data, expected to find line with tag: $testTag in file: " + testFileData.filePath)(lineNos.length)
-        val lineNo = lineNos.head
-
-        val typeNameStr =
-            getNodeDefinition(testTag, testFileData.rootNode.get, Position(lineNo, 30)) match {
-                case nodes if nodes.nonEmpty =>
-                    assertResult(1, "Expected exactly 1 local variable definition")(nodes.length)
-                    val node = nodes.head
-                    assertResult(MethodNodeType)(node.asInstanceOf[AstNode].nodeType)
-
-                    node.asInstanceOf[IsTypeDefinition].getValueType.map(_.toString).getOrElse("NOT FOUND")
-                case _ => "NOT FOUND"
-            }
-        assert(typeNameStr.nonEmpty, testTag + ": NOT FOUND")
-        assertResult("M2Inner_I_S")(typeNameStr)
-    }
-
     test("Multi-File variables - other class") {
         val projectData = ResolverTestUtils.getResolverTestData("AscendingDefinitionFinderTest.testFindMultiFileDefinition.Project.path")
         val testFileData = ResolverTestUtils.getResolverTestData("AscendingDefinitionFinderTest.testFindMultiFileDefinition.CurrentFile.path", Option(projectData.project))

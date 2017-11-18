@@ -11,9 +11,4 @@ public virtual class TypeFinderMultiFile {
         System.debug(cls1.innerStr1); // #findVarFromInnerClassOfAnotherClass#
     }
 
-    private void findMethodFromInnerClassOfAnotherClass() {
-        Integer int = 0; 
-        TypeFinder.InnerClass1 cls1 = new TypeFinder.InnerClass1();
-        cls1.methodWith2Params(int, cls1.innerStr1); // #findMethodFromInnerClassOfAnotherClass#
-    }
 }

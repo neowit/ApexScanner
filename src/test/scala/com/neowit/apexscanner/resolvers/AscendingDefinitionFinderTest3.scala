@@ -219,4 +219,89 @@ class AscendingDefinitionFinderTest3 extends FunSuite {
                 fail( "Failed to locate correct node.")
         }
     }
+
+    test("findDefinition: Method From Inner Class Of Another Class") {
+        val textTypeFinder =
+            """
+              |class TypeFinder {
+              |    private M2Type methodWith2Params(Integer i, String s) { // this is wrong method
+              |    }
+              |
+              |    private M2Type methodWith2Params(String s1, String s2) { // this is also wrong method
+              |    }
+              |
+              |    public class InnerClass1 {
+              |        public String innerStr1;
+              |        public M2Inner_I_S methodWith2Params(Integer i, String s2) { // expect to find this method
+              |        }
+              |    }
+              |
+              |}
+            """.stripMargin
+        loadDocument(getProject(), new TestDocument(textTypeFinder, "TypeFinder"))
+
+        val text =
+            """
+              |class DefinitionTester {
+              |    private void findMethodFromInnerClassOfAnotherClass() {
+              |        Integer int = 0;
+              |        TypeFinder.InnerClass1 cls1 = new TypeFinder.InnerClass1();
+              |        cls1.methodWith<CARET>2Params(int, cls1.innerStr1);
+              |    }
+              |}
+            """.stripMargin
+
+        val resultNodes = findDefinition(text, loadStdLib = true) // need StdLib to because resolving literal type: Integer
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName("TypeFinder", "InnerClass1", "methodWith2Params")), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                assertResult(Option(QualifiedName("M2Inner_I_S")), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
+            case _ =>
+                fail( "Failed to locate correct node.")
+        }
+    }
+
+    test("findDefinition: Trigger: Method From Inner Class Of Another Class") {
+        val textTypeFinder =
+            """
+              |class TypeFinder {
+              |    private M2Type methodWith2Params(Integer i, String s) { // this is wrong method
+              |    }
+              |
+              |    private M2Type methodWith2Params(String s1, String s2) { // this is also wrong method
+              |    }
+              |
+              |    public class InnerClass1 {
+              |        public String innerStr1;
+              |        public M2Inner_I_S methodWith2Params(Integer i, String s2) { // expect to find this method
+              |        }
+              |    }
+              |
+              |}
+            """.stripMargin
+        loadDocument(getProject(), new TestDocument(textTypeFinder, "TypeFinder"))
+
+        val text =
+            """
+              |trigger TypeFinderMultiFile on Account (before insert) {
+              |    Integer int = 0;
+              |    TypeFinder.InnerClass1 cls1 = new TypeFinder.InnerClass1();
+              |    cls1.method<CARET>With2Params(int, cls1.innerStr1);
+              |}
+              |
+            """.stripMargin
+
+        val resultNodes = findDefinition(text, loadStdLib = true) // need StdLib to because resolving literal type: Integer
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName("TypeFinder", "InnerClass1", "methodWith2Params")), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                assertResult(Option(QualifiedName("M2Inner_I_S")), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
+            case _ =>
+                fail( "Failed to locate correct node.")
+        }
+    }
 }
