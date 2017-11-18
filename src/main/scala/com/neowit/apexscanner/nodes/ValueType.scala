@@ -49,6 +49,8 @@ object ValueType {
                         definitionParamDataType.qualifiedName.endsWith(QualifiedName("Decimal"))
                 case "double" =>
                     definitionParamDataType.qualifiedName.endsWith(QualifiedName("Decimal"))
+                case "id" =>
+                    definitionParamDataType.qualifiedName.endsWith(QualifiedName("String"))
                 case _ => false
             }
         }
