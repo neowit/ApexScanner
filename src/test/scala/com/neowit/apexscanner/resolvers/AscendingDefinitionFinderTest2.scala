@@ -675,4 +675,30 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
                 fail("Failed to locate correct node")
         }
     }
+
+    test("findDefinition: `static method call with different parameters`") {
+        val text =
+            """
+              |class CompletionTester {
+              | private void test() {
+              |     Id id;
+              |     CompletionTester.getOr<CARET>Else(id, 0); // 0 has type Integer
+              | }
+              |
+              | private static Decimal getOrElse(final String val) { } // line 8
+              | private static Decimal getOrElse(final String val, final Integer defaultVal) { } // line 9
+              |}
+            """.stripMargin
+
+        val resultNodes = findDefinition(text, "getOrElse", loadStdLib = true)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName(Array("CompletionTester", "getOrElse"))), "Wrong caret type detected. Expected 'getOrElse()'")(typeDefinition.qualifiedName)
+                assertResult(9, "expected method on line 9")(typeDefinition.range.start.line)
+            case _ =>
+                fail("Failed to locate correct node")
+        }
+    }
 }

@@ -23,7 +23,9 @@ package com.neowit.apexscanner.resolvers
 
 import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.ast.QualifiedName
+import com.neowit.apexscanner.matchers.MethodMatcher
 import com.neowit.apexscanner.nodes._
+import com.neowit.apexscanner.scanner.actions.ActionContext
 import com.typesafe.scalalogging.LazyLogging
 
 /**
@@ -40,8 +42,14 @@ class DescendingDefinitionFinder(project: Project, actionContext: ActionContext)
       * - enum
       */
     def findDefinition(target: AstNode, containerNode: AstNode): Seq[AstNode] = {
-        val targetNameOpt =
+        var methodMatcher: Option[MethodMatcher] = None // this may be defined later if target is MethodCallNode
+        val targetNameOpt: Option[QualifiedName] =
             target match {
+                case _target:MethodCallNode =>
+                    // method call nodes need special treatment because there may be more than 1 method with same name
+                    // so looking by just qualified name is not enough
+                    methodMatcher = Option(new MethodMatcher(_target, actionContext))
+                    _target.qualifiedName
                 case _target:HasQualifiedName =>
                     _target.qualifiedName
                 case _target: IdentifierNode =>
@@ -66,6 +74,9 @@ class DescendingDefinitionFinder(project: Project, actionContext: ActionContext)
                 }
                 val containerNodeChildOpt =
                     _find{
+                        case _child: MethodNode if methodMatcher.isDefined =>
+                            // for methods - compare qualified name as well as parameter types
+                            methodMatcher.exists(_.isSameMethod(_child, withApexConversions = true))
                         case child:IsTypeDefinition =>
                             child.qualifiedName match {
                                 case Some(childName) => targetName.couldBeMatch(childName)
