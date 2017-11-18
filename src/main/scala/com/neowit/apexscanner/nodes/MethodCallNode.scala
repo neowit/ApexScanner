@@ -24,9 +24,10 @@ import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.matchers.MethodMatcher
 import com.neowit.apexscanner.resolvers.AscendingDefinitionFinder
 import com.neowit.apexscanner.scanner.actions.ActionContext
+import com.typesafe.scalalogging.LazyLogging
 
 /**
-  * Created by Andrey Gavrikov 
+  * Created by Andrey Gavrikov
   */
 object MethodCallNode {
     def apply(methodName: String, range: Range): MethodCallNode = {
@@ -34,7 +35,7 @@ object MethodCallNode {
     }
 }
 
-case class MethodCallNode(methodName: QualifiedName, range: Range) extends AbstractExpression with HasQualifiedName {
+case class MethodCallNode(methodName: QualifiedName, range: Range) extends AbstractExpression with HasQualifiedName with LazyLogging {
     override def nodeType: AstNodeType = MethodCallNodeType
 
     private var _resolvedParameterTypes: Option[Seq[ValueType]] = None
@@ -46,38 +47,19 @@ case class MethodCallNode(methodName: QualifiedName, range: Range) extends Abstr
     override def getDebugInfo: String = super.getDebugInfo + " calling: " + methodName + "(" + getParameterExpressionNodes.mkString(",") + ")"
 
     override protected def resolveDefinitionImpl(actionContext: ActionContext): Option[AstNode] = {
-        println("resolve definition of method call: " + getDebugInfo)
+        logger.debug("resolve definition of method call: " + getDebugInfo)
         resolveDefinitionIfPartOfExprDotExpr(actionContext) match {
             case defOpt@Some(_) =>
                 // this identifier is part of expression1.expression2....
                 defOpt
             case _ =>
-                val finder = new AscendingDefinitionFinder(actionContext)
-                val methods = finder.findDefinition(this, this)
-                if (methods.nonEmpty && methods.length > 1) {
-                    // try to find more precise match using exact parameter types, do NOT allow apex conversions (e.g. Integer <> Decimal)
-                    val matcher = new MethodMatcher(this, actionContext)
-                    val sortedMethods =
-                    methods.sortWith{
-                        case (left: MethodNode, right: MethodNode) =>
-                            val diff =
-                            matcher.getSimilarityScore(left, withApexConversions = false) -
-                                matcher.getSimilarityScore(right, withApexConversions = false)
-                            diff > 0
-                        case _ => false
-                    }
-                    sortedMethods.headOption
-                } else {
-                    methods.headOption
-                }
+                findDefinition(actionContext).headOption
         }
 
     }
 
     override def qualifiedName: Option[QualifiedName] = Option(methodName)
 
-    //TODO implement taking real parameter types into account
-    // current version returns "*" for each parameter
     def getParameterTypes(actionContext: ActionContext): Seq[ValueType] = {
         _resolvedParameterTypes match {
             case Some(paramTypes) =>
@@ -108,6 +90,28 @@ case class MethodCallNode(methodName: QualifiedName, range: Range) extends Abstr
             case Some( expressionList ) =>
                 expressionList.getExpressions
             case None => Seq.empty
+        }
+    }
+
+    private def findDefinition(actionContext: ActionContext): Seq[AstNode] = {
+        val methodCallNode: MethodCallNode = this
+        val finder = new AscendingDefinitionFinder(actionContext)
+        val methods = finder.findDefinition(methodCallNode, methodCallNode)
+        if (methods.nonEmpty && methods.length > 1) {
+            // try to find more precise match using exact parameter types, do NOT allow apex conversions (e.g. Integer <> Decimal)
+            val matcher = new MethodMatcher(methodCallNode, actionContext)
+            val sortedMethods =
+                methods.sortWith{
+                    case (left: MethodNode, right: MethodNode) =>
+                        val diff =
+                            matcher.getSimilarityScore(left, withApexConversions = false) -
+                                matcher.getSimilarityScore(right, withApexConversions = false)
+                        diff > 0
+                    case _ => false
+                }
+            sortedMethods
+        } else {
+            methods
         }
     }
 }
