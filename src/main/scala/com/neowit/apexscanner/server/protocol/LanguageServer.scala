@@ -98,6 +98,10 @@ trait LanguageServer extends LazyLogging {
                     val handler = new DefinitionHandler()
                     val msg = handler.handle(this, m)
                     Option(msg)
+                case m @ RequestMessage(id, "textDocument/documentSymbol", params, _) =>
+                    val handler = new DocumentSymbolHandler()
+                    val msg = handler.handle(this, m)
+                    Option(msg)
                 case NotificationMessage("$/cancelRequest", _, _) =>
                     //A processed notification message must not send a response back. They work like events.
                     //TODO

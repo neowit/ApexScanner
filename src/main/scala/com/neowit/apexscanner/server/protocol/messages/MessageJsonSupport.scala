@@ -65,6 +65,7 @@ trait MessageJsonSupport {
     implicit val InitializeParamsDecoder: Decoder[InitializeParams] = deriveDecoder
     implicit val DidSaveParamsDecoder: Decoder[DidSaveParams] = deriveDecoder
     implicit val CompletionParamsDecoder: Decoder[TextDocumentPositionParams] = deriveDecoder
+    implicit val DocumentSymbolParamsDecoder: Decoder[DocumentSymbolParams] = deriveDecoder
 
     implicit val PositionDecoder: Decoder[Position] =
         Decoder.forProduct2("line", "character")(Position.apply)
@@ -90,6 +91,7 @@ trait MessageJsonSupport {
         Encoder.forProduct2("uri", "range")(l =>
             (DocumentUri(l.path), l.range)
         )
+    implicit val SymbolInformationParamsDecoder: Encoder[SymbolInformation] = deriveEncoder
     implicit val CompletionItemEncoder: Encoder[CompletionItem] = deriveEncoder
 
     implicit val TextDocumentContentChangeEventDecoder: Decoder[TextDocumentContentChangeEvent] = deriveDecoder

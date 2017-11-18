@@ -26,4 +26,5 @@ sealed trait ActionType
 
 case object ListCompletionsActionType extends ActionType
 case object FindSymbolActionType extends ActionType
+case object DocumentSymbolActionType extends ActionType
 case object FindUsagesActionType extends ActionType

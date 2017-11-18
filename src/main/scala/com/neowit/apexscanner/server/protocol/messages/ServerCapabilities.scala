@@ -58,7 +58,7 @@ case class ServerCapabilities(
      /**
        * The server provides document symbol support.
        */
-     documentSymbolProvider: Boolean = false,
+     documentSymbolProvider: Boolean = true,
      /**
        * The server provides workspace symbol support.
        */

@@ -43,7 +43,8 @@ object ActionContext {
             case ListCompletionsActionType => CompletionActionContext(contextId)
             case FindSymbolActionType => FindSymbolActionContext(contextId)
             case FindUsagesActionType =>  FindUsagesActionContext(contextId)
-            case _ => throw new NotImplementedError("ActionContext.apply is not implemented for " + actionType.toString)
+            //case _ => throw new NotImplementedError("ActionContext.apply is not implemented for " + actionType.toString)
+            case _ => GenericActionContext(contextId, actionType)
         }
         _contextById += actionContext.id -> actionContext
         actionContext
@@ -133,6 +134,8 @@ trait ActionContext extends LazyLogging {
     }
 
 }
+case class GenericActionContext(id: ActionContextId, actionType: ActionType) extends ActionContext
+
 case class CompletionActionContext private (id: ActionContextId) extends ActionContext {
     override val actionType: ActionType = ListCompletionsActionType
 }
