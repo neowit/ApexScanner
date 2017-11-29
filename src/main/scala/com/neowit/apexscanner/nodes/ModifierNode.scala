@@ -53,7 +53,7 @@ object ModifierNode {
 
     def visitClassOrInterfaceVisibilityModifier(ctx: ClassOrInterfaceVisibilityModifierContext): AstNode = {
         if (null != ctx.ABSTRACT()) {
-            return ModifierNode(ModifierNode.ABSTRACT, Range(ctx.VIRTUAL()))
+            return ModifierNode(ModifierNode.ABSTRACT, Range(ctx.ABSTRACT()))
         }
         if (null != ctx.GLOBAL()) {
             return ModifierNode(ModifierNode.GLOBAL, Range(ctx.GLOBAL()))
