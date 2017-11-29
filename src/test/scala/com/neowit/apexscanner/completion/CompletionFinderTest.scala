@@ -40,6 +40,32 @@ class CompletionFinderTest extends FunSuite with TestConfigProvider with ScalaFu
 private val filePath = getProperty("CompletionFinderTest.path")
     private val projectPath = FileSystems.getDefault.getPath(filePath)
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    var _projectWithStdLib: Option[Project] = None
+    def listCompletions(text: String, documentName: String = "test", loadStdLib: Boolean = false): scala.Seq[Symbol] = {
+        val project =
+            if (loadStdLib) {
+                _projectWithStdLib match {
+                    case Some(_project) =>
+                        // re-use previously loaded project because loading StdLib takes a lot of time
+                        _project
+                    case None =>
+                        val _project = Project(projectPath)
+                        _project.loadStdLib() // force loading of StandardLibrary
+                        _projectWithStdLib = Option(_project)
+                        _project
+                }
+
+            } else {
+                Project(projectPath)
+            }
+        val caretInDocument = CaretUtils.getCaret(text, Paths.get(documentName))
+        val context = ActionContext("CompletionFinderTest-" + Random.nextString(5), ListCompletionsActionType)
+        val completionFinder = new CompletionFinder(project)
+        completionFinder.listCompletions(caretInDocument, context)
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     test("testListCompletions: enum values - `SEASONS.<CARET>`") {
         val text =
             """
@@ -371,29 +397,5 @@ private val filePath = getProperty("CompletionFinderTest.path")
             case _ =>
                 fail("Expected non empty result")
         }
-    }
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    var _projectWithStdLib: Option[Project] = None
-    def listCompletions(text: String, documentName: String = "test", loadStdLib: Boolean = false): scala.Seq[Symbol] = {
-        val project =
-            if (loadStdLib) {
-                _projectWithStdLib match {
-                    case Some(_project) =>
-                        // re-use previously loaded project because loading StdLib takes a lot of time
-                        _project
-                    case None =>
-                        val _project = Project(projectPath)
-                        _project.loadStdLib() // force loading of StandardLibrary
-                        _projectWithStdLib = Option(_project)
-                        _project
-                }
-
-            } else {
-                Project(projectPath)
-            }
-        val caretInDocument = CaretUtils.getCaret(text, Paths.get(documentName))
-        val context = ActionContext("CompletionFinderTest-" + Random.nextString(5), ListCompletionsActionType)
-        val completionFinder = new CompletionFinder(project)
-        completionFinder.listCompletions(caretInDocument, context)
     }
 }
