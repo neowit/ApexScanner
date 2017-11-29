@@ -40,7 +40,7 @@ class InitializeHandler extends MessageHandler with MessageJsonSupport {
                             // initialise project
                             server.initialiseProject(params).map{
                                 case Right(_) =>
-                                    val serverCapabilities = ServerCapabilities()
+                                    val serverCapabilities = server.getServerCapabilities
                                     Right(ResponseMessage(messageIn.id, result = Option(Map("capabilities" -> serverCapabilities.asJson).asJson), error = None))
                                 case Left(err) =>
                                     Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to initialise project: $messageIn. Error: $err"))

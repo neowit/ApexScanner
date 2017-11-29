@@ -60,6 +60,12 @@ trait LanguageServer extends LazyLogging {
         }
     }
 
+    /**
+      * this method should be overridden by class implementing LanguageServer
+      * @return
+      */
+    def getServerCapabilities: ServerCapabilities = ServerCapabilities()
+
     protected def initialiseProjectImpl(params: InitializeParams): Either[String, Project]
 
     /**
