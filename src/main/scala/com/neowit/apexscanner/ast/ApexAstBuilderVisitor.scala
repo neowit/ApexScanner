@@ -190,7 +190,11 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     }
 
     override def visitAnnotation(ctx: AnnotationContext): AstNode = {
-        AnnotationNode.visitAnnotation(ctx)
+        if (null != ctx.annotationName()) {
+            AnnotationNode.visitAnnotation(ctx)
+        } else {
+            NullNode
+        }
     }
 
     override def visitExtendsDeclaration(ctx: ExtendsDeclarationContext): AstNode = {

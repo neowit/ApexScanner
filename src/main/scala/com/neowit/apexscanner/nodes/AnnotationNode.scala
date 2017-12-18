@@ -21,9 +21,9 @@
 
 package com.neowit.apexscanner.nodes
 
-import com.neowit.apexscanner.antlr.ApexcodeParser.AnnotationContext
+import com.neowit.apexscanner.antlr.ApexcodeParser.{AnnotationContext, AnnotationElementValuePairContext}
 
-case class AnnotationNode(name: String, params: List[AnnotationParameter], range: Range) extends AstNode {
+case class AnnotationNode(name: String, body: Option[Either[AnnotationValue, List[AnnotationParameter]]], range: Range) extends AstNode {
     override def nodeType: AstNodeType = AnnotationNodeType
 
     /**
@@ -33,24 +33,61 @@ case class AnnotationNode(name: String, params: List[AnnotationParameter], range
       */
     override def getDebugInfo: String = {
         val myText =
-        if (params.nonEmpty) {
-            name + "(" + params.map(_.getDebugInfo).mkString(",") + ")"
-        } else {
-            name
-        }
+            body match {
+                case Some(Left(AnnotationValue(_value, _))) =>
+                    name + "(" +  _value + ")"
+                case Some(Right(_params @ List(AnnotationParameter(_name, _value, _)))) =>
+                    name + "(" + _params.map(_.getDebugInfo).mkString(",") + ")"
+                case _ => name
+
+            }
         super.getDebugInfo + " " + myText
     }
 }
 
 object AnnotationNode {
+    import scala.collection.JavaConverters._
     def visitAnnotation(ctx: AnnotationContext): AstNode = {
-        val annotation = AnnotationNode(name = ctx.annotationName().getText, params = Nil, Range(ctx))
-        //TODO define annotation params
+        val body: Option[Either[AnnotationValue, List[AnnotationParameter]]] =
+            if (null != ctx.annotationElementValuePairs()) {
+                val paramOps: List[Option[AnnotationParameter]] =
+                    ctx.annotationElementValuePairs()
+                        .annotationElementValuePair()
+                        .asScala.map(pair => createAnnotationParameter(pair)).toList
+                // remove empty values
+                Option(Right(paramOps.filterNot(_.isEmpty).flatten))
+            }else if (null != ctx.annotationElementValue()) {
+                Option(Left(AnnotationValue(ctx.annotationElementValue().getText, Range(ctx.annotationElementValue()))))
+            } else {
+                None // empty annotation body
+            }
+        val annotation = AnnotationNode(name = ctx.annotationName().getText, body, Range(ctx))
         annotation
+    }
+    def createAnnotationParameter(valueContext: AnnotationElementValuePairContext): Option[AnnotationParameter] = {
+        if (null != valueContext.Identifier()) {
+            if (null != valueContext.annotationElementValue()) {
+                Option(AnnotationParameter(valueContext.Identifier().getText, valueContext.annotationElementValue().getText, Range(valueContext)))
+            } else {
+                // TODO - is this ever being used ?
+                Option(AnnotationParameter(valueContext.Identifier().getText, "", Range(valueContext)))
+            }
+        } else {
+            None
+        }
     }
 }
 
-case class AnnotationParameter(name: String, value: String, range: Range) extends AstNode {
+trait AnnotationBody extends AstNode {
+    override def nodeType: AstNodeType = AnnotationParameterNodeType
+}
+case class AnnotationValue(value: String, range: Range) extends AnnotationBody {
+    override def nodeType: AstNodeType = AnnotationParameterNodeType
+    override def getDebugInfo: String = {
+        super.getDebugInfo + " " + value
+    }
+}
+case class AnnotationParameter(name: String, value: String, range: Range) extends AnnotationBody {
     override def nodeType: AstNodeType = AnnotationParameterNodeType
     override def getDebugInfo: String = {
         super.getDebugInfo + " " + name + "=" + value
