@@ -14,8 +14,8 @@
     -->
 
     <!-- configuring logback from application.conf:  http://stackoverflow.com/a/27567950 -->
-    <define name="rootLogLevel" class="com.neowit.apexscanner.LogbackConfigPropertyDefinerRoot" />
-    <define name="neowitLogLevel" class="com.neowit.apexscanner.LogbackConfigPropertyDefinerNeowit" />
+    <define name="rootLogLevel" class="com.neowit.logging.LogbackConfigPropertyDefinerRoot" />
+    <define name="neowitLogLevel" class="com.neowit.logging.LogbackConfigPropertyDefinerNeowit" />
     <!--<define name="stdoutLogLevel" class="com.neowit.apexscanner.LogbackConfigPropertyDefinerStdOut" /> -->
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -26,7 +26,7 @@
         </filter>
         -->
         <!-- control if/when log to STDOUT is allowed -->
-        <filter class="com.neowit.apexscanner.LogbackStdOutFilter" />
+        <filter class="com.neowit.logging.LogbackStdOutFilter" />
         <!--
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36}.%M \(%L\) - %msg%n</pattern>
@@ -38,7 +38,7 @@
         </encoder>
     </appender>
 
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <appender name="FILE" class="com.neowit.logging.DelayedRollingFileAppender">
         <file>${log.path:-apexscanner.log}</file>
         <append>true</append>
         <encoder>

@@ -19,7 +19,7 @@
  *
  */
 
-package com.neowit.apexscanner
+package com.neowit.logging
 
 import ch.qos.logback.classic.spi.LoggingEvent
 import ch.qos.logback.core.PropertyDefinerBase
@@ -30,7 +30,7 @@ import ch.qos.logback.core.spi.FilterReply
   *
   * log configuration
   * -Dlog.path=/path/to/file.log
-  * -Dlog.level.root=error    #log all events of level INFO
+  * -Dlog.level.root=error    #log all events of level ERROR
   * -Dlog.level.neowit=debug  #log com.neowit.* events of level DEBUG
   * -Dlog.stdout.enable=true # enable log to STDOUT
   */
