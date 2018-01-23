@@ -69,7 +69,7 @@ class AscendingDefinitionFinderTest3 extends FunSuite {
         val caretInDocument = CaretUtils.getCaret(text, Paths.get(documentName))
         project.getAst(caretInDocument.document, forceRebuild = true) match {
             case Some(result) =>
-                val actionContext = ActionContext("AscendingDefinitionFinderTest2-" + Random.nextString(5), FindSymbolActionType)
+                val actionContext = ActionContext("AscendingDefinitionFinderTest3-" + Random.nextString(5), FindSymbolActionType)
                 val finder = new AscendingDefinitionFinder(actionContext)
                 finder.findDefinition(result.rootNode, caretInDocument.position)
             case _ =>

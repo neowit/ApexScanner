@@ -23,9 +23,10 @@ package com.neowit.apexscanner.resolvers
 
 import java.nio.file.{Path, Paths}
 
-import com.neowit.apexscanner.Project
+import com.neowit.apexscanner.VirtualDocument.DocumentId
+import com.neowit.apexscanner.{Project, TextBasedDocument, VirtualDocument}
 import com.neowit.apexscanner.antlr.CaretUtils
-import com.neowit.apexscanner.ast.QualifiedName
+import com.neowit.apexscanner.ast.{AstBuilderResult, QualifiedName}
 import com.neowit.apexscanner.nodes.{AstNode, IsTypeDefinition}
 import com.neowit.apexscanner.scanner.actions.{ActionContext, FindSymbolActionType}
 import org.scalatest.FunSuite
@@ -40,27 +41,38 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
 
     // for cases when we do not really care about project path - get something random
     private val projectPath: Path = Paths.get(System.getProperty("java.io.tmpdir"))
+    private class TestDocument(text: String, fileName: String) extends TextBasedDocument(text, fileOpt = Option(Paths.get(fileName)), offset = None) {
+        override def getId: DocumentId = fileName
+    }
     ///////////////////////////////////////////////////////////////////////////////////
     var _projectWithStdLib: Option[Project] = None
-    private def findDefinition(text: String, documentName: String = "test", loadStdLib: Boolean = false): scala.Seq[AstNode] = {
+    private def getProject(loadStdLib: Boolean = false): Project = {
         val project =
-            if (loadStdLib) {
-                _projectWithStdLib match {
-                    case Some(_project) =>
-                        // re-use previously loaded project because loading StdLib takes a lot of time
-                        _project
-                    case None =>
-                        val _project = Project(projectPath)
-                        _project.loadStdLib() // force loading of StandardLibrary
-                        _projectWithStdLib = Option(_project)
-                        _project
-                }
-
-            } else {
-                Project(projectPath)
+            _projectWithStdLib match {
+                case Some(_project) =>
+                    // re-use previously loaded project because loading StdLib takes a lot of time
+                    _project
+                case None =>
+                    val _project = Project(projectPath)
+                    _projectWithStdLib = Option(_project)
+                    _project
             }
+        if (loadStdLib && !project.getExternalLibraries.exists(_.getName == "StdLib")) {
+            project.loadStdLib() // force loading of StandardLibrary
+        }
+
+        project
+    }
+
+    private def loadDocument(project: Project, document: VirtualDocument): Option[AstBuilderResult] = {
+        project.getAst(document, forceRebuild = true)
+    }
+
+    private def findDefinition(text: String, documentName: String = "test", loadStdLib: Boolean = false): scala.Seq[AstNode] = {
+        loadDocument(getProject(), new TestDocument(text, documentName))
+        val project = getProject(loadStdLib)
         val caretInDocument = CaretUtils.getCaret(text, Paths.get(documentName))
-        project.getAst(caretInDocument.document) match {
+        project.getAst(caretInDocument.document, forceRebuild = true) match {
             case Some(result) =>
                 val actionContext = ActionContext("AscendingDefinitionFinderTest2-" + Random.nextString(5), FindSymbolActionType)
                 val finder = new AscendingDefinitionFinder(actionContext)
@@ -697,6 +709,54 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
             case typeDefinition: IsTypeDefinition =>
                 assertResult(Option(QualifiedName(Array("CompletionTester", "getOrElse"))), "Wrong caret type detected. Expected 'getOrElse()'")(typeDefinition.qualifiedName)
                 assertResult(9, "expected method on line 9")(typeDefinition.range.start.line)
+            case _ =>
+                fail("Failed to locate correct node")
+        }
+    }
+    test("findDefinition: `array element type`") {
+        val text =
+            """
+              |class CompletionTester {
+              | private void test() {
+              |     final List<String> strs;
+              |     System.debug(strs[0].toLower<CARET>Case());
+              | }
+              |
+              |}
+            """.stripMargin
+
+        val resultNodes = findDefinition(text, "test1", loadStdLib = true)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName(Array("System", "String", "toLowerCase"))), "Wrong caret type detected. Expected 'getOrElse()'")(typeDefinition.qualifiedName)
+            case _ =>
+                fail("Failed to locate correct node")
+        }
+    }
+
+    test("findDefinition: `static method call with array element parameter`") {
+        val text =
+            """
+              |class CompletionTester {
+              | private void test() {
+              |     final List<Id> ids;
+              |     CompletionTester.getOr<CARET>Else('', ids[0]); // ids[0] has type Id
+              | }
+              |
+              | private static Decimal getOrElse(final String val, final Id val2) { } // line 8
+              | private static Decimal getOrElse(final String val, final Decimal val2) { } // line 9
+              |}
+            """.stripMargin
+
+        val resultNodes = findDefinition(text, "getOrElse", loadStdLib = true)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName(Array("CompletionTester", "getOrElse"))), "Wrong caret type detected. Expected 'getOrElse()'")(typeDefinition.qualifiedName)
+                assertResult(8, "expected method on line 8")(typeDefinition.range.start.line)
             case _ =>
                 fail("Failed to locate correct node")
         }

@@ -135,6 +135,14 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
                                 case _ =>
                                     Seq.empty
                             }
+
+                        case n: ArrayIndexExpressionNode =>
+                            n.resolveDefinition(actionContext) match {
+                                case Some(_def: IsTypeDefinition) =>
+                                    resolveTailDefinitions(_def, tail, actionContext)
+                                case _ =>
+                                    Seq.empty
+                            }
                         case n: LiteralLike =>
                             n.resolveDefinition(actionContext) match {
                                 case Some(_def: IsTypeDefinition) =>

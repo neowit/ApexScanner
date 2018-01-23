@@ -412,6 +412,21 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
     }
 
 
+    // collectionExpression[indexExpr]
+    override def visitArrayIndexExpr(ctx: ArrayIndexExprContext): AstNode = {
+        if (null != ctx.arr) {
+            val collectionNode = visit(ctx.arr) // collectionExpression
+            val indexExprNode = visit(ctx.expression(1)) // indexExpr
+
+            val arrIndexExpr = ArrayIndexExpressionNode(collectionNode, indexExprNode, Range(ctx, _documentOffsetPosition))
+            arrIndexExpr.addChildToAst(collectionNode)
+            arrIndexExpr.addChildToAst(indexExprNode)
+            arrIndexExpr
+        } else {
+            NullNode
+        }
+    }
+
     override def visitForControl(ctx: ForControlContext): AstNode = {
         if (null != ctx.enhancedForControl()) {
             visitEnhancedForControl(ctx.enhancedForControl())
