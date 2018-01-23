@@ -53,6 +53,10 @@ object SymbolKind {
         override val code: Int = 7
         override def getDebugInfo: String = "Property"
     }
+    object Annotation extends SymbolKind {
+        override val code: Int = 7
+        override def getDebugInfo: String = "Property"
+    }
     object Field extends SymbolKind {
         override val code: Int = 8
         override def getDebugInfo: String = "Field"

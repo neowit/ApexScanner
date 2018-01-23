@@ -166,6 +166,14 @@ case class ValueTypeEnumConstant(qualifiedName: QualifiedName) extends ValueType
     }
 }
 
+case class ValueTypeAnnotation(qualifiedName: QualifiedName) extends ValueType {
+    override def typeArguments: Seq[ValueType] = Seq.empty
+
+    override def toString: String = {
+        "annotation: @" + qualifiedName
+    }
+}
+
 //VOID
 case object ValueTypeVoid extends ValueType {
     //override def text: String = "void"

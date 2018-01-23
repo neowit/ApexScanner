@@ -204,6 +204,7 @@ class CompletionFinder(project: Project) extends LazyLogging {
                     fullyQualifiedName
                 )
             case ValueTypeVoid => Seq.empty
+            case ValueTypeAnnotation(qualifiedName) => AnnotationNode.getStdAnnotations
             case ValueTypeAny => ???
         }
     }

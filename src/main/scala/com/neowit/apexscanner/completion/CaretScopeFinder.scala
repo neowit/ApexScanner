@@ -23,7 +23,7 @@ package com.neowit.apexscanner.completion
 
 import com.neowit.apexscanner.{Project, TextBasedDocument, TokenBasedDocument, VirtualDocument}
 import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeLexer, SoqlLexer, SoqlParserUtils}
-import com.neowit.apexscanner.nodes.{Position, Range}
+import com.neowit.apexscanner.nodes.{AnnotationNode, NullNode, Position, Range}
 import com.neowit.apexscanner.scanner.actions.ActionContext
 import com.typesafe.scalalogging.LazyLogging
 import org.antlr.v4.runtime._
@@ -53,6 +53,9 @@ object CaretScopeFinder extends LazyLogging {
                     val prevTokenEndPosition = Range.getEndPosition(prevToken)
                     if (ApexParserUtils.isWordToken(prevToken) && prevTokenEndPosition.addCol(+1) == caret.position) {
                         // caret is right after word token, without space in between - assume caret is part of that previous token
+                        token = tokens.get(prevTokenIndex)
+                    } else if ("@" == prevToken.getText) {
+                        // caret is part of annotation @<CARET>
                         token = tokens.get(prevTokenIndex)
                     }
                 }
@@ -90,6 +93,8 @@ object CaretScopeFinder extends LazyLogging {
         val fixerTokenText = lexer.getVocabulary.getSymbolicName(ApexcodeLexer.FIXER_TOKEN)
 
         findCaretToken(caret, tokens) match {
+            case Some(_caretToken) if !_caretToken.getText.isEmpty && "@" == _caretToken.getText =>
+                rewriter.insertAfter(_caretToken, fixerTokenText)
             case Some(_caretToken) if _caretToken.getText.isEmpty || !ApexParserUtils.isWordToken(_caretToken)=>
                 rewriter.insertBefore(_caretToken, fixerTokenText)
             case Some(_caretToken) if _caretToken.getText.nonEmpty && ApexParserUtils.isWordToken(_caretToken) =>
@@ -182,6 +187,9 @@ class CaretScopeFinder(project: Project, actionContext: ActionContext) extends L
             case Some(caretTokenInApex) if ApexcodeLexer.SoqlLiteral == caretTokenInApex.getType =>
                 // looks like caret is inside SOQL literal
                 findCaretScopeInSoql(caretInOriginalDocument, caretTokenInApex)
+            case Some(caretTokenInApex) if "@" == caretTokenInApex.getText =>
+                val typeDefinition = AnnotationNode(name = Option(AnnotationNode.ANNOTATIONS_NODE_NAME), body = None, Range.INVALID_LOCATION)
+                Option(FindCaretScopeResult(Option(CaretScope(NullNode, Option(typeDefinition))), caretTokenInApex))
             case Some(caretTokenInApex) =>
                 findCaretScopeInApex(caretInOriginalDocument, caretTokenInApex)
             case None =>

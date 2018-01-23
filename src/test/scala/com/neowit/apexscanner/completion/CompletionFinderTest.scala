@@ -392,8 +392,26 @@ private val filePath = getProperty("CompletionFinderTest.path")
         val result = listCompletions(text, "", loadStdLib = true)
         result match {
             case symbols if symbols.nonEmpty =>
-                assert(symbols.length >= 2, "Result contains less items than expected")
+                assert(symbols.lengthCompare(2) >= 0, "Result contains less items than expected")
                 assert(symbols.exists(_.symbolName == "getParameters"), "Missing expected symbol")
+            case _ =>
+                fail("Expected non empty result")
+        }
+    }
+
+    test("testListCompletions: Annotation name `@<CARET>`") {
+        val text =
+            """
+              |class CompletionTester {
+              | @<CARET>
+              |}
+            """.stripMargin
+        val result = listCompletions(text, "", loadStdLib = true)
+        result match {
+            case symbols if symbols.nonEmpty =>
+                assert(symbols.lengthCompare(10) >= 0, "Result contains less items than expected")
+                assert(symbols.exists(_.symbolName == "AuraEnabled"), "Missing expected symbol")
+                assert(symbols.exists(_.symbolName == "Future"), "Missing expected symbol")
             case _ =>
                 fail("Expected non empty result")
         }

@@ -22,9 +22,17 @@
 package com.neowit.apexscanner.nodes
 
 import com.neowit.apexscanner.antlr.ApexcodeParser.{AnnotationContext, AnnotationElementValuePairContext}
+import com.neowit.apexscanner.ast.QualifiedName
+import com.neowit.apexscanner.symbols
+import com.neowit.apexscanner.symbols.SymbolKind
 
-case class AnnotationNode(name: String, body: Option[Either[AnnotationValue, List[AnnotationParameter]]], range: Range) extends AstNode {
+case class AnnotationNode(override val name: Option[String], body: Option[Either[AnnotationValue, List[AnnotationParameter]]], range: Range)
+                            extends ClassVariableNodeBase {
     override def nodeType: AstNodeType = AnnotationNodeType
+    override def getValueType: Option[ValueType] = name.map(n => ValueTypeAnnotation(QualifiedName(n)))
+
+
+    override def isScope: Boolean = true
 
     /**
       * used for debug purposes
@@ -43,10 +51,27 @@ case class AnnotationNode(name: String, body: Option[Either[AnnotationValue, Lis
             }
         super.getDebugInfo + " " + myText
     }
+
+    override def symbolName: String = name.getOrElse("")
+
+    override def symbolKind: SymbolKind = SymbolKind.Annotation
+
+    //override def symbolLocation: Location = LocationUndefined
+
+    override def parentSymbol: Option[symbols.Symbol] = None
+
+    override def symbolIsStatic: Boolean = false
+
+    override def symbolValueType: Option[String] = Option("@" + symbolName)
+
+    override def visibility: Option[String] = Option("") // annotations do not have visibility
 }
 
 object AnnotationNode {
     import scala.collection.JavaConverters._
+
+    val ANNOTATIONS_NODE_NAME: String = "_Annotations"
+
     def visitAnnotation(ctx: AnnotationContext): AstNode = {
         val body: Option[Either[AnnotationValue, List[AnnotationParameter]]] =
             if (null != ctx.annotationElementValuePairs()) {
@@ -61,7 +86,7 @@ object AnnotationNode {
             } else {
                 None // empty annotation body
             }
-        val annotation = AnnotationNode(name = ctx.annotationName().getText, body, Range(ctx))
+        val annotation = AnnotationNode(name = Option(ctx.annotationName().getText), body, Range(ctx))
         annotation
     }
     def createAnnotationParameter(valueContext: AnnotationElementValuePairContext): Option[AnnotationParameter] = {
@@ -76,6 +101,34 @@ object AnnotationNode {
             None
         }
     }
+
+    // hardcoded list of Apex annotations for now because
+    // not sure where list of annotations can be retrieved dynamically
+    private val _stdAnnotations: Seq[AnnotationNode] =
+        Seq(
+            AnnotationNode(name = Option("AuraEnabled"), body = None, Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("Deprecated"), body = None, Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("Future"), body = None, Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("InvocableMethod"), body = None, Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("InvocableVariable"), body = None, Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("IsTest"), body = None, Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("ReadOnly"), body = None, Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("RemoteAction"), body = None, Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("SuppressWarnings"), body = None, Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("TestSetup"), body = None, Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("TestVisible"), body = None, Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("RestResource"), body = None, Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("HttpDelete"), body = None, Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("HttpGet"), body = None, Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("HttpPatch"), body = None, Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("HttpPost"), body = None, Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("HttpPut"), body = None, Range.INVALID_LOCATION)
+        )
+
+    /**
+      * @return complete list of all standard Apex annotations
+      */
+    def getStdAnnotations: Seq[AnnotationNode] = _stdAnnotations
 }
 
 trait AnnotationBody extends AstNode {
