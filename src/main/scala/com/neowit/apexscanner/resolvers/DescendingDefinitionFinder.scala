@@ -56,7 +56,7 @@ class DescendingDefinitionFinder(project: Project, actionContext: ActionContext)
                     val qName = QualifiedName(Array(_target.name))
                     Option(qName)
                 case _target =>
-                    throw new NotImplementedError("DescendingDefinitionFinder.findDefinition for node + " + _target.nodeType +" is not implemented")
+                    throw new NotImplementedError("DescendingDefinitionFinder.findDefinition for node " + _target.nodeType +" is not implemented")
             }
         val result =
         targetNameOpt match {
