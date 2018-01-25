@@ -28,6 +28,8 @@ import com.neowit.apexscanner.ast.QualifiedName
 case class LocalVariableNode(range: Range) extends VariableLike {
     override def nodeType: AstNodeType = LocalVariableNodeType
 
+    override def isSymbol: Boolean = false
+
     override def getValueType: Option[ValueType] = {
         getChildInAst[DataTypeNode](DataTypeNodeType)
             .map(_.getDataType)
