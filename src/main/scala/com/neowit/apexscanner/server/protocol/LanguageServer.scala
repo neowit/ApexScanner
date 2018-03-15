@@ -25,7 +25,7 @@ import java.nio.file.Path
 
 import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.server.handlers._
-import com.neowit.apexscanner.server.protocol.messages.MessageParams.InitializeParams
+import com.neowit.apexscanner.server.protocol.messages.MessageParams.{ExecuteCommandParams, InitializeParams}
 import com.neowit.apexscanner.server.protocol.messages._
 import com.typesafe.scalalogging.LazyLogging
 
@@ -43,6 +43,19 @@ trait LanguageServer extends LazyLogging {
     def shutdown(): Unit
 
     def sendNotification(notification: NotificationMessage): Unit
+
+    /**
+      * if server implementation supports workspace command execution then it needs to override executeCommand() method
+      * @param messageId id of client message
+      * @param params command parameters
+      * @return
+      */
+    def executeCommand(messageId: Int, params: ExecuteCommandParams, projectOpt: Option[Project]): Future[Either[ResponseError, ResponseMessage]] = {
+        Future.successful(Right(ResponseMessage(messageId, result = None, error = None)))
+    }
+    def executeCommand(messageId: Int, command: String): Future[Either[ResponseError, ResponseMessage]] = {
+        Future.successful(Right(ResponseMessage(messageId, result = None, error = None)))
+    }
 
     def initialiseProject(params: InitializeParams): Future[Either[String, Project]] = Future {
         params.rootUri.path match {
@@ -108,6 +121,10 @@ trait LanguageServer extends LazyLogging {
                     val handler = new DocumentSymbolHandler()
                     val msg = handler.handle(this, m)
                     Option(msg)
+                case m @ RequestMessage(id, "workspace/executeCommand", params, _) =>
+                    val handler = new ExecuteCommandHandler()
+                    handler.handle(this, m)
+                    None
                 case NotificationMessage("$/cancelRequest", _, _) =>
                     //A processed notification message must not send a response back. They work like events.
                     //TODO

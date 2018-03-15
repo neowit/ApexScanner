@@ -94,4 +94,19 @@ object MessageParams {
             */
           text: String
                                               )
+
+    case class ExecuteCommandParams (
+        /**
+          * The identifier of the actual command handler.
+          */
+        command: String,
+        /**
+          * Arguments that the command should be invoked with.
+          * - in the current implementation Array[ExecuteCommandArguments] always contains single argument
+          * that single argument contains JSON object with all relevant {name: value} parameters
+          */
+        arguments: Option[Seq[Json]]
+
+    ) extends MessageParams
+
 }

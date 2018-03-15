@@ -86,7 +86,15 @@ case class ServerCapabilities(
      /**
        * The server provides rename support.
        */
-     renameProvider: Boolean = false
+     renameProvider: Boolean = false,
+     /**
+       * The server provides document link support.
+       */
+     //documentLinkProvider: Option[DocumentLinkOptions]
+     /**
+       * The server provides execute command support.
+       */
+     executeCommandProvider: ExecuteCommandOptions = ExecuteCommandOptions(Nil)
 
 )
 
@@ -100,3 +108,4 @@ case class CodeLensOptions(resolveProvider: Boolean = false)
 
 case class DocumentOnTypeFormattingOptions(firstTriggerCharacter: String, moreTriggerCharacters: Seq[String])
 
+case class ExecuteCommandOptions(commands: Seq[String])

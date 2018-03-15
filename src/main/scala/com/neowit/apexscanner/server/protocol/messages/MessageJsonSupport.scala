@@ -22,7 +22,7 @@
 package com.neowit.apexscanner.server.protocol.messages
 
 import com.neowit.apexscanner.nodes.{Location, Position, Range}
-import com.neowit.apexscanner.server.protocol.{Diagnostic, DiagnosticSeverity, DocumentUri, PublishDiagnosticsParams}
+import com.neowit.apexscanner.server.protocol._
 import com.neowit.apexscanner.server.protocol.messages.MessageParams._
 import io.circe._
 import io.circe.generic.semiauto._
@@ -40,6 +40,7 @@ trait MessageJsonSupport {
     implicit val SignatureHelpOptionsEncoder: Encoder[SignatureHelpOptions] = deriveEncoder
     implicit val CodeLensOptionsEncoder: Encoder[CodeLensOptions] = deriveEncoder
     implicit val DocumentOnTypeFormattingOptionsEncoder: Encoder[DocumentOnTypeFormattingOptions] = deriveEncoder
+    implicit val ExecuteCommandOptionsEncoder: Encoder[ExecuteCommandOptions] = deriveEncoder
     implicit val SaveOptionsEncoder: Encoder[SaveOptions] = deriveEncoder
     implicit val TextDocumentSyncOptionsEncoder: Encoder[TextDocumentSyncOptions] = deriveEncoder
     implicit val ServerCapabilitiesEncoder: Encoder[ServerCapabilities] = deriveEncoder
@@ -98,6 +99,9 @@ trait MessageJsonSupport {
     implicit val TextDocumentContentChangeEventDecoder: Decoder[TextDocumentContentChangeEvent] = deriveDecoder
     implicit val VersionedTextDocumentIdentifierDecoder: Decoder[VersionedTextDocumentIdentifier] = deriveDecoder
     implicit val DidChangeTextDocumentParamsDecoder: Decoder[DidChangeTextDocumentParams] = deriveDecoder
+    //implicit val ExecuteCommandArgumentsDecoder: Decoder[ExecuteCommandArguments] = deriveDecoder
+    implicit val ExecuteCommandParamsDecoder: Decoder[ExecuteCommandParams] = deriveDecoder
+
     def toDocumentUri(json: Json): DocumentUri = {
         if (json.isString) {
             json.as[String] match {
