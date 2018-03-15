@@ -35,15 +35,23 @@ case class DocumentUri(uri: String) {
 
     val path: Option[Path] = DocumentUri.uriToPath(uri)
 }
+case class VSCodeUri(scheme: String, path: String, fsPath: String, external: String)
 
 object DocumentUri extends LazyLogging {
+
+
     def apply(file: Path): DocumentUri = {
         DocumentUri(file.toUri.toASCIIString)
     }
 
     def uriToPath(uri: String): Option[Path] = {
         Try{
-            Paths.get(URI.create(uri))
+            if (uri.startsWith("file:")) {
+                Paths.get(URI.create(uri))
+
+            } else {
+                Paths.get(uri) // assume provided string already represents file system path
+            }
         } match {
             case Success(_path) => Option(_path)
             case Failure(ex) =>

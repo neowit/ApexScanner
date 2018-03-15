@@ -56,6 +56,7 @@ trait MessageJsonSupport {
     implicit val DocumentUriDecoder: Decoder[DocumentUri] = Decoder.decodeString.emap { str =>
         Either.catchNonFatal(DocumentUri(str)).leftMap(t => "DocumentUri")
     }
+    implicit val VSCodeUriDecoder: Decoder[VSCodeUri] = deriveDecoder
 
     implicit val WorkspaceClientCapabilitiesDecoder: Decoder[WorkspaceClientCapabilities] = deriveDecoder
     implicit val TextDocumentClientCapabilitiesDecoder: Decoder[TextDocumentClientCapabilities] = deriveDecoder
@@ -97,4 +98,28 @@ trait MessageJsonSupport {
     implicit val TextDocumentContentChangeEventDecoder: Decoder[TextDocumentContentChangeEvent] = deriveDecoder
     implicit val VersionedTextDocumentIdentifierDecoder: Decoder[VersionedTextDocumentIdentifier] = deriveDecoder
     implicit val DidChangeTextDocumentParamsDecoder: Decoder[DidChangeTextDocumentParams] = deriveDecoder
+    def toDocumentUri(json: Json): DocumentUri = {
+        if (json.isString) {
+            json.as[String] match {
+                case Right(str) =>
+                    json.as[DocumentUri] match {
+                        case Right(uri) =>
+                            uri
+                        case Left(err) =>
+                            throw new IllegalArgumentException(s"Failed to parse Uri. '$str'. " + err.message)
+
+                    }
+                case Left(err) => throw new IllegalArgumentException("Failed to parse Uri. " + err.message)
+            }
+        } else {
+                json.as[VSCodeUri] match {
+                    case Right(uri) =>
+                        DocumentUri(uri.external)
+                    case Left(err) =>
+                        throw new IllegalArgumentException("Failed to parse VSCodeUri. " + err.message)
+                }
+        }
+
+
+    }
 }
