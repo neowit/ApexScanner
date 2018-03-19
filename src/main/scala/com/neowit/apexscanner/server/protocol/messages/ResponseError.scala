@@ -24,6 +24,6 @@ package com.neowit.apexscanner.server.protocol.messages
 /**
   * Created by Andrey Gavrikov 
   */
-case class ResponseError(code: Int, message: String)  {
+case class ResponseError(code: Int, message: String, messageId: Option[Int] = None)  {
     //val data: Option[T]
 }
