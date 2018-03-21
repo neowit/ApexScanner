@@ -38,7 +38,7 @@ import scala.util.Random
   * Created by Andrey Gavrikov 
   */
 class DefinitionHandler() extends MessageHandler with MessageJsonSupport with LazyLogging {
-    override protected def handleImpl(server: LanguageServer, messageIn: RequestMessage)(implicit ex: ExecutionContext): Future[Either[ResponseError, ResponseMessage]] = {
+    override protected def handleImpl(server: LanguageServer, messageIn: RequestMessage)(implicit ex: ExecutionContext): Future[ResponseMessage] = {
         messageIn.params match {
           case Some(json) =>
               json.as[TextDocumentPositionParams]  match {
@@ -74,20 +74,23 @@ class DefinitionHandler() extends MessageHandler with MessageJsonSupport with La
 
                                           case _ => Seq.empty
                                       }
-                                  Future.successful(Right(ResponseMessage(messageIn.id, Option(locations.asJson), error = None)))
-
-
+                                  Future.successful(ResponseMessage(messageIn.id, Option(locations.asJson), error = None))
                               case None =>
-                                  Future.successful(Left(ResponseError(ErrorCodes.InvalidParams, "Project not found by path: " + file.toString)))
+
+                                  val error = ResponseError(ErrorCodes.InvalidParams, "Project not found by path: " + file.toString)
+                                  Future.successful(ResponseMessage(messageIn.id, result = None, Option(error)))
                             }
                         case None =>
-                              Future.successful(Left(ResponseError(ErrorCodes.InvalidParams, "Document path not specified")))
+                            val error = ResponseError(ErrorCodes.InvalidParams, "Document path not specified")
+                            Future.successful(ResponseMessage(messageIn.id, result = None, Option(error)))
                       }
                   case Left(err) =>
-                      Future.successful(Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Error: $err")))
+                      val error = ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Error: $err")
+                      Future.successful(ResponseMessage(messageIn.id, result = None, Option(error)))
               }
           case None =>
-              Future.successful(Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Missing params.")))
+              val error = ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Missing params.")
+              Future.successful(ResponseMessage(messageIn.id, result = None, Option(error)))
         }
     }
 

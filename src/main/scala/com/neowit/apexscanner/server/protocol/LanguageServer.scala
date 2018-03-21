@@ -50,11 +50,11 @@ trait LanguageServer extends LazyLogging {
       * @param params command parameters
       * @return
       */
-    def executeCommand(messageId: Int, params: ExecuteCommandParams, projectOpt: Option[Project]): Future[Either[ResponseError, ResponseMessage]] = {
-        Future.successful(Right(ResponseMessage(messageId, result = None, error = None)))
+    def executeCommand(messageId: Int, params: ExecuteCommandParams, projectOpt: Option[Project]): Future[ResponseMessage] = {
+        Future.successful(ResponseMessage(messageId, result = None, error = None))
     }
-    def executeCommand(messageId: Int, command: String): Future[Either[ResponseError, ResponseMessage]] = {
-        Future.successful(Right(ResponseMessage(messageId, result = None, error = None)))
+    def executeCommand(messageId: Int, command: String): Future[ResponseMessage] = {
+        Future.successful(ResponseMessage(messageId, result = None, error = None))
     }
 
     def initialiseProject(params: InitializeParams): Future[Either[String, Project]] = Future {
@@ -100,33 +100,33 @@ trait LanguageServer extends LazyLogging {
 
     def process(message: Message)(implicit ex: ExecutionContext): Future[Either[Unit, ResponseMessage]] = {
 
-        val response: Option[Future[Either[ResponseError, ResponseMessage]]] =
+        val response: Option[Future[ResponseMessage]] =
             message match {
                 case m @ RequestMessage(id, "initialize", initializeParams, _) =>
                     sendShowMessageNotification(MessageType.Log, "initialising server")
 
                     val handler = new InitializeHandler()
                     val msg = handler.handle(this, m)
-                    Option(withMessageId(id, msg))
+                    Option(msg)
                 case RequestMessage(_, "shutdown", None, _) =>
                     shutdown()
                     None
                 case m @ RequestMessage(id, "textDocument/completion", params, _) =>
                     val handler = new CompletionHandler()
                     val msg = handler.handle(this, m)
-                    Option(withMessageId(id, msg))
+                    Option(msg)
                 case m @ RequestMessage(id, "textDocument/definition", params, _) =>
                     val handler = new DefinitionHandler()
                     val msg = handler.handle(this, m)
-                    Option(withMessageId(id, msg))
+                    Option(msg)
                 case m @ RequestMessage(id, "textDocument/documentSymbol", params, _) =>
                     val handler = new DocumentSymbolHandler()
                     val msg = handler.handle(this, m)
-                    Option(withMessageId(id, msg))
+                    Option(msg)
                 case m @ RequestMessage(id, "workspace/executeCommand", params, _) =>
                     val handler = new ExecuteCommandHandler()
                     val msg = handler.handle(this, m)
-                    Option(withMessageId(id, msg))
+                    Option(msg)
                 case NotificationMessage("$/cancelRequest", _, _) =>
                     //A processed notification message must not send a response back. They work like events.
                     //TODO
@@ -150,7 +150,8 @@ trait LanguageServer extends LazyLogging {
                     None
                 case _ =>
                     val error = ResponseError(ErrorCodes.MethodNotFound, s"Message not supported: $message")
-                    Option(Future.successful(Left(error)))
+                    val msg = ResponseMessage(-1, result = None, error = Option(error))
+                    Option(Future.successful(msg))
             }
 
         /*
@@ -163,31 +164,14 @@ trait LanguageServer extends LazyLogging {
         */
         response  match {
             case Some(futureResult) =>
-                futureResult.map{
-                    case Left(error) =>
-                        Right(ResponseMessage(id = 0, result = None, error = Option(error)))
-                    case Right(msg) => Right(msg)
+                futureResult.map{msg =>
+                    Right(msg)
                 }
             case None => Future.successful(Left(()))
         }
 
     }
 
-    /**
-      * make sure that response message contains message.id
-      * this method is mostly useful for cases where ResponseError was generated and messageId was neglected
-      * @param messageId use this Id if message does not already have an Id
-      * @param msg message to add Id to
-      * @return
-      */
-    private def withMessageId(messageId: Int, msg: Future[Either[ResponseError, ResponseMessage]]): Future[Either[ResponseError, ResponseMessage]]= {
-        msg.map{
-            case Left(err @ ResponseError(_, _, None)) =>
-                // if error does not contain message Id then add it
-                Left(err.copy(messageId = Option(messageId)))
-            case res => res
-        }
-    }
 
     /**
       * Notification:

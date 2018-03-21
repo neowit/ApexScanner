@@ -35,13 +35,13 @@ import scala.concurrent.{ExecutionContext, Future}
   * Created by Andrey Gavrikov 
   */
 trait MessageHandler extends LazyLogging {
-    protected def handleImpl(server: LanguageServer, messageIn: RequestMessage)(implicit ex: ExecutionContext): Future[Either[ResponseError, ResponseMessage]]
+    protected def handleImpl(server: LanguageServer, messageIn: RequestMessage)(implicit ex: ExecutionContext): Future[ResponseMessage]
 
-    def handle(server: LanguageServer, messageIn: RequestMessage)(implicit ex: ExecutionContext): Future[Either[ResponseError, ResponseMessage]] = {
+    def handle(server: LanguageServer, messageIn: RequestMessage)(implicit ex: ExecutionContext): Future[ResponseMessage] = {
         handleImpl(server, messageIn).recover{
             case e: Throwable =>
                 logger.error(e.toString)
-                Left(ResponseError(ErrorCodes.InternalError, e.getMessage))
+                ResponseMessage(messageIn.id, result = None, error = Option(ResponseError(ErrorCodes.InternalError, e.getMessage)))
         }
     }
 

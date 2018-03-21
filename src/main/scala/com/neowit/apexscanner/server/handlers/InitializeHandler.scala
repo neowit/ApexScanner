@@ -31,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
   * Created by Andrey Gavrikov 
   */
 class InitializeHandler extends MessageHandler with MessageJsonSupport {
-    override protected def handleImpl(server: LanguageServer, messageIn: RequestMessage)(implicit ex: ExecutionContext): Future[Either[ResponseError, ResponseMessage]] = {
+    override protected def handleImpl(server: LanguageServer, messageIn: RequestMessage)(implicit ex: ExecutionContext): Future[ResponseMessage] = {
         val result =
             messageIn.params  match {
                 case Some(json) =>
@@ -41,16 +41,19 @@ class InitializeHandler extends MessageHandler with MessageJsonSupport {
                             server.initialiseProject(params).map{
                                 case Right(_) =>
                                     val serverCapabilities = server.getServerCapabilities
-                                    Right(ResponseMessage(messageIn.id, result = Option(Map("capabilities" -> serverCapabilities.asJson).asJson), error = None))
+                                    ResponseMessage(messageIn.id, result = Option(Map("capabilities" -> serverCapabilities.asJson).asJson), error = None)
                                 case Left(err) =>
-                                    Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to initialise project: $messageIn. Error: $err"))
+                                    val error = ResponseError(ErrorCodes.InvalidParams, s"Failed to initialise project: $messageIn. Error: $err")
+                                    ResponseMessage(messageIn.id, result = None, Option(error))
                             }
 
                         case Left(err) =>
-                            Future.successful(Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Error: $err")))
+                            val error = ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Error: $err")
+                            Future.successful(ResponseMessage(messageIn.id, result = None, Option(error)))
                     }
                 case None =>
-                    Future.successful(Left(ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Missing params.")))
+                    val error = ResponseError(ErrorCodes.InvalidParams, s"Failed to parse message: $messageIn. Missing params.")
+                    Future.successful(ResponseMessage(messageIn.id, result = None, Option(error)))
             }
         result
     }

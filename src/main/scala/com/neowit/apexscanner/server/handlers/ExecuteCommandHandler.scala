@@ -48,7 +48,7 @@ class ExecuteCommandHandler extends MessageHandler with MessageJsonSupport with 
             }
         }
     }
-    protected def handleImpl(server: LanguageServer, messageIn: RequestMessage)(implicit ex: ExecutionContext): Future[Either[ResponseError, ResponseMessage]] = {
+    protected def handleImpl(server: LanguageServer, messageIn: RequestMessage)(implicit ex: ExecutionContext): Future[ResponseMessage] = {
         messageIn.params match {
             case Some(params) =>
                 params.as[ExecuteCommandParams] match {
@@ -70,11 +70,11 @@ class ExecuteCommandHandler extends MessageHandler with MessageJsonSupport with 
                                                         server.executeCommand(messageIn.id, executeCommandParams, Option(project))
                                                     case None =>
                                                         logger.error("Failed to determine project for message: " + messageIn)
-                                                        Future.successful(Right(ResponseMessage(messageIn.id, result = None, error = Option(ResponseError(code = 0, message = "Failed to determine project for message: " + messageIn)))))
+                                                        Future.successful(ResponseMessage(messageIn.id, result = None, error = Option(ResponseError(code = 0, message = "Failed to determine project for message: " + messageIn))))
                                                 }
                                             case None =>
                                                 logger.error("Failed to determine file path for message: " + messageIn)
-                                                Future.successful(Right(ResponseMessage(messageIn.id, result = None, error = Option(ResponseError(code = 0, message = "Failed to determine file path for message: " + messageIn)))))
+                                                Future.successful(ResponseMessage(messageIn.id, result = None, error = Option(ResponseError(code = 0, message = "Failed to determine file path for message: " + messageIn))))
                                         }
                                     case None =>
                                         server.executeCommand(messageIn.id, executeCommandParams.command)
@@ -88,11 +88,11 @@ class ExecuteCommandHandler extends MessageHandler with MessageJsonSupport with 
                         }
                     case Left(err) =>
                         logger.error("Failed to parse message: " + messageIn + " Error: " + err)
-                        Future.successful(Right(ResponseMessage(messageIn.id, result = None, error = Option(ResponseError(code = 0, message = "Failed to parse message: " + messageIn + " Error: " + err)))))
+                        Future.successful(ResponseMessage(messageIn.id, result = None, error = Option(ResponseError(code = 0, message = "Failed to parse message: " + messageIn + " Error: " + err))))
                 }
             case None =>
                 logger.error("Missing message params in message: " + messageIn)
-                Future.successful(Right(ResponseMessage(messageIn.id, result = None, error = Option(ResponseError(code = 0, message = "Missing message params in message: " + messageIn)))))
+                Future.successful(ResponseMessage(messageIn.id, result = None, error = Option(ResponseError(code = 0, message = "Missing message params in message: " + messageIn))))
         }
     }
 
