@@ -109,4 +109,26 @@ object MessageParams {
 
     ) extends MessageParams
 
+
+    sealed trait NotificationMessageParams {
+        /**
+          * The message type. See {@link MessageType}
+          */
+        def `type`: MessageType
+
+        /**
+          * The actual message
+          */
+        def message: String
+    }
+
+    case class ShowMessageParams (
+        `type`: MessageType,
+        message: String
+    ) extends NotificationMessageParams
+
+    case class LogMessageParams (
+        `type`: MessageType,
+        message: String
+    ) extends NotificationMessageParams
 }

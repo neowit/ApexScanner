@@ -21,10 +21,18 @@
 
 package com.neowit.apexscanner.server.protocol.messages
 
+import com.neowit.apexscanner.server.protocol.messages.MessageParams.NotificationMessageParams
+import io.circe.syntax._
 import io.circe.Json
 
 /**
   * Created by Andrey Gavrikov 
   */
 case class NotificationMessage(method: String, params: Option[Json], jsonrpc: String = "2.0") extends Message
+
+object NotificationMessage extends MessageJsonSupport {
+    def apply(method: String, params: NotificationMessageParams): NotificationMessage = {
+        NotificationMessage(method, Option(params.asJson))
+    }
+}
 

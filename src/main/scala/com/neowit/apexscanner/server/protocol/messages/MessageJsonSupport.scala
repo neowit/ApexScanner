@@ -93,7 +93,7 @@ trait MessageJsonSupport {
         Encoder.forProduct2("uri", "range")(l =>
             (DocumentUri(l.path), l.range)
         )
-    implicit val SymbolInformationParamsDecoder: Encoder[SymbolInformation] = deriveEncoder
+    implicit val SymbolInformationParamsEncoder: Encoder[SymbolInformation] = deriveEncoder
     implicit val CompletionItemEncoder: Encoder[CompletionItem] = deriveEncoder
 
     implicit val TextDocumentContentChangeEventDecoder: Decoder[TextDocumentContentChangeEvent] = deriveDecoder
@@ -126,4 +126,7 @@ trait MessageJsonSupport {
 
 
     }
+
+    implicit val NotificationMessageParamsEncoder: Encoder[NotificationMessageParams] =
+        Encoder.forProduct2("type", "message")(p => (p.`type`.code, p.message))
 }

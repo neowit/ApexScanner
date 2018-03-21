@@ -25,7 +25,7 @@ import java.nio.file.Path
 
 import com.neowit.apexscanner.Project
 import com.neowit.apexscanner.server.handlers._
-import com.neowit.apexscanner.server.protocol.messages.MessageParams.{ExecuteCommandParams, InitializeParams}
+import com.neowit.apexscanner.server.protocol.messages.MessageParams.{ExecuteCommandParams, InitializeParams, LogMessageParams, ShowMessageParams}
 import com.neowit.apexscanner.server.protocol.messages._
 import com.typesafe.scalalogging.LazyLogging
 
@@ -103,6 +103,8 @@ trait LanguageServer extends LazyLogging {
         val response: Option[Future[Either[ResponseError, ResponseMessage]]] =
             message match {
                 case m @ RequestMessage(id, "initialize", initializeParams, _) =>
+                    sendShowMessageNotification(MessageType.Log, "initialising server")
+
                     val handler = new InitializeHandler()
                     val msg = handler.handle(this, m)
                     Option(withMessageId(id, msg))
@@ -185,5 +187,26 @@ trait LanguageServer extends LazyLogging {
                 Left(err.copy(messageId = Option(messageId)))
             case res => res
         }
+    }
+
+    /**
+      * Notification:
+      *  The show message notification is sent from a server to a client to ask the client to display a particular message in the user interface.
+      *  method: ‘window/showMessage’
+      */
+    def sendShowMessageNotification(messageType: MessageType, message: String): Unit = {
+        val params = ShowMessageParams(messageType, message)
+        val msg = NotificationMessage("window/showMessage", params)
+        sendNotification(msg)
+    }
+    /**
+      * Notification:
+      *  The log message notification is sent from the server to the client to ask the client to log a particular message.
+      *  method: ‘window/logMessage’
+      */
+    def sendLogMessageNotification(messageType: MessageType, message: String): Unit = {
+        val params = LogMessageParams(messageType, message)
+        val msg = NotificationMessage("window/logMessage", params)
+        sendNotification(msg)
     }
 }
