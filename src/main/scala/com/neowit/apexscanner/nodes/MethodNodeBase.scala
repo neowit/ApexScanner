@@ -39,6 +39,7 @@ trait MethodNodeBase extends AstNode with HasApexDoc with IsTypeDefinition with 
         _providedValueType =Option(valueType)
     }
     protected def getProvidedValueType: Option[ValueType] = _providedValueType
+    def isValueTypeProvided: Boolean = _providedValueType.nonEmpty
 
     override def nodeType: AstNodeType = MethodNodeType
     def nameOpt: Option[String]
