@@ -29,6 +29,16 @@ import com.neowit.apexscanner.symbols.SymbolKind
   * Created by Andrey Gavrikov 
   */
 trait MethodNodeBase extends AstNode with HasApexDoc with IsTypeDefinition with ClassOrInterfaceBodyMember {
+    private var _providedValueType: Option[ValueType] = None
+    /**
+      * set value type based on surrounding context
+      * e.g. myMap.get() has context based return type, depending on the type parameters of myMap
+      * @param valueType substitute type to use instead of one provided by StdLib
+      */
+    def setValueType(valueType: ValueType): Unit = {
+        _providedValueType =Option(valueType)
+    }
+    protected def getProvidedValueType: Option[ValueType] = _providedValueType
 
     override def nodeType: AstNodeType = MethodNodeType
     def nameOpt: Option[String]

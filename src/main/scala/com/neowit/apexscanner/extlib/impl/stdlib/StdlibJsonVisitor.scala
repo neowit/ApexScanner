@@ -194,7 +194,11 @@ class StdlibJsonVisitor(lib: CodeLibrary) extends StdlibJsonBaseVisitor[AstNode]
             override def isStatic: Boolean = context.isStatic.contains(true)
 
             override def getValueType: Option[ValueType] = {
-                returnType.map(_.getDataType)
+                getProvidedValueType match {
+                    case _providedValueTypeOpt @ Some(_) => _providedValueTypeOpt
+                    case None =>
+                        returnType.map(_.getDataType)
+                }
             }
 
             override def range: Range = Range.INVALID_LOCATION
@@ -214,7 +218,7 @@ class StdlibJsonVisitor(lib: CodeLibrary) extends StdlibJsonBaseVisitor[AstNode]
 
             override def methodParameters: Seq[String] = context.parameters.map(_.`type`)
 
-            override def symbolValueType: Option[String] = context.returnType
+            override def symbolValueType: Option[String] = getValueType.map(_.toString)//context.returnType
 
             override def symbolIsStatic: Boolean = context.isStatic.getOrElse(false)
 
