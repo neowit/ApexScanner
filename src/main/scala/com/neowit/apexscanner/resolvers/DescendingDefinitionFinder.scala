@@ -141,7 +141,7 @@ class DescendingDefinitionFinder(project: Project, actionContext: ActionContext)
                             case "values" => methodFoundInAst.setValueType(ValueTypeComplex(QualifiedName("List"), Seq(_typeArguments.last)))
                             case "clone" => methodFoundInAst.setValueType(valueType)
                             case "deepclone" => methodFoundInAst.setValueType(valueType)
-                            case "keySet" => methodFoundInAst.setValueType(ValueTypeComplex(QualifiedName("Set"), Seq(_typeArguments.head)))
+                            case "keyset" => methodFoundInAst.setValueType(ValueTypeComplex(QualifiedName("Set"), Seq(_typeArguments.head)))
                             case _ =>
                         }
                     case "SET"  =>

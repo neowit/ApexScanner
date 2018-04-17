@@ -798,4 +798,82 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
                 fail("Failed to locate correct node")
         }
     }
+    test("findDefinition: collection method return type: Map.get") {
+        val text =
+            """
+              |class TypeFinderTester {
+              |    private void definitionTester() {
+              |        final Map<Id, Decimal> decimalByIdMap;
+              |        final Id myId;
+              |        decimalByIdMap.ge<CARET>t(myId);
+              |
+              |    }
+              |
+              |}
+            """.stripMargin
+        loadDocument(getProject(), new TestDocument(text, "TypeFinderTester"))
+
+        val resultNodes = findDefinition(text, "Map.get", loadStdLib = true)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName(Array("System", "Map", "get"))), "Wrong caret type detected. Expected 'System.Map.get()'")(typeDefinition.qualifiedName)
+                assertResult(Option(QualifiedName(Array("Decimal"))), "Wrong caret type detected. Expected 'Decimal'")(typeDefinition.getValueType.map(_.qualifiedName))
+            case _ =>
+                fail("Failed to locate correct node")
+        }
+    }
+    test("findDefinition: collection method return type: Map.keySet") {
+        val text =
+            """
+              |class TypeFinderTester {
+              |    private void definitionTester() {
+              |        final Map<Id, Decimal> decimalByIdMap;
+              |        final Id myId;
+              |        decimalByIdMap.keySe<CARET>t(myId);
+              |
+              |    }
+              |
+              |}
+            """.stripMargin
+        loadDocument(getProject(), new TestDocument(text, "TypeFinderTester"))
+
+        val resultNodes = findDefinition(text, "Map.keySet", loadStdLib = true)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName(Array("System", "Map", "keySet"))), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                assertResult(Option("Set<Id>"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.toString))
+            case _ =>
+                fail("Failed to locate correct node")
+        }
+    }
+
+    test("findDefinition: collection method return type: List.deepClone") {
+        val text =
+            """
+              |class TypeFinderTester {
+              |    private void definitionTester() {
+              |        final List<Id> decimalList;
+              |        decimalList.deepClon<CARET>e();
+              |
+              |    }
+              |
+              |}
+            """.stripMargin
+        loadDocument(getProject(), new TestDocument(text, "TypeFinderTester"))
+
+        val resultNodes = findDefinition(text, "List.deepClone", loadStdLib = true)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName(Array("System", "List", "deepClone"))), "Wrong caret type detected.'")(typeDefinition.qualifiedName)
+                assertResult(Option("List<Id>"), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.toString))
+            case _ =>
+                fail("Failed to locate correct node")
+        }
+    }
 }
