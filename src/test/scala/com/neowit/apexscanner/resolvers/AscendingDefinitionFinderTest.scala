@@ -31,6 +31,7 @@ import scala.util.Random
 /**
   * Created by Andrey Gavrikov 
   */
+// do not add any more tests to this class, these are difficult to maintain
 class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
 
     test("Multi-File variables - other class") {

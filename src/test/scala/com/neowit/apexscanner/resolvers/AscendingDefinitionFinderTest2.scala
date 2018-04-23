@@ -34,7 +34,9 @@ import org.scalatest.FunSuite
 import scala.util.Random
 
 /**
-  * Created by Andrey Gavrikov 
+  * Created by Andrey Gavrikov
+  *
+  * tests of AscendingDefinitionFinder in single-file/class scenarios
   */
 class AscendingDefinitionFinderTest2 extends FunSuite {
     //implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = Span(2, Seconds), interval = Span(20, Millis))
