@@ -74,7 +74,7 @@ class ApexDocTest extends FunSuite {
         val text =
             """
               |/**
-              | * this is apex doc 1
+              | * this is class header apex doc
               | */
               |class ApexDocTester {
               | private void test() {
@@ -86,7 +86,83 @@ class ApexDocTest extends FunSuite {
         //val resultNodes = findDefinition(text).futureValue
         val apexDoc = findApexDoc(text)
         assert(apexDoc.nonEmpty, "Expected to find non empty apex doc")
-        assert(apexDoc.exists(_.contains("this is apex doc 1")), "Wrong apex doc returned")
+        assert(apexDoc.exists(_.contains("this is class header apex doc")), "Wrong apex doc returned")
+
+    }
+
+    test("apex-doc: method header") {
+        val text =
+            """
+              |/**
+              | * this is class header apex doc
+              | */
+              |class ApexDocTester {
+              | /**
+              |  * this is method header apex doc
+              |  */
+              | private void method1() {}
+              |
+              | private void test() {
+              |     meth<CARET>od1();
+              | }
+              |
+              |}
+            """.stripMargin
+        //val resultNodes = findDefinition(text).futureValue
+        val apexDoc = findApexDoc(text)
+        assert(apexDoc.nonEmpty, "Expected to find non empty apex doc")
+        assert(apexDoc.exists(_.contains("this is method header apex doc")), "Wrong apex doc returned")
+
+    }
+
+    test("apex-doc: enum header") {
+        val text =
+            """
+              |/**
+              | * this is class header apex doc
+              | */
+              |class ApexDocTester {
+              | /**
+              |  * this is enum header apex doc
+              |  */
+              | public enum Season {WINTER, SPRING, SUMMER, FALL}
+              |
+              |
+              | private void test() {
+              |     Seas<CARET>on;
+              | }
+              |
+              |}
+            """.stripMargin
+        //val resultNodes = findDefinition(text).futureValue
+        val apexDoc = findApexDoc(text)
+        assert(apexDoc.nonEmpty, "Expected to find non empty apex doc")
+        assert(apexDoc.exists(_.contains("this is enum header apex doc")), "Wrong apex doc returned")
+
+    }
+
+    test("apex-doc: class property") {
+        val text =
+            """
+              |/**
+              | * this is class header apex doc
+              | */
+              |class ApexDocTester {
+              | /**
+              |  * this is property apex doc
+              |  */
+              | private String prop1 { get; set;}
+              |
+              | private void test() {
+              |     pr<CARET>op1;
+              | }
+              |
+              |}
+            """.stripMargin
+        //val resultNodes = findDefinition(text).futureValue
+        val apexDoc = findApexDoc(text)
+        assert(apexDoc.nonEmpty, "Expected to find non empty apex doc")
+        assert(apexDoc.exists(_.contains("this is property apex doc")), "Wrong apex doc returned")
 
     }
 }

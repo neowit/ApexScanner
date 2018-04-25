@@ -30,7 +30,7 @@ trait VariableLike extends AstNode with HasApexDoc with IsTypeDefinition {
     //def dataType: Option[ValueType] = getChildrenInAst(DataTypeNodeType).headOption.map(_.asInstanceOf[ValueType])
     def initExpression: Option[ExpressionStatementNode] = getChildrenInAst[ExpressionStatementNode](ExpressionNodeType).headOption
 
-    override def getApexDoc: Option[DocNode] = getChildrenInAst[DocNode](DocNodeType).headOption
+    override def getApexDoc: Option[DocNode] = getChildInAst[DocNode](DocNodeType)
 
     override def isSymbol: Boolean = true
 }

@@ -112,49 +112,18 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project],
         }
     }
 
-    /*
-    override def visitApexDoc(ctx: ApexDocContext): AstNode = {
-        val text = ctx.getText
-        visitChildren(DocNode(text, Range(ctx, _documentOffsetPosition)), ctx)
-    }
-    */
-
     override def visitClassDef(ctx: ClassDefContext): AstNode = {
         if (null != ctx.classDeclaration().className()) {
             val nameOpt = Option(ctx.classDeclaration().className().getText)
             val classNode = ClassNode(nameOpt, Range(ctx, _documentOffsetPosition))
             visitChildren(classNode, ctx)
+            // add ApexDoc if available
             findApexDoc(ctx.getStart).foreach(docNode => classNode.addChildToAst(docNode))
+
             _classLikeListBuilder += classNode
             classNode
         } else {
             NullNode
-        }
-    }
-    private val apexDocPredicate: Token => Boolean = {t =>
-        t.getType == ApexcodeLexer.APEXDOC_COMMENT
-    }
-    private def findApexDoc(startToken: Token): Option[DocNode] = {
-        tokenStreamOpt match {
-            case Some(tokenStream) =>
-                ApexParserUtils.getPrevTokenOnChannel(startToken.getTokenIndex, tokenStream, apexDocPredicate, Token.HIDDEN_CHANNEL)
-                    .map{docToken =>
-                        val text = unwrapJavadoc(docToken.getText)
-                        DocNode(text, Range(docToken, _documentOffsetPosition))
-                    }
-            case None => None
-        }
-    }
-    /**
-      * if doc is inside javadoc style comments then we need to remove leading spaces and "*" in each line
-      * @param text - text to clean up
-      * @return
-      */
-    private def unwrapJavadoc(text: String): String = {
-        if (null != text) {
-            text.split("\\r?\\n").map(line => line.replaceFirst("\\s*((\\/\\*+)|(\\**\\/)|(\\**)*)", "")).filterNot(_.trim.isEmpty).mkString(System.getProperty("line.separator"))
-        } else {
-            ""
         }
     }
 
@@ -163,6 +132,8 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project],
             val nameOpt = Option(ctx.interfaceDeclaration().interfaceName().getText)
             val interfaceNode = InterfaceNode(nameOpt, Range(ctx, _documentOffsetPosition))
             visitChildren(interfaceNode, ctx)
+            // add ApexDoc if available
+            findApexDoc(ctx.getStart).foreach(docNode => interfaceNode.addChildToAst(docNode))
 
             _classLikeListBuilder += interfaceNode
             interfaceNode
@@ -177,6 +148,8 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project],
             val nameOpt = Option(ctx.triggerDeclaration().triggerName().getText)
             val triggerNode = TriggerNode(nameOpt, Range(ctx, _documentOffsetPosition))
             visitChildren(triggerNode, ctx)
+            // add ApexDoc if available
+            findApexDoc(ctx.getStart).foreach(docNode => triggerNode.addChildToAst(docNode))
 
             _classLikeListBuilder += triggerNode
             triggerNode
@@ -191,6 +164,8 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project],
             val nameOpt = Option(ctx.enumDeclaration().enumName().getText)
             val enumNode = EnumNode(nameOpt, Range(ctx, _documentOffsetPosition))
             visitChildren(enumNode, ctx)
+            // add ApexDoc if available
+            findApexDoc(ctx.getStart).foreach(docNode => enumNode.addChildToAst(docNode))
 
             _classLikeListBuilder += enumNode
             enumNode
@@ -307,7 +282,11 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project],
     }
 
     override def visitClassProperty(ctx: ClassPropertyContext): AstNode = {
-        visitChildren(ClassPropertyNode(Range(ctx, _documentOffsetPosition)), ctx)
+        val node = ClassPropertyNode(Range(ctx, _documentOffsetPosition))
+        // add ApexDoc if available
+        findApexDoc(ctx.getStart).foreach(docNode => node.addChildToAst(docNode))
+
+        visitChildren(node, ctx)
     }
 
     /////////////////// constructor ////////////////////////////////
@@ -332,7 +311,11 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project],
     }
 
     override def visitClassConstructor(ctx: ClassConstructorContext): AstNode = {
-        visitChildren(ConstructorNode(Range(ctx, _documentOffsetPosition)), ctx)
+        // add ApexDoc if available
+        val node = ConstructorNode(Range(ctx, _documentOffsetPosition))
+        findApexDoc(ctx.getStart).foreach(docNode => node.addChildToAst(docNode))
+
+        visitChildren(node, ctx)
     }
 
     override def visitClassConstructorModifier(ctx: ClassConstructorModifierContext): AstNode = {
@@ -356,7 +339,11 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project],
 
     /////////////////// method ////////////////////////////////
     override def visitClassMethod(ctx: ClassMethodContext): AstNode = {
-        visitChildren(MethodNode(Range(ctx, _documentOffsetPosition)), ctx)
+        val node = MethodNode(Range(ctx, _documentOffsetPosition))
+        // add ApexDoc if available
+        findApexDoc(ctx.getStart).foreach(docNode => node.addChildToAst(docNode))
+
+        visitChildren(node, ctx)
     }
 
     override def visitMethodHeader(ctx: MethodHeaderContext): AstNode = {
@@ -572,4 +559,31 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project],
         }
     }
     ///////////////// END literals ///////////////////////////////
+
+    private val apexDocPredicate: Token => Boolean = {t =>
+        t.getType == ApexcodeLexer.APEXDOC_COMMENT
+    }
+    private def findApexDoc(startToken: Token): Option[DocNode] = {
+        tokenStreamOpt match {
+            case Some(tokenStream) =>
+                ApexParserUtils.getPrevTokenOnChannel(startToken.getTokenIndex, tokenStream, apexDocPredicate, Token.HIDDEN_CHANNEL)
+                    .map{docToken =>
+                        val text = unwrapJavadoc(docToken.getText)
+                        DocNode(text, Range(docToken, _documentOffsetPosition))
+                    }
+            case None => None
+        }
+    }
+    /**
+      * if doc is inside javadoc style comments then we need to remove leading spaces and "*" in each line
+      * @param text - text to clean up
+      * @return
+      */
+    private def unwrapJavadoc(text: String): String = {
+        if (null != text) {
+            text.split("\\r?\\n").map(line => line.replaceFirst("\\s*((\\/\\*+)|(\\**\\/)|(\\**)*)", "")).filterNot(_.trim.isEmpty).mkString(System.getProperty("line.separator"))
+        } else {
+            ""
+        }
+    }
 }
