@@ -51,12 +51,12 @@ object ApexParserUtils {
         ()
     }
 
-    def getPrevTokenOnChannel(startTokenIndex: Int, tokens: TokenStream, predicate: Token => Boolean): Option[Token] = {
+    def getPrevTokenOnChannel(startTokenIndex: Int, tokens: TokenStream, predicate: Token => Boolean, channel: Int = Token.DEFAULT_CHANNEL): Option[Token] = {
         var i = startTokenIndex - 1
         while (i >=0) {
             val token = tokens.get(i)
 
-            if (Token.DEFAULT_CHANNEL == token.getChannel && predicate(token)) {
+            if (channel == token.getChannel && predicate(token)) {
                 return Option(token)
             }
             i -= 1
