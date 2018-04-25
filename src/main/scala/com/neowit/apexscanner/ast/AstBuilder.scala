@@ -26,6 +26,7 @@ import java.nio.file.Path
 import com.neowit.apexscanner.{Project, VirtualDocument}
 import com.neowit.apexscanner.nodes.AstNode
 import com.neowit.apexscanner.scanner.{DocumentScanResult, Scanner}
+import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.atn.PredictionMode
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -33,7 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 case class AstBuilderResult(fileScanResult: DocumentScanResult, rootNode: AstNode)
 
 object AstBuilder {
-    type VisitorCreatorFun = (Option[Project], Option[VirtualDocument]) => AstBuilderVisitor
+    type VisitorCreatorFun = (Option[Project], Option[VirtualDocument], Option[CommonTokenStream]) => AstBuilderVisitor
 }
 
 class AstBuilder(projectOpt: Option[Project], visitorCreator: AstBuilder.VisitorCreatorFun = ApexAstBuilderVisitor.VISITOR_CREATOR_FUN) {self =>
@@ -53,7 +54,7 @@ class AstBuilder(projectOpt: Option[Project], visitorCreator: AstBuilder.Visitor
 
     def onEachFileScanResult(result: DocumentScanResult): DocumentScanResult = {
         //val visitor = new ApexAstBuilderVisitor(Option(project), Option(result.document))
-        val visitor = visitorCreator(projectOpt, Option(result.document))
+        val visitor = visitorCreator(projectOpt, Option(result.document), Option(result.tokenStream))
         val compileUnit = visitor.visit(result.parseContext)
         //new AstWalker().walk(compileUnit, new DebugVisitor)
         val sourceDocument = result.document

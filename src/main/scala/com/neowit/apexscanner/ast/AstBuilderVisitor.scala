@@ -23,6 +23,7 @@ package com.neowit.apexscanner.ast
 
 import com.neowit.apexscanner.nodes.{AstNode, NullNode}
 import com.neowit.apexscanner.{Project, VirtualDocument}
+import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.{ParseTree, RuleNode}
 
 /**
@@ -31,6 +32,7 @@ import org.antlr.v4.runtime.tree.{ParseTree, RuleNode}
 trait AstBuilderVisitor {
     def projectOpt: Option[Project]
     def documentOpt: Option[VirtualDocument]
+    def tokenStreamOpt: Option[CommonTokenStream]
 
     def visit(tree: ParseTree): AstNode
 

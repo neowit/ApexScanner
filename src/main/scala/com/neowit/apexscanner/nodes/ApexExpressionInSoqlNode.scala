@@ -26,6 +26,7 @@ import com.neowit.apexscanner.TextBasedDocument
 import com.neowit.apexscanner.ast.ApexAstBuilderVisitor
 import com.neowit.apexscanner.scanner.ApexcodeScanner
 import com.neowit.apexscanner.scanner.actions.SyntaxChecker
+import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.atn.PredictionMode
 
 /**
@@ -61,7 +62,7 @@ case class ApexExpressionInSoqlNode(apexExpressionText: String, range: Range, fi
                 val errorListener = SyntaxChecker.errorListenerCreator(doc)
                 val parser = ApexcodeScanner.createDefaultParser(doc, PredictionMode.SLL, errorListener)
                 val exprCtx = parser.expression()
-                val visitor = new ApexAstBuilderVisitor(Option(project), Option(doc))
+                val visitor = new ApexAstBuilderVisitor(Option(project), Option(doc), Option(parser.getTokenStream.asInstanceOf[CommonTokenStream]))
                 val node = visitor.visit(exprCtx)
                 this.addChildToAst(node)
                 node

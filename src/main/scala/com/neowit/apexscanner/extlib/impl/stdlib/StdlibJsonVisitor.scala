@@ -32,7 +32,7 @@ import com.typesafe.scalalogging.LazyLogging
   * Created by Andrey Gavrikov 
   */
 class StdlibJsonVisitor(lib: CodeLibrary) extends StdlibJsonBaseVisitor[AstNode] with LazyLogging {
-    private val astBuilderVisitor = new ApexAstBuilderVisitor(projectOpt = None, documentOpt = None)
+    private val astBuilderVisitor = new ApexAstBuilderVisitor(projectOpt = None, documentOpt = None, tokenStreamOpt = None)
     private var _systemNamespaceNode: Option[NamespaceNode] = None
     /**
       * this is the main method which should be called after Apex API JSON file is parsed

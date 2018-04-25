@@ -25,7 +25,7 @@ import com.neowit.apexscanner.antlr.{ApexParserUtils, SoqlBaseVisitor, SoqlParse
 import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.nodes.soql._
 import com.neowit.apexscanner.{Project, VirtualDocument}
-import org.antlr.v4.runtime.ParserRuleContext
+import org.antlr.v4.runtime.{CommonTokenStream, ParserRuleContext}
 import org.antlr.v4.runtime.tree.RuleNode
 
 import scala.collection.JavaConverters._
@@ -34,10 +34,14 @@ import scala.collection.JavaConverters._
   */
 object SoqlAstBuilderVisitor {
     val VISITOR_CREATOR_FUN: AstBuilder.VisitorCreatorFun =
-        (projectOpt: Option[Project], documentOpt: Option[VirtualDocument]) => new SoqlAstBuilderVisitor(projectOpt, documentOpt)
+        (projectOpt: Option[Project], documentOpt: Option[VirtualDocument], tokenStreamOpt: Option[CommonTokenStream]) => new SoqlAstBuilderVisitor(projectOpt, documentOpt, tokenStreamOpt)
+
+    //val VISITOR_CREATOR_FUN: AstBuilder.VisitorCreatorFun = (projectOpt, documentOpt, tokenStreamOpt) => new SoqlAstBuilderVisitor(projectOpt, documentOpt, tokenStreamOpt)
 }
 class SoqlAstBuilderVisitor(override val projectOpt: Option[Project],
-                            override val documentOpt: Option[VirtualDocument]) extends SoqlBaseVisitor[AstNode] with AstBuilderVisitor {
+                            override val documentOpt: Option[VirtualDocument],
+                            override val tokenStreamOpt: Option[CommonTokenStream]
+) extends SoqlBaseVisitor[AstNode] with AstBuilderVisitor {
 
     private val _documentOffsetPosition: Position = {
         documentOpt.flatMap(_.offset) match {

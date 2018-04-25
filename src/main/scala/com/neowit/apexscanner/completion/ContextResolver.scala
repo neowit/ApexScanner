@@ -35,7 +35,7 @@ import org.antlr.v4.runtime.{Token, TokenStream}
   * Created by Andrey Gavrikov 
   */
 class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstNode, actionContext: ActionContext) {
-    private val _visitor = new ApexAstBuilderVisitor(projectOpt = None, documentOpt = None)
+    private val _visitor = new ApexAstBuilderVisitor(projectOpt = None, documentOpt = None, tokenStreamOpt = None)
 
     def resolveContext(context: ParseTree, tokens: TokenStream): Option[IsTypeDefinition] = {
         context match {

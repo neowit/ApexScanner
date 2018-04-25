@@ -22,18 +22,21 @@
 package com.neowit.apexscanner.ast
 
 import com.neowit.apexscanner.{Project, TextBasedDocument, VirtualDocument}
-import com.neowit.apexscanner.antlr.{ApexcodeBaseVisitor, ApexcodeParser}
+import com.neowit.apexscanner.antlr.{ApexParserUtils, ApexcodeBaseVisitor, ApexcodeLexer, ApexcodeParser}
 import com.neowit.apexscanner.antlr.ApexcodeParser._
 import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.scanner.SoqlScanner
-import org.antlr.v4.runtime.ParserRuleContext
+import org.antlr.v4.runtime.{CommonTokenStream, ParserRuleContext, Token}
 import org.antlr.v4.runtime.tree.{RuleNode, TerminalNode}
 
 object ApexAstBuilderVisitor {
-    val VISITOR_CREATOR_FUN: AstBuilder.VisitorCreatorFun = (projectOpt, documentOpt) => new ApexAstBuilderVisitor(projectOpt, documentOpt)
+    val VISITOR_CREATOR_FUN: AstBuilder.VisitorCreatorFun = (projectOpt, documentOpt, tokenStreamOpt) => new ApexAstBuilderVisitor(projectOpt, documentOpt, tokenStreamOpt)
 }
 
-class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override val documentOpt: Option[VirtualDocument])
+class ApexAstBuilderVisitor(override val projectOpt: Option[Project],
+                            override val documentOpt: Option[VirtualDocument],
+                            override val tokenStreamOpt: Option[CommonTokenStream]
+                           )
         extends ApexcodeBaseVisitor[AstNode] with AstBuilderVisitor {
     private val _classLikeListBuilder = List.newBuilder[ClassLike]
 
@@ -45,8 +48,8 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
             case Some(_offset) => _offset
             case None => Position(0, 0)
         }
-    } 
-    
+    }
+
     def getClassLikeNodes: List[ClassLike] = _classLikeListBuilder.result()
 
     override def defaultResult(): AstNode = NullNode
@@ -109,18 +112,51 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project], override v
         }
     }
 
+    /*
+    override def visitApexDoc(ctx: ApexDocContext): AstNode = {
+        val text = ctx.getText
+        visitChildren(DocNode(text, Range(ctx, _documentOffsetPosition)), ctx)
+    }
+    */
+
     override def visitClassDef(ctx: ClassDefContext): AstNode = {
         if (null != ctx.classDeclaration().className()) {
             val nameOpt = Option(ctx.classDeclaration().className().getText)
             val classNode = ClassNode(nameOpt, Range(ctx, _documentOffsetPosition))
             visitChildren(classNode, ctx)
+            findApexDoc(ctx.getStart).foreach(docNode => classNode.addChildToAst(docNode))
             _classLikeListBuilder += classNode
             classNode
         } else {
             NullNode
         }
     }
-
+    private val apexDocPredicate: Token => Boolean = {t =>
+        t.getType == ApexcodeLexer.APEXDOC_COMMENT
+    }
+    private def findApexDoc(startToken: Token): Option[DocNode] = {
+        tokenStreamOpt match {
+            case Some(tokenStream) =>
+                ApexParserUtils.getPrevTokenOnChannel(startToken.getTokenIndex, tokenStream, apexDocPredicate, Token.HIDDEN_CHANNEL)
+                    .map{docToken =>
+                        val text = unwrapJavadoc(docToken.getText)
+                        DocNode(text, Range(docToken, _documentOffsetPosition))
+                    }
+            case None => None
+        }
+    }
+    /**
+      * if doc is inside javadoc style comments then we need to remove leading spaces and "*" in each line
+      * @param text - text to clean up
+      * @return
+      */
+    private def unwrapJavadoc(text: String): String = {
+        if (null != text) {
+            text.split("\\r?\\n").map(line => line.replaceFirst("\\s*((\\/\\*+)|(\\**\\/)|(\\**)*)", "")).filterNot(_.trim.isEmpty).mkString(System.getProperty("line.separator"))
+        } else {
+            ""
+        }
+    }
 
     override def visitInterfaceDef(ctx: InterfaceDefContext): AstNode = {
         if (null != ctx.interfaceDeclaration().interfaceName()) {
