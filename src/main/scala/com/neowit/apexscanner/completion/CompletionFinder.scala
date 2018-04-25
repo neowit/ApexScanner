@@ -21,9 +21,7 @@
 
 package com.neowit.apexscanner.completion
 
-import com.neowit.apexscanner.antlr.CodeCompletionCore.CandidatesCollection
 import com.neowit.apexscanner.{Project, VirtualDocument}
-import com.neowit.apexscanner.antlr.{ApexcodeLexer, ApexcodeParser, CodeCompletionCore}
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.resolvers.QualifiedNameDefinitionFinder
@@ -36,24 +34,6 @@ case class FindCaretScopeResult(caretScope: Option[CaretScope], caretToken: Toke
 /**
   * Created by Andrey Gavrikov 
   */
-object CompletionFinder extends LazyLogging {
-    /*
-    def createParser_old(caret: CaretInDocument, errorHandlerOpt: Option[ANTLRErrorStrategy] = Option(new BailErrorStrategy)): ApexcodeParser = {
-        val lexer = ApexParserUtils.getDefaultLexer(caret.document)
-        val tokens = new CommonTokenStream(lexer)
-        val parser = new ApexcodeParser(tokens)
-        // do not dump parse errors into console (or any other default listeners)
-        parser.removeErrorListeners()
-        errorHandlerOpt.foreach(parser.setErrorHandler)
-        //parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
-        //parser.getInterpreter.setPredictionMode(PredictionMode.LL)
-        parser
-    }
-    */
-
-
-
-}
 class CompletionFinder(project: Project) extends LazyLogging {
 
     def listCompletions(file: VirtualDocument, line: Int, column: Int, actionContext: ActionContext): Seq[Symbol] = {
@@ -73,12 +53,6 @@ class CompletionFinder(project: Project) extends LazyLogging {
                 if (actionContext.isCancelled) {
                     return Seq.empty
                 }
-                /*
-                // caret definition is not obvious, but we have an AST scope node
-                val (parser, _) = ApexParserUtils.createParserWithCommonTokenStream(caret)
-                val candidates = collectCandidates(caret, caretToken, parser)
-                getCandidateSymbols(scopeNode, candidates)
-                */
 
                 Seq.empty
 
@@ -86,80 +60,10 @@ class CompletionFinder(project: Project) extends LazyLogging {
                 if (actionContext.isCancelled) {
                     return Seq.empty
                 }
-                /*
-                // caret definition is not obvious, and we do not even have an AST scope node
-                val (parser, _) = ApexParserUtils.createParserWithCommonTokenStream(caret)
-                collectCandidates(caret, caretToken, parser)
-                */
                 Seq.empty
             case _ =>
                 Seq.empty
         }
-    }
-
-    /*
-    private def getCandidateSymbols(scope: AstNode, candidates: CandidatesCollection): Seq[Symbol] = {
-        val kindsBuilder = Seq.newBuilder[SymbolKind]
-        // TODO continue here
-        // collect keywords and convert those to symbols (need to decide on symbol type)
-        // see "The final step to get your completion strings is usually something like this:" https://github.com/mike-lischke/antlr4-c3
-        candidates.rules.keys.foreach{
-            //case ApexcodeParser.RULE_classBodyMemberRef =>
-            //    val kinds = Seq(SymbolKind.Enum, SymbolKind.Variable, SymbolKind.Method, SymbolKind.Property)
-            //    kindsBuilder ++= kinds
-            case ApexcodeParser.RULE_creator =>
-            case ApexcodeParser.RULE_assignmentRightExpr =>
-                // right part of assignment expression can be anything
-                //TODO consider returning elements defined in nearby scope (e.g. local variables)
-        }
-        val allSymbolKinds = kindsBuilder.result()
-        scope.getSymbolsOfKinds(allSymbolKinds)
-    }
-    */
-
-
-
-
-
-    def collectCandidates(caret: CaretInDocument, caretToken: Token, parser: ApexcodeParser): CandidatesCollection = {
-        /*
-        val lexer = ApexParserUtils.getDefaultLexer(caret.document)
-        val tokens: CommonTokenStream = new CommonTokenStream(lexer)
-        val parser = new ApexcodeParser(tokens)
-        // do not dump parse errors into console
-        ApexParserUtils.removeConsoleErrorListener(parser)
-        parser.compilationUnit()
-        */
-
-        val core = new CodeCompletionCore(parser)
-        core.ignoredTokens = Set(
-            ApexcodeLexer.APEXDOC_COMMENT,
-            ApexcodeLexer.COMMENT,
-            ApexcodeLexer.LINE_COMMENT,
-            ApexcodeLexer.BooleanLiteral,
-            ApexcodeLexer.StringLiteral,
-            ApexcodeLexer.IntegerLiteral,
-            ApexcodeLexer.FloatingPointLiteral,
-            ApexcodeLexer.SoqlLiteral,
-            ApexcodeLexer.SoslLiteral,
-            ApexcodeLexer.NULL,
-            ApexcodeLexer.VOID
-
-        )
-        core.preferredRules = Set(
-            //ApexcodeParser.RULE_classBodyMemberRef,
-            ApexcodeParser.RULE_assignmentRightExpr,
-            ApexcodeParser.RULE_creator
-        )
-        core.showResult = true
-        //core.showDebugOutput = true
-        //core.showRuleStack = true
-        //core.debugOutputWithTransitions = true
-
-        val tokenIndex = caretToken.getTokenIndex
-        val res = core.collectCandidates(tokenIndex)
-        logger.debug(res.toString)
-        res
     }
 
     private def getValueTypeMembers(typeDefinition: IsTypeDefinition, actionContext: ActionContext): Seq[Symbol] = {
