@@ -31,9 +31,6 @@ case class MethodNode(range: Range) extends MethodNodeBase { self =>
 
     override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(this)
 
-    def getApexDoc: Option[DocNode] = getChildrenInAst[DocNode](DocNodeType).headOption
-
-
     lazy val isAbstract: Boolean = getChildInAst[MethodBodyNode](MethodBodyNodeType).isEmpty
 
     lazy val isStatic: Boolean = {

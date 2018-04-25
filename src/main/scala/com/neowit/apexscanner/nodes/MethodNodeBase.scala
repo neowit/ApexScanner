@@ -65,6 +65,7 @@ trait MethodNodeBase extends AstNode with HasApexDoc with IsTypeDefinition with 
             case n => throw new NotImplementedError("getClassOrInterfaceNode support for this element is not implemented: " + n)
         }
     }
+    def getApexDoc: Option[DocNode] = getChildrenInAst[DocNode](DocNodeType).headOption
 
     override def isSymbol: Boolean = true
     override def symbolIsStatic: Boolean = isStatic
@@ -74,6 +75,7 @@ trait MethodNodeBase extends AstNode with HasApexDoc with IsTypeDefinition with 
     override def symbolName: String = qualifiedName.map(_.getLastComponent).getOrElse("")
     override def symbolKind: SymbolKind = SymbolKind.Method
     override def parentSymbol: Option[symbols.Symbol] = Option(getClassOrInterfaceNode)
+    override def documentation: Option[String] = getApexDoc.map(_.text)
 
     override def getDebugInfo: String = super.getDebugInfo + " Method: " + nameOpt
 

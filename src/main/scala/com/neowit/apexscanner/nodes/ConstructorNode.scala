@@ -33,9 +33,6 @@ case class ConstructorNode(range: Range) extends MethodNodeBase { self =>
 
     override protected def resolveDefinitionImpl(actionContext: com.neowit.apexscanner.scanner.actions.ActionContext): Option[AstNode] = Option(this)
 
-    def getApexDoc: Option[DocNode] = getChildrenInAst[DocNode](DocNodeType).headOption
-
-
     val isAbstract: Boolean = false // constructors can not be abstract
     val isStatic: Boolean = false // constructors can not be static
 
