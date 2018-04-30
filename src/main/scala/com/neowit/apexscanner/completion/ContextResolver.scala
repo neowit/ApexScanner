@@ -66,7 +66,7 @@ class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstN
                 None
             case x =>
                 println(x)
-                ???
+                None
         }
     }
     private def getLastNonErrorChild(context: ParseTree): Option[ParseTree] = {
