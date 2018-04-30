@@ -560,17 +560,20 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project],
     }
     ///////////////// END literals ///////////////////////////////
 
-    private val apexDocPredicate: Token => Boolean = {t =>
-        t.getType == ApexcodeLexer.APEXDOC_COMMENT
+    private val notWhitespacePredicate: Token => Boolean = {t =>
+        ApexcodeLexer.WS != t.getType
     }
     private def findApexDoc(startToken: Token): Option[DocNode] = {
         tokenStreamOpt match {
             case Some(tokenStream) =>
-                ApexParserUtils.getPrevTokenOnChannel(startToken.getTokenIndex, tokenStream, apexDocPredicate, Token.HIDDEN_CHANNEL)
-                    .map{docToken =>
+                // find first non whitespace token
+                ApexParserUtils.findPrevToken(startToken.getTokenIndex, tokenStream, notWhitespacePredicate) match {
+                    case Some(nonWsToken) if ApexcodeLexer.APEXDOC_COMMENT == nonWsToken.getType =>
+                        val docToken = nonWsToken
                         val text = unwrapJavadoc(docToken.getText)
-                        DocNode(text, Range(docToken, _documentOffsetPosition))
-                    }
+                        Option(DocNode(text, Range(docToken, _documentOffsetPosition)))
+                    case _ => None
+                }
             case None => None
         }
     }

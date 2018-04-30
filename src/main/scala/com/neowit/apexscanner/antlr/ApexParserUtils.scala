@@ -51,12 +51,12 @@ object ApexParserUtils {
         ()
     }
 
-    def getPrevTokenOnChannel(startTokenIndex: Int, tokens: TokenStream, predicate: Token => Boolean, channel: Int = Token.DEFAULT_CHANNEL): Option[Token] = {
+    def findPrevToken(startTokenIndex: Int, tokens: TokenStream, predicate: Token => Boolean): Option[Token] = {
         var i = startTokenIndex - 1
         while (i >=0) {
             val token = tokens.get(i)
 
-            if (channel == token.getChannel && predicate(token)) {
+            if (predicate(token)) {
                 return Option(token)
             }
             i -= 1
@@ -64,27 +64,27 @@ object ApexParserUtils {
         None
     }
 
-    def getNextTokenOnChannel(startTokenIndex: Int, tokens: TokenStream, predicate: Token => Boolean): Option[Token] = {
-        var i = startTokenIndex + 1
-        val size = tokens.size()
-        while (i < size) {
-            val token = tokens.get(i)
-
-            if (Token.DEFAULT_CHANNEL == token.getChannel && predicate(token)) {
-                return Option(token)
-            }
-            i += 1
+    /**
+      * @param startTokenIndex search starts from token immediately *before* startTokenIndex
+      * @param tokens stream of all tokens
+      * @param predicate condition to check
+      * @param channel OPTIONAL - allows to specify non default channel
+      * @return
+      */
+    def findPrevTokenOnChannel(startTokenIndex: Int, tokens: TokenStream, predicate: Token => Boolean, channel: Int = Token.DEFAULT_CHANNEL): Option[Token] = {
+        val _predicate: Token => Boolean = {t =>
+            channel == t.getChannel && predicate(t)
         }
-        None
+        findPrevToken(startTokenIndex, tokens, _predicate)
     }
 
-    def findNextTokenOnChannel(startTokenIndex: Int, tokens: TokenStream, predicate: Token => Boolean): Option[Token] = {
+    def findNextTokenOnChannel(startTokenIndex: Int, tokens: TokenStream, predicate: Token => Boolean, channel: Int = Token.DEFAULT_CHANNEL): Option[Token] = {
         var i = startTokenIndex
         val size = tokens.size()
         while (i < size) {
             val token = tokens.get(i)
 
-            if (Token.DEFAULT_CHANNEL == token.getChannel && predicate(token)) {
+            if (channel == token.getChannel && predicate(token)) {
                 return Option(token)
             }
             i += 1
@@ -115,7 +115,7 @@ object ApexParserUtils {
       * @param startTokenIndex index of start token
       * @param startPredicate start token must match given condition
       * @param endPredicate end token must match given condition
-      * @return tokens between token matching start predicate and ending token *before* toking matching end predicate
+      * @return tokens between the token matching start predicate and ending token *before* token matching end predicate
       */
     def getTokensBetween(tokens: TokenStream, startTokenIndex: Int, startPredicate: Token => Boolean, endPredicate: Token => Boolean): Seq[Token] = {
         tokens.seek(startTokenIndex)

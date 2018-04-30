@@ -65,7 +65,7 @@ class CaretExpressionResolver(project: Project, actionContext: ActionContext)  e
               val tokensBeforeCaretBuilder = List.newBuilder[Token]
               var keepGoing = true
               while (keepGoing) {
-                  ApexParserUtils.getPrevTokenOnChannel( i, tokens, predicate) match {
+                  ApexParserUtils.findPrevTokenOnChannel( i, tokens, predicate) match {
                     case Some(prevToken) => tokensBeforeCaretBuilder += prevToken
                     case None => keepGoing = false
                   }

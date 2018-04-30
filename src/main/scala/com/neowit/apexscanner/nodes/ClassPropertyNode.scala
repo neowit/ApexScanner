@@ -20,8 +20,10 @@
  */
 
 package com.neowit.apexscanner.nodes
+import com.neowit.apexscanner.symbols.SymbolKind
 
 case class ClassPropertyNode(range: Range) extends ClassVariableNodeBase {self =>
     override def nodeType: AstNodeType = ClassPropertyNodeType
 
+    override def symbolKind: SymbolKind = SymbolKind.Property
 }

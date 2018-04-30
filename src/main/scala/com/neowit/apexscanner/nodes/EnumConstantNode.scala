@@ -63,7 +63,7 @@ case class EnumConstantNode (constantName: String, range: Range) extends Variabl
 
     override def symbolName: String = name.getOrElse("")
 
-    override def symbolKind: SymbolKind = SymbolKind.Property
+    override def symbolKind: SymbolKind = SymbolKind.Constant
 
     override def parentSymbol: Option[Symbol] = Option(getClassOrInterfaceNode)
 }

@@ -165,4 +165,29 @@ class ApexDocTest extends FunSuite {
         assert(apexDoc.exists(_.contains("this is property apex doc")), "Wrong apex doc returned")
 
     }
+
+    test("apex-doc: class property - incorrect doc?") {
+        val text =
+            """
+              |/**
+              | * this is class header apex doc
+              | */
+              |class ApexDocTester {
+              | /**
+              |  * this is property1  apex doc
+              |  */
+              | private String prop1 { get; set;}
+              | private String prop2 { get; set;}
+              |
+              | private void test() {
+              |     pr<CARET>op2;
+              | }
+              |
+              |}
+            """.stripMargin
+        //val resultNodes = findDefinition(text).futureValue
+        val apexDoc = findApexDoc(text)
+        assert(apexDoc.isEmpty, "Did not expect to find apex doc")
+
+    }
 }
