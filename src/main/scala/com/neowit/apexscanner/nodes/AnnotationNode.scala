@@ -123,6 +123,7 @@ object AnnotationNode {
             ,AnnotationNode(name = Option("HttpPatch"), body = None, Range.INVALID_LOCATION)
             ,AnnotationNode(name = Option("HttpPost"), body = None, Range.INVALID_LOCATION)
             ,AnnotationNode(name = Option("HttpPut"), body = None, Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("namespaceAccessible"), body = None, Range.INVALID_LOCATION)
         )
 
     /**
