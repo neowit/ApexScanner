@@ -3,7 +3,7 @@ name := "ApexScanner"
 
 version := "1.0"
 
-scalaVersion := "2.12.3"
+scalaVersion := "2.12.6"
 
 //https://blog.threatstack.com/useful-scalac-options-for-better-scala-development-part-1
 scalacOptions ++= Seq(
