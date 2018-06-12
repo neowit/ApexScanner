@@ -65,6 +65,8 @@ case class AnnotationNode(override val name: Option[String], body: Option[Either
     override def symbolValueType: Option[String] = Option("@" + symbolName)
 
     override def visibility: Option[String] = Option("") // annotations do not have visibility
+
+    override def symbolLabel: String = "@" + symbolName
 }
 
 object AnnotationNode {
