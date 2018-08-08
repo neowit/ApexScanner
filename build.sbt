@@ -32,7 +32,7 @@ sourceDirectories in Compile ~= ( dirs =>
     dirs.filterNot(_.absolutePath.endsWith("-2.11")).filterNot(_.absolutePath.endsWith("-2.12"))
 )
 
-libraryDependencies += "org.antlr" %  "antlr4-runtime" % "4.7"
+libraryDependencies += "org.antlr" %  "antlr4-runtime" % "4.7.1"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 
