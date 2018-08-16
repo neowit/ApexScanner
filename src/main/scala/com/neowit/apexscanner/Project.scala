@@ -27,7 +27,7 @@ import java.nio.file._
 import com.neowit.apexscanner.ast.{ApexAstBuilderVisitor, AstBuilder, AstBuilderResult, QualifiedName}
 import com.neowit.apexscanner.extlib.CodeLibrary
 import com.neowit.apexscanner.extlib.impl.stdlib.StdlibLocal
-import com.neowit.apexscanner.nodes.{AstNode, ClassLike}
+import com.neowit.apexscanner.nodes.{AstNode, ClassLike, TriggerNode}
 import com.neowit.apexscanner.scanner.{ApexcodeScanner, Scanner}
 
 import scala.annotation.tailrec
@@ -169,7 +169,12 @@ case class Project(path: Path)/*(implicit ex: ExecutionContext)*/ extends CodeLi
             case None =>
                 // check if given name matches one of existing project files (which has not been scanned into AST yet)
                 findByDocumentName(qualifiedName) match {
-                    case nodeOpt @ Some(_) => nodeOpt
+                    case Some(TriggerNode(_, _))  =>
+                        // triggers can not be part of qualified name, because they are not classes and can conflict with names of StdLib classes
+                        // e.g. Lead.trigger may be found before Database Lead class
+                        findInExternalLibrary(qualifiedName)
+                    case nodeOpt @ Some(_)  =>
+                        nodeOpt
                     case None =>
                         findInExternalLibrary(qualifiedName)
                 }
