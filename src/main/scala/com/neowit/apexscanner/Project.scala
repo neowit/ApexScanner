@@ -27,7 +27,7 @@ import java.nio.file._
 import com.neowit.apexscanner.ast.{ApexAstBuilderVisitor, AstBuilder, AstBuilderResult, QualifiedName}
 import com.neowit.apexscanner.extlib.CodeLibrary
 import com.neowit.apexscanner.extlib.impl.stdlib.StdlibLocal
-import com.neowit.apexscanner.nodes.{AstNode, ClassLike, TriggerNode}
+import com.neowit.apexscanner.nodes.{AstNode, ClassLike}
 import com.neowit.apexscanner.scanner.{ApexcodeScanner, Scanner}
 
 import scala.annotation.tailrec
@@ -89,6 +89,9 @@ object Project {
     val defaultIsIgnoredPath: Path => Boolean = Scanner.defaultIsIgnoredPath
     def getClassOrTriggerMatcher(name: String): PathMatcher = {
         FileSystems.getDefault.getPathMatcher("""regex:(?i).*\b""" + name + """\.(cls|trigger)$""")
+    }
+    def getClassMatcher(name: String): PathMatcher = {
+        FileSystems.getDefault.getPathMatcher("""regex:(?i).*\b""" + name + """\.(cls)$""")
     }
 
     /**
@@ -168,11 +171,7 @@ case class Project(path: Path)/*(implicit ex: ExecutionContext)*/ extends CodeLi
             case nodeOpt @ Some(_) => nodeOpt
             case None =>
                 // check if given name matches one of existing project files (which has not been scanned into AST yet)
-                findByDocumentName(qualifiedName) match {
-                    case Some(TriggerNode(_, _))  =>
-                        // triggers can not be part of qualified name, because they are not classes and can conflict with names of StdLib classes
-                        // e.g. Lead.trigger may be found before Database Lead class
-                        findInExternalLibrary(qualifiedName)
+                findClassByDocumentName(qualifiedName) match {
                     case nodeOpt @ Some(_)  =>
                         nodeOpt
                     case None =>
@@ -182,8 +181,8 @@ case class Project(path: Path)/*(implicit ex: ExecutionContext)*/ extends CodeLi
     }
 
     // check if given name matches one of existing project files (which has not been scanned into AST yet)
-    private def findByDocumentName(target: QualifiedName): Option[AstNode] = {
-        getDocumentByName(target.getFirstComponent) match {
+    private def findClassByDocumentName(target: QualifiedName): Option[AstNode] = {
+        getDocumentByName(target.getFirstComponent, Project.getClassMatcher) match {
             case Some(document) =>
                 // generate AST for the document
                 getAst(document) match {
@@ -241,12 +240,14 @@ case class Project(path: Path)/*(implicit ex: ExecutionContext)*/ extends CodeLi
       * check if given name corresponds to a valid apex file (.cls, .trigger) inside current project
       * if it does then return document instance
       * @param name potential document/file name (without extension), e.g. MyClass
+      * @param matcherCreatorFun function creating file matcher based on potential file Name
       * @return
       */
-    def getDocumentByName(name: String): Option[VirtualDocument] = {
+    def getDocumentByName(name: String, matcherCreatorFun: String => PathMatcher = Project.getClassOrTriggerMatcher): Option[VirtualDocument] = {
         import scala.collection.JavaConverters._
         val rootPath = this.path
-        val matcher = Project.getClassOrTriggerMatcher(name)
+        //val matcher = Project.getClassOrTriggerMatcher(name)
+        val matcher = matcherCreatorFun(name)
         val isIgnoredPath: Path => Boolean = Project.defaultIsIgnoredPath
         if (Files.exists(rootPath)) {
             val paths = Files.walk(rootPath).iterator().asScala.filter(file => matcher.matches(file) && !isIgnoredPath(file))
