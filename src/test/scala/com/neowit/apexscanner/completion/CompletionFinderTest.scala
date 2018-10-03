@@ -416,4 +416,46 @@ private val filePath = getProperty("CompletionFinderTest.path")
                 fail("Expected non empty result")
         }
     }
+
+    test("testListCompletions: `collection variable declaration with assignment - no ';'`") {
+        // in this test - adding ';' after <CARET> fixes the issue
+        val text =
+            """
+              |class CompletionTester {
+              | static String str;
+              | public void testCompletion() {
+              |     List<String> strs = CompletionTester.<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = listCompletions(text, "", loadStdLib = true)
+        result match {
+            case symbols if symbols.nonEmpty =>
+                assert(symbols.lengthCompare(1) >= 0, "Result contains less items than expected")
+                assert(symbols.exists(_.symbolName == "str"), "Missing expected symbol")
+            case _ =>
+                fail("Expected non empty result")
+        }
+    }
+
+    test("testListCompletions: `assignment to variable - no ';'`") {
+        // in this test - adding ';' after <CARET> fixes the issue
+        val text =
+            """
+              |class CompletionTester {
+              | static String str;
+              | public void testCompletion() {
+              |     str = CompletionTester.<CARET>
+              | }
+              |}
+            """.stripMargin
+        val result = listCompletions(text, "", loadStdLib = true)
+        result match {
+            case symbols if symbols.nonEmpty =>
+                assert(symbols.lengthCompare(1) >= 0, "Result contains less items than expected")
+                assert(symbols.exists(_.symbolName == "str"), "Missing expected symbol")
+            case _ =>
+                fail("Expected non empty result")
+        }
+    }
 }
