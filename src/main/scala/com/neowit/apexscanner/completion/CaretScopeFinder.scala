@@ -84,13 +84,16 @@ object CaretScopeFinder extends LazyLogging {
 
     /**
       * insert or replace token in caret position with FIXER_TOKEN
+      * @param appendSemicolon if true then append semicolon after FIXER_TOKEN
+      *                        this is a fall back option which can be used when FIXER_TOKEN without ";" did
+      *                        not yield good result
       * @return updated document (if caret found)
       */
-    private def injectFixerToken(caret: CaretInDocument): VirtualDocument = {
+    private def injectFixerToken(caret: CaretInDocument, appendSemicolon: Boolean): VirtualDocument = {
         val lexer = new ApexcodeLexer(caret.document.getCharStream)
         val tokens = new CommonTokenStream(lexer)
         val rewriter = new TokenStreamRewriter(tokens)
-        val fixerTokenText = lexer.getVocabulary.getSymbolicName(ApexcodeLexer.FIXER_TOKEN)
+        val fixerTokenText = lexer.getVocabulary.getSymbolicName(ApexcodeLexer.FIXER_TOKEN) + (if (appendSemicolon) ";" else "")
 
         findCaretToken(caret, tokens) match {
             case Some(_caretToken) if !_caretToken.getText.isEmpty && "@" == _caretToken.getText =>
@@ -191,15 +194,28 @@ class CaretScopeFinder(project: Project, actionContext: ActionContext) extends L
                 val typeDefinition = AnnotationNode(name = Option(AnnotationNode.ANNOTATIONS_NODE_NAME), body = None, Range.INVALID_LOCATION)
                 Option(FindCaretScopeResult(Option(CaretScope(NullNode, Option(typeDefinition))), caretTokenInApex))
             case Some(caretTokenInApex) =>
-                findCaretScopeInApex(caretInOriginalDocument, caretTokenInApex)
+                findCaretScopeInApex(caretInOriginalDocument, caretTokenInApex, appendSemicolon = false) match {
+                    case Some(FindCaretScopeResult(Some(CaretScope(_, None)), _ ) ) =>
+                        // failed to determine caret scope definition based on original document
+                        // now try adding ";" after cursor, sometimes it helps to fix the syntax error which prevented
+                        // AST builder from producing meaningful tree
+                        findCaretScopeInApex(caretInOriginalDocument, caretTokenInApex, appendSemicolon = true)
+                    case res => res
+                }
             case None =>
                 None
         }
     }
 
-    private def findCaretScopeInApex(caretInOriginalDocument: CaretInDocument, caretTokenInOriginalDocument: Token): Option[FindCaretScopeResult] = {
+    /**
+      * @param appendSemicolon if true then append semicolon after FIXER_TOKEN
+      *                        this is a fall back option which can be used when FIXER_TOKEN without ";" did
+      *                        not yield good result
+      * @return
+      */
+    private def findCaretScopeInApex(caretInOriginalDocument: CaretInDocument, caretTokenInOriginalDocument: Token, appendSemicolon: Boolean): Option[FindCaretScopeResult] = {
         // alter original document by injecting FIXER_TOKEN
-        val fixedDocument = injectFixerToken(caretInOriginalDocument)
+        val fixedDocument = injectFixerToken(caretInOriginalDocument, appendSemicolon)
         val caret = new CaretInFixedDocument(caretInOriginalDocument.position, fixedDocument, caretInOriginalDocument.document)
         val (parser, tokenStream) = ApexParserUtils.createParserWithCommonTokenStream(caret)
 
