@@ -26,11 +26,13 @@ import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.symbols
 import com.neowit.apexscanner.symbols.SymbolKind
 
-case class AnnotationNode(override val name: Option[String], body: Option[Either[AnnotationValue, List[AnnotationParameter]]], range: Range)
+case class AnnotationNode(override val name: Option[String], body: Option[AnnotationBody], range: Range)
                             extends ClassVariableNodeBase {
     override def nodeType: AstNodeType = AnnotationNodeType
     override def getValueType: Option[ValueType] = name.map(n => ValueTypeAnnotation(QualifiedName(n)))
 
+    override def isMethodLike: Boolean = true
+    override def methodParameters: Seq[String] = body.map(_.getParameters).getOrElse(Nil)
 
     override def isScope: Boolean = true
 
@@ -42,10 +44,10 @@ case class AnnotationNode(override val name: Option[String], body: Option[Either
     override def getDebugInfo: String = {
         val myText =
             body match {
-                case Some(Left(AnnotationValue(_value, _))) =>
+                case Some(AnnotationValue(_value, _)) =>
                     name + "(" +  _value + ")"
-                case Some(Right(_params @ List(AnnotationParameter(_name, _value, _)))) =>
-                    name + "(" + _params.map(_.getDebugInfo).mkString(",") + ")"
+                case Some(AnnotationParameterList(params, _)) =>
+                    name + "(" + params.map(_.getDebugInfo).mkString(",") + ")"
                 case _ => name
 
             }
@@ -66,7 +68,21 @@ case class AnnotationNode(override val name: Option[String], body: Option[Either
 
     override def visibility: Option[String] = Option("") // annotations do not have visibility
 
-    override def symbolLabel: String = "@" + symbolName
+    override def symbolLabel: String = {
+        val bodyStr = body match {
+            case Some(_) => "(" + methodParameters.mkString(",") + ")"
+            case None => ""
+        }
+        "@" + symbolName + bodyStr
+    }
+
+    override def symbolInsertText: String = {
+        val bodyStr = body match {
+            case Some(_) => "(" + methodParameters.mkString(",") + ")"
+            case None => ""
+        }
+        symbolName + bodyStr
+    }
 }
 
 object AnnotationNode {
@@ -75,16 +91,16 @@ object AnnotationNode {
     val ANNOTATIONS_NODE_NAME: String = "_Annotations"
 
     def visitAnnotation(ctx: AnnotationContext): AstNode = {
-        val body: Option[Either[AnnotationValue, List[AnnotationParameter]]] =
+        val body: Option[AnnotationBody] =
             if (null != ctx.annotationElementValuePairs()) {
                 val paramOps: List[Option[AnnotationParameter]] =
                     ctx.annotationElementValuePairs()
                         .annotationElementValuePair()
                         .asScala.map(pair => createAnnotationParameter(pair)).toList
                 // remove empty values
-                Option(Right(paramOps.filterNot(_.isEmpty).flatten))
+                Option(AnnotationParameterList(paramOps.filterNot(_.isEmpty).flatten))
             }else if (null != ctx.annotationElementValue()) {
-                Option(Left(AnnotationValue(ctx.annotationElementValue().getText, Range(ctx.annotationElementValue()))))
+                Option(AnnotationValue(ctx.annotationElementValue().getText, Range(ctx.annotationElementValue())))
             } else {
                 None // empty annotation body
             }
@@ -108,7 +124,7 @@ object AnnotationNode {
     // not sure where list of annotations can be retrieved dynamically
     private val _stdAnnotations: Seq[AnnotationNode] =
         Seq(
-            AnnotationNode(name = Option("AuraEnabled"), body = None, Range.INVALID_LOCATION)
+            AnnotationNode(name = Option("AuraEnabled"), body = Option(AnnotationParameterList("cacheable", "false")), Range.INVALID_LOCATION)
             ,AnnotationNode(name = Option("Deprecated"), body = None, Range.INVALID_LOCATION)
             ,AnnotationNode(name = Option("Future"), body = None, Range.INVALID_LOCATION)
             ,AnnotationNode(name = Option("InvocableMethod"), body = None, Range.INVALID_LOCATION)
@@ -136,17 +152,22 @@ object AnnotationNode {
 
 trait AnnotationBody extends AstNode {
     override def nodeType: AstNodeType = AnnotationParameterNodeType
+    def getParameters: Seq[String]
 }
 case class AnnotationValue(value: String, range: Range) extends AnnotationBody {
     override def nodeType: AstNodeType = AnnotationParameterNodeType
-    override def getDebugInfo: String = {
-        super.getDebugInfo + " " + value
-    }
+
+    override def getParameters: Seq[String] = Seq(value)
 }
-case class AnnotationParameter(name: String, value: String, range: Range) extends AnnotationBody {
+case class AnnotationParameter(name: String, value: String, range: Range) extends AstNode {
     override def nodeType: AstNodeType = AnnotationParameterNodeType
-    override def getDebugInfo: String = {
-        super.getDebugInfo + " " + name + "=" + value
-    }
+    def printBody: String = "(" + name + "=" + value + ")"
+}
+case class AnnotationParameterList(params: List[AnnotationParameter], range: Range) extends AnnotationBody {
+    override def getParameters: Seq[String] = params.map(p => p.name + "=" + p.value)
 }
 
+object AnnotationParameterList {
+    def apply(name: String, value: String): AnnotationParameterList = AnnotationParameterList(List(AnnotationParameter(name: String, value: String, Range.INVALID_LOCATION)), Range.INVALID_LOCATION)
+    def apply(params: List[AnnotationParameter]): AnnotationParameterList = AnnotationParameterList(params, Range.INVALID_LOCATION)
+}
