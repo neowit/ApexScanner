@@ -70,7 +70,7 @@ case class AnnotationNode(override val name: Option[String], body: Option[Annota
 
     override def symbolLabel: String = {
         val bodyStr = body match {
-            case Some(_) => "(" + methodParameters.mkString(",") + ")"
+            case Some(_) => "(" + methodParameters.mkString(" ") + ")"
             case None => ""
         }
         "@" + symbolName + bodyStr
@@ -78,7 +78,7 @@ case class AnnotationNode(override val name: Option[String], body: Option[Annota
 
     override def symbolInsertText: String = {
         val bodyStr = body match {
-            case Some(_) => "(" + methodParameters.mkString(",") + ")"
+            case Some(_) => "(" + methodParameters.mkString(" ") + ")"
             case None => ""
         }
         symbolName + bodyStr
@@ -124,18 +124,33 @@ object AnnotationNode {
     // not sure where list of annotations can be retrieved dynamically
     private val _stdAnnotations: Seq[AnnotationNode] =
         Seq(
-            AnnotationNode(name = Option("AuraEnabled"), body = Option(AnnotationParameterList("cacheable", "false")), Range.INVALID_LOCATION)
+            AnnotationNode(name = Option("AuraEnabled"),
+                body = Option(AnnotationParameterList(("cacheable", "false", AnnotationParameterValueBoolean))), Range.INVALID_LOCATION)
             ,AnnotationNode(name = Option("Deprecated"), body = None, Range.INVALID_LOCATION)
             ,AnnotationNode(name = Option("Future"), body = None, Range.INVALID_LOCATION)
-            ,AnnotationNode(name = Option("InvocableMethod"), body = None, Range.INVALID_LOCATION)
-            ,AnnotationNode(name = Option("InvocableVariable"), body = None, Range.INVALID_LOCATION)
-            ,AnnotationNode(name = Option("IsTest"), body = None, Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("InvocableMethod"),
+                body = Option(
+                    AnnotationParameterList(List(AnnotationParameter("label", "<method label here>"),
+                        AnnotationParameter("description", "<method description here>")))
+                ),
+                Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("InvocableVariable"),
+                body = Option(
+                    AnnotationParameterList(List(AnnotationParameter("label", "<variable label here>"),
+                        AnnotationParameter("required", "true", AnnotationParameterValueBoolean)))
+                ),
+                Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("IsTest"),
+                body = Option(AnnotationParameterList(("SeeAllData", "false", AnnotationParameterValueBoolean))), Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("IsTest"),
+                body = Option(AnnotationParameterList(("isParallel", "true", AnnotationParameterValueBoolean))), Range.INVALID_LOCATION)
             ,AnnotationNode(name = Option("ReadOnly"), body = None, Range.INVALID_LOCATION)
             ,AnnotationNode(name = Option("RemoteAction"), body = None, Range.INVALID_LOCATION)
             ,AnnotationNode(name = Option("SuppressWarnings"), body = None, Range.INVALID_LOCATION)
             ,AnnotationNode(name = Option("TestSetup"), body = None, Range.INVALID_LOCATION)
             ,AnnotationNode(name = Option("TestVisible"), body = None, Range.INVALID_LOCATION)
-            ,AnnotationNode(name = Option("RestResource"), body = None, Range.INVALID_LOCATION)
+            ,AnnotationNode(name = Option("RestResource"),
+                body = Option(AnnotationParameterList(("urlMapping", "/yourUrl"))), Range.INVALID_LOCATION)
             ,AnnotationNode(name = Option("HttpDelete"), body = None, Range.INVALID_LOCATION)
             ,AnnotationNode(name = Option("HttpGet"), body = None, Range.INVALID_LOCATION)
             ,AnnotationNode(name = Option("HttpPatch"), body = None, Range.INVALID_LOCATION)
@@ -159,15 +174,29 @@ case class AnnotationValue(value: String, range: Range) extends AnnotationBody {
 
     override def getParameters: Seq[String] = Seq(value)
 }
-case class AnnotationParameter(name: String, value: String, range: Range) extends AstNode {
+case class AnnotationParameter(name: String, value: String, range: Range, valueType: AnnotationParameterValueType = AnnotationParameterValueString) extends AstNode {
     override def nodeType: AstNodeType = AnnotationParameterNodeType
-    def printBody: String = "(" + name + "=" + value + ")"
+    def printBody: String = {
+        valueType match {
+            case AnnotationParameterValueString => name + "='" + value + "'"
+            case _ => name + "=" + value
+        }
+    }
+}
+sealed trait AnnotationParameterValueType
+case object AnnotationParameterValueString extends AnnotationParameterValueType
+case object AnnotationParameterValueBoolean extends AnnotationParameterValueType
+
+object AnnotationParameter {
+    def apply(name: String, value: String): AnnotationParameter = AnnotationParameter(name, value, Range.INVALID_LOCATION)
+    def apply(name: String, value: String, valueType: AnnotationParameterValueType): AnnotationParameter = AnnotationParameter(name, value, Range.INVALID_LOCATION, valueType)
 }
 case class AnnotationParameterList(params: List[AnnotationParameter], range: Range) extends AnnotationBody {
-    override def getParameters: Seq[String] = params.map(p => p.name + "=" + p.value)
+    override def getParameters: Seq[String] = params.map(p => p.printBody)
 }
 
 object AnnotationParameterList {
-    def apply(name: String, value: String): AnnotationParameterList = AnnotationParameterList(List(AnnotationParameter(name: String, value: String, Range.INVALID_LOCATION)), Range.INVALID_LOCATION)
+    def apply(param: (String, String)): AnnotationParameterList = AnnotationParameterList(List(AnnotationParameter(param._1, param._2, Range.INVALID_LOCATION)), Range.INVALID_LOCATION)
+    def apply(param: (String, String, AnnotationParameterValueType)): AnnotationParameterList = AnnotationParameterList(List(AnnotationParameter(param._1, param._2, Range.INVALID_LOCATION, param._3)), Range.INVALID_LOCATION)
     def apply(params: List[AnnotationParameter]): AnnotationParameterList = AnnotationParameterList(params, Range.INVALID_LOCATION)
 }
