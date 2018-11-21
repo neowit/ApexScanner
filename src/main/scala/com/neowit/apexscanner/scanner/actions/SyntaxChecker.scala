@@ -79,7 +79,7 @@ private class SyntaxCheckerErrorListener(document: VirtualDocument) extends Base
                              e: RecognitionException): Unit = {
         //super.syntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e)
         // make sure msg does not include 'FIXER_TOKEN', end user has no use for it
-        val msgCleaned = msg.replace("'FIXER_TOKEN', ", "")
+        val msgCleaned = msg.replace("'FIXER_TOKEN', ", "").replace(", 'FIXER_TOKEN'", "")
         val error =
         document match {
             case _doc @ TokenBasedDocument(token, _, _) => // adjust error location
