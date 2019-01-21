@@ -59,10 +59,12 @@ trait MethodNodeBase extends AstNode with HasApexDoc with IsTypeDefinition with 
         }
     }
 
+    private val CLASS_LIKE_NODE_TYPES: Set[AstNodeType] = Set(ClassNodeType, InterfaceNodeType, EnumNodeType, TriggerNodeType)
     override def getClassOrInterfaceNode: ClassLike = {
-        findParentInAst(p => p.nodeType == ClassNodeType || p.nodeType == InterfaceNodeType ) match {
+        findParentInAst(p => CLASS_LIKE_NODE_TYPES.contains(p.nodeType)  ) match {
             case Some(n: ClassLike) => n
-            case n => throw new NotImplementedError("getClassOrInterfaceNode support for this element is not implemented: " + n)
+            case n =>
+                throw new NotImplementedError("getClassOrInterfaceNode support for this element is not implemented: " + n)
         }
     }
     def getApexDoc: Option[DocNode] = getChildrenInAst[DocNode](DocNodeType).headOption
