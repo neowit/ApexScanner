@@ -81,6 +81,105 @@ class AscendingDefinitionFinderTest3 extends FunSuite {
     }
 
 
+    test("findDefinition: enum referenced from another class") {
+        val textOther =
+            """
+              |public enum MyEnum {
+              |    E_VALUE_1,
+              |    E_VALUE_2,
+              |    E_VALUE_3,
+              |    E_VALUE_4
+              |}
+              |
+            """.stripMargin
+        loadDocument(getProject(), new TestDocument(textOther, "MyEnum"))
+
+        val text =
+            """
+              |class DefinitionTester {
+              | System.debug(My<CARET>Enum);
+              |}
+            """.stripMargin
+
+        val resultNodes = findDefinition(text)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        //TODO - add correct checks
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName("MyEnum")), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                assertResult(Option(QualifiedName("MyEnum")), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
+            case _ =>
+                fail( "Failed to locate correct node.")
+        }
+    }
+
+    test("findDefinition: enum member referenced from another class") {
+        val textParent =
+            """
+              |public enum MyEnum {
+              |    E_VALUE_1,
+              |    E_VALUE_2,
+              |    E_VALUE_3,
+              |    E_VALUE_4
+              |}
+              |
+            """.stripMargin
+        loadDocument(getProject(), new TestDocument(textParent, "MyEnum"))
+
+        val text =
+            """
+              |class DefinitionTester {
+              | System.debug(MyEnum.E_VALU<CARET>E_2);
+              |}
+            """.stripMargin
+
+        val resultNodes = findDefinition(text)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        //TODO - add correct checks
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName("MyEnum", "E_VALUE_2")), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                assertResult(Option(QualifiedName("MyEnum", "E_VALUE_2")), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
+            case _ =>
+                fail( "Failed to locate correct node.")
+        }
+    }
+
+    test("findDefinition: enum member.value() method referenced from another class") {
+        val textParent =
+            """
+              |public enum MyEnum {
+              |    E_VALUE_1,
+              |    E_VALUE_2,
+              |    E_VALUE_3,
+              |    E_VALUE_4
+              |}
+              |
+            """.stripMargin
+        loadDocument(getProject(), new TestDocument(textParent, "MyEnum"))
+
+        val text =
+            """
+              |class DefinitionTester {
+              | System.debug(MyEnum.E_VALUE_2.na<CARET>me());
+              |}
+            """.stripMargin
+
+        val resultNodes = findDefinition(text)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        //TODO - add correct checks
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                //assertResult(Option(QualifiedName("MyEnum", "E_VALUE_2", "name")), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                assertResult(Option(QualifiedName("System", "String")), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
+            case _ =>
+                fail( "Failed to locate correct node.")
+        }
+    }
+    
     test("findDefinition: method defined only in parent class") {
         val textParent =
             """
