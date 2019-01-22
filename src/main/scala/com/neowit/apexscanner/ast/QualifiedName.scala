@@ -105,6 +105,19 @@ object QualifiedName {
       * merge parent and child names
       * @return
       */
+    def fromOption(parentOpt: Option[QualifiedName], child: String): Option[QualifiedName] = {
+        parentOpt match {
+            case Some(parent) =>
+                Option(QualifiedName(parent, child))
+            case _ =>
+                Option(QualifiedName(child))
+        }
+    }
+
+    /**
+      * merge parent and child names
+      * @return
+      */
     def fromOptions(parentOpt: Option[QualifiedName], childOpt: Option[QualifiedName]): Option[QualifiedName] = {
         parentOpt match {
           case Some(parent) if childOpt.isDefined =>
