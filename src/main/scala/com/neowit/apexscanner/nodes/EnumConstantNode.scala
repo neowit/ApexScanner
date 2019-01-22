@@ -86,7 +86,9 @@ object EnumConstantNode {
                 methodIsAbstract = false,
                 methodReturnType = ValueTypeSimple(qNameString),
                 parameterTypes = Array.empty,
-                methodApexDoc = Option("Returns the name of the Enum item as a String.")
+                methodApexDoc = Option("Returns the name of the Enum item as a String."),
+                // special treatment for name resolution is required because EnumConstantNode is not ClassLike
+                Option(() => node.qualifiedName)
             ))
 
         // ordinal(): Integer
@@ -97,7 +99,9 @@ object EnumConstantNode {
                 methodIsAbstract = false,
                 methodReturnType = ValueTypeSimple(qNameInteger),
                 parameterTypes = Array.empty,
-                methodApexDoc = Option("Returns the position of the item, as an Integer, in the list of Enum values starting with zero.")
+                methodApexDoc = Option("Returns the position of the item, as an Integer, in the list of Enum values starting with zero."),
+                // special treatment for name resolution is required because EnumConstantNode is not ClassLike
+                Option(() => node.qualifiedName)
             ))
 
         // add equals(Object) and hashCode()

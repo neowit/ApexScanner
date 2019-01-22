@@ -173,13 +173,13 @@ class AscendingDefinitionFinderTest3 extends FunSuite {
         //TODO - add correct checks
         resultNodes.head match {
             case typeDefinition: IsTypeDefinition =>
-                //assertResult(Option(QualifiedName("MyEnum", "E_VALUE_2", "name")), "Wrong caret type detected.")(typeDefinition.qualifiedName)
+                assertResult(Option(QualifiedName("MyEnum", "E_VALUE_2", "name")), "Wrong caret type detected.")(typeDefinition.qualifiedName)
                 assertResult(Option(QualifiedName("System", "String")), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
             case _ =>
                 fail( "Failed to locate correct node.")
         }
     }
-    
+
     test("findDefinition: method defined only in parent class") {
         val textParent =
             """

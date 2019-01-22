@@ -62,12 +62,16 @@ object MethodNode {
       * @param methodReturnType DataTypeNode representing method return type
       * @param parameterTypes types of method parameters
       * @param methodApexDoc java-doc style comment for given method, if available
+      * @param qualifiedNameParentOverrideFun function returning alternative implementation for qualifiedName
+      *                                       use in cases where standard MethodNodeBase.qualifiedName is not suitable
       * @return instance of method.
       *         Note - parent AstNode must be assigned explicitly by the code calling createMethodNode()
       */
     def createMethodNode( methodName: String, methodIsStatic: Boolean, methodIsAbstract: Boolean,
-                       methodReturnType: ValueType,
-                       parameterTypes: Array[ValueType], methodApexDoc: Option[String]): MethodNodeBase = {
+                          methodReturnType: ValueType,
+                          parameterTypes: Array[ValueType], methodApexDoc: Option[String],
+                          qualifiedNameParentOverrideFun: Option[() => Option[QualifiedName]] = None
+                        ): MethodNodeBase = {
 
         val m = new MethodNodeBase { self =>
 
@@ -98,7 +102,20 @@ object MethodNode {
             override protected def getSelf: AstNode = self
 
             override def visibility: Option[String] = Option("public")
-        }
+
+            override def qualifiedName: Option[QualifiedName] = {
+                qualifiedNameParentOverrideFun match {
+                    case Some(parentQualifiedNameFun) =>
+                        parentQualifiedNameFun() match {
+                            case Some(parent) =>
+                                Option(QualifiedName(parent, methodName))
+                            case None =>
+                                super.qualifiedName
+                        }
+                    case None => super.qualifiedName
+                }
+            }
+}
 
         m
 
