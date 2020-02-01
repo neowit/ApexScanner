@@ -878,4 +878,41 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
                 fail("Failed to locate correct node")
         }
     }
+
+    test("findDefinition: in presence of SWITCH statement") {
+        val text =
+            """
+              |  public class TypeFinderTester {
+              |    public enum SomeType { ONE, TWO, THREE }
+              |
+              |    public SomeType myType;
+              |
+              |    void myMethod (SwitchStatementTester tester) {
+              |
+              |        myType = SomeType.O<CARET>NE;
+              |
+              |        switch on tester.myType {
+              |            when ONE {
+              |            }
+              |            when TWO {
+              |            }
+              |        }
+              |
+              |    }
+              |}
+              |            """.stripMargin
+        loadDocument(getProject(), new TestDocument(text, "TypeFinderTester"))
+
+        val resultNodes = findDefinition(text, "Switch.tester", loadStdLib = false)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName(Array("TypeFinderTester", "SomeType", "ONE"))), "Wrong caret type detected.'")(typeDefinition.qualifiedName)
+                assertResult(Option(QualifiedName("TypeFinderTester", "SomeType", "ONE")), "Wrong caret type detected.")(typeDefinition.getValueType.map(_.qualifiedName))
+
+            case _ =>
+                fail("Failed to locate correct node")
+        }
+    }
 }

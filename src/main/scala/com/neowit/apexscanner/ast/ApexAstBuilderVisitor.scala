@@ -486,6 +486,28 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project],
         }
     }
 
+
+    override def visitSwitchStatement(ctx: SwitchStatementContext): AstNode = {
+        if (null != ctx.SWITCH_ON()) {
+            val onNode = ExpressionDotExpressionNode(Range(ctx.SWITCH_ON(), _documentOffsetPosition))
+            val switchStatementNode = SwitchStatementNode(onNode, Range(ctx, _documentOffsetPosition))
+            visitChildren(switchStatementNode, ctx)
+            //switchStatementNode
+        } else {
+            NullNode
+        }
+    }
+
+    override def visitWhenCaseBlock(ctx: WhenCaseBlockContext): AstNode = {
+        val whenCaseNode = SwitchWhenCaseNode(Range(ctx, _documentOffsetPosition))
+        whenCaseNode
+        //visitChildren(whenCaseNode, ctx) // TODO - implement further descent to children
+    }
+
+    override def visitWhenElseBlock(ctx: WhenElseBlockContext): AstNode = {
+        visitChildren(ctx) //TODO - implement further descent to children
+    }
+
     override def visitPrimaryExpr(ctx: PrimaryExprContext): AstNode = {
         val primary = ctx.primary()
         if (null != primary.Identifier()) {
