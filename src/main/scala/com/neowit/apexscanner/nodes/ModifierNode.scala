@@ -50,6 +50,7 @@ object ModifierNode {
 
     case object WITH_SHARING extends ModifierType
     case object WITHOUT_SHARING extends ModifierType
+    case object INHERITED_SHARING extends ModifierType
 
     def visitClassOrInterfaceVisibilityModifier(ctx: ClassOrInterfaceVisibilityModifierContext): AstNode = {
         if (null != ctx.ABSTRACT()) {
@@ -79,6 +80,9 @@ object ModifierNode {
         }
         if (null != ctx.WITHOUT_SHARING()) {
             return ModifierNode(ModifierNode.WITHOUT_SHARING, Range(ctx.WITHOUT_SHARING()))
+        }
+        if (null != ctx.INHERITED_SHARING()) {
+            return ModifierNode(ModifierNode.INHERITED_SHARING, Range(ctx.INHERITED_SHARING()))
         }
         //if no sharing modifier provided - by default assume WITHOUT_SHARING
         ModifierNode(ModifierNode.ABSTRACT, Range(ctx.WITHOUT_SHARING()))
