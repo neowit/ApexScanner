@@ -942,4 +942,38 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
                 fail("Failed to locate correct node")
         }
     }
+    test("findDefinition: casting of MyClass.class to Type") {
+        val text =
+            """
+              |class TypeFinderTester {
+              |    private M2Type methodWith2Params(Integer i, String s) { // this is wrong method
+              |    }
+              |
+              |    private M2Type methodWith2Params(String s1, Type aClass) { // this is right method
+              |    }
+              |
+              |    private M2Type methodWith2Params(String s1, String s2) { // this is also wrong method
+              |    }
+              |
+              |    private void definitionTester() {
+              |        methodWith<CARET>2Params('str', MyOtherClass.class);
+              |
+              |    }
+              |
+              |}
+            """.stripMargin
+        loadDocument(getProject(), new TestDocument(text, "TypeFinderTester"))
+
+        val resultNodes = findDefinition(text, "methodWith2Params", loadStdLib = true)
+        assert(resultNodes.nonEmpty, "Expected to find non empty result")
+        assertResult(1,"Wrong number of results found") (resultNodes.length)
+        resultNodes.head match {
+            case typeDefinition: IsTypeDefinition =>
+                assertResult(Option(QualifiedName(Array("TypeFinderTester", "methodWith2Params"))), "Wrong caret type detected. Expected 'methodWith2Params()'")(typeDefinition.qualifiedName)
+                assertResult(6, "Method from wrong line returned")(typeDefinition.range.start.line)
+            case _ =>
+                fail("Failed to locate correct node")
+        }
+    }
+
 }

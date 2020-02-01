@@ -519,8 +519,16 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project],
             SuperExpressionNode(Range(primary, _documentOffsetPosition))
         } else if (null != primary.dataType()) {
             //dataType '.' CLASS
-            val dataType = visitDataType(primary.dataType()).asInstanceOf[DataTypeNode]
-            ApexTypeExpressionNode(dataType, Range(primary, _documentOffsetPosition))
+
+            // original implementation tried to be "clever" and expression like Something.class was resolved to Something instead of System.type
+            // it does not look like this kind of resolution is useful, so in the new version Whatever.class is resolved to simple literal System.type
+
+            // original implementation
+            //val dataType = visitDataType(primary.dataType()).asInstanceOf[DataTypeNode]
+            //ApexTypeExpressionNode(dataType, Range(primary, _documentOffsetPosition))
+
+            // new implementation (see comment above)
+            LiteralNode(CLASS, primary.CLASS(), Range(ctx, _documentOffsetPosition))
         } else {
             // parExpr, literal
             visitChildren(ctx)
