@@ -505,7 +505,8 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project],
     }
 
     override def visitWhenElseBlock(ctx: WhenElseBlockContext): AstNode = {
-        visitChildren(ctx) //TODO - implement further descent to children
+        val whenElseNode = SwitchWhenElseNode(Range(ctx, _documentOffsetPosition))
+        visitChildren(whenElseNode, ctx.codeBlock())
     }
 
     override def visitPrimaryExpr(ctx: PrimaryExprContext): AstNode = {

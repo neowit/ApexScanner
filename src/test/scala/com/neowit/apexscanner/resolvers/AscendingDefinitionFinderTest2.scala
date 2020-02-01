@@ -896,6 +896,8 @@ class AscendingDefinitionFinderTest2 extends FunSuite {
               |            }
               |            when TWO {
               |            }
+              |            when else {
+              |            }
               |        }
               |
               |    }
