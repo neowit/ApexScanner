@@ -25,7 +25,7 @@ import com.neowit.apexscanner.ast.QualifiedName
 
 object ValueType {
     /**
-      * compare two types taking inti account potential Type conversion which can be performed by Apex
+      * compare two types taking into account potential Type conversion which can be performed by Apex
       * @param leftDataType first type to compare with second
       * @param definitionParamDataType second type to compare with first
       * @return true if types may be equal according to potential Apex conversions
@@ -51,6 +51,8 @@ object ValueType {
                     definitionParamDataType.qualifiedName.endsWith(QualifiedName("Decimal"))
                 case "id" =>
                     definitionParamDataType.qualifiedName.endsWith(QualifiedName("String"))
+                case "string" =>
+                    definitionParamDataType.qualifiedName.endsWith(QualifiedName("Id"))
                 case _ => false
             }
         }
