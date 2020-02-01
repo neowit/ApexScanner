@@ -163,6 +163,20 @@ case class ValueTypeEnum(qualifiedName: QualifiedName) extends ValueType {
 case class ValueTypeEnumConstant(qualifiedName: QualifiedName) extends ValueType {
     override def typeArguments: Seq[ValueType] = Seq.empty
 
+    override def isSameType(definitionParamDataType: ValueType, withTypeModifications: Boolean): Boolean = {
+        if ( super.isSameType(definitionParamDataType, withTypeModifications) ) {
+            return true
+        }
+        if (withTypeModifications) {
+            // exact match is not required
+            // check if this enum constant belongs to definitionParamDataType
+            // i.e. MyEnum.My_Const == MyEnum
+            QualifiedName(this.qualifiedName.components.dropRight(1)).equals(definitionParamDataType.qualifiedName)
+        } else {
+            false
+        }
+    }
+
     override def toString: String = {
         "enum constant: " + qualifiedName
     }
