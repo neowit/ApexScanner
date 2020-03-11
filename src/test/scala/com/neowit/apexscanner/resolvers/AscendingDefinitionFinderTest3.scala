@@ -29,7 +29,7 @@ import com.neowit.apexscanner.antlr.CaretUtils
 import com.neowit.apexscanner.ast.{AstBuilderResult, QualifiedName}
 import com.neowit.apexscanner.nodes.{AstNode, IsTypeDefinition}
 import com.neowit.apexscanner.scanner.actions.{ActionContext, FindSymbolActionType}
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.util.Random
 
@@ -37,7 +37,7 @@ import scala.util.Random
   * tests of AscendingDefinitionFinder in multi-file/class scenarios
   */
 
-class AscendingDefinitionFinderTest3 extends FunSuite {
+class AscendingDefinitionFinderTest3 extends AnyFunSuite {
     // for cases when we do not really care about project path - get something random
     private val projectPath: Path = Paths.get(System.getProperty("java.io.tmpdir"))
     private class TestDocument(text: String, fileName: String) extends TextBasedDocument(text, fileOpt = Option(Paths.get(fileName)), offset = None) {

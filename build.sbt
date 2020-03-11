@@ -3,7 +3,8 @@ name := "ApexScanner"
 
 version := "1.0"
 
-scalaVersion := "2.12.10"
+//scalaVersion := "2.12.10"
+scalaVersion := "2.13.1"
 
 //https://blog.threatstack.com/useful-scalac-options-for-better-scala-development-part-1
 scalacOptions ++= Seq(
@@ -14,13 +15,13 @@ scalacOptions ++= Seq(
     "-encoding", "UTF-8",       // yes, this is 2 args
     "-Xfatal-warnings",
     "-Xlint",
-    "-Yno-adapted-args",
+    //"-Yno-adapted-args",
     "-Ywarn-numeric-widen",
     "-Ywarn-value-discard",
-    "-Xfuture",
-    "-Ywarn-unused-import",
+    //"-Xfuture",
+    //"-Ywarn-unused-import",
     "-Ywarn-dead-code",
-    "-Ypartial-unification"
+    //"-Ypartial-unification"
 )
 // disable generation of scala-<version> folders, we do not need cross compilation
 crossPaths := false
@@ -34,17 +35,18 @@ sourceDirectories in Compile ~= ( dirs =>
 
 libraryDependencies += "org.antlr" %  "antlr4-runtime" % "4.8"
 
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % "test"
 
 // logging
-libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.7"
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
 //libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.21"
-libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0"
+libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
 
 // command line arguments
-libraryDependencies += "com.github.scopt" %% "scopt" % "3.5.0"
+//libraryDependencies += "com.github.scopt" %% "scopt_2.13" % "4.0.0-RC2"
+libraryDependencies += "com.github.scopt" % "scopt_2.13" % "4.0.0-RC2"
 
-val circeVersion = "0.7.0"
+val circeVersion = "0.12.3"
 
 libraryDependencies ++= Seq(
     "io.circe" %% "circe-core",

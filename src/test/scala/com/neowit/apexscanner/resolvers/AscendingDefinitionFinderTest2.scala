@@ -29,7 +29,7 @@ import com.neowit.apexscanner.antlr.CaretUtils
 import com.neowit.apexscanner.ast.{AstBuilderResult, QualifiedName}
 import com.neowit.apexscanner.nodes.{AstNode, IsTypeDefinition}
 import com.neowit.apexscanner.scanner.actions.{ActionContext, FindSymbolActionType}
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.util.Random
 
@@ -38,7 +38,7 @@ import scala.util.Random
   *
   * tests of AscendingDefinitionFinder in single-file/class scenarios
   */
-class AscendingDefinitionFinderTest2 extends FunSuite {
+class AscendingDefinitionFinderTest2 extends AnyFunSuite {
     //implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = Span(2, Seconds), interval = Span(20, Millis))
 
     // for cases when we do not really care about project path - get something random

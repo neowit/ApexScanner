@@ -5,8 +5,8 @@ import java.nio.file.{FileSystems, Files, Path}
 
 import com.neowit.apexscanner.{TestConfigProvider, VirtualDocument}
 import com.neowit.apexscanner.scanner.actions.SyntaxChecker
-import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.collection.mutable
 import scala.concurrent.Await
@@ -15,7 +15,7 @@ import scala.concurrent.duration.Duration
 
 //import scala.collection.JavaConverters._
 
-class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {self =>
+class SyntaxCheckerTest extends AnyFunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {self =>
 
     // TEST OUTPUT CONFIGURATION
     private val failOnError = true
@@ -32,7 +32,16 @@ class SyntaxCheckerTest extends FunSuite with TestConfigProvider with ScalaFutur
         "IObjectWrapper.cls", // old class, contains no longer supported type parameter: interface Name<T>
         "CompletionTester.cls" // this class usually contains broken syntax because of incomplete expressions
     )
-    private val ignoredDirs = Set("resources_unpacked", "Referenced Packages", "_ProjectTemplate")
+    private def ignoredDirs = {
+        val dirs = getProperty("SyntaxCheckerTest.ignoreDirs") // semicolon separated values
+        val configuredDirs: Set[String] =
+        if (null != dirs) {
+            dirs.split(";").map(_.trim).toSet //split by ';' and remove spaces before/after each value
+        } else {
+            Set()
+        }
+        Set("resources_unpacked", "Referenced Packages", "_ProjectTemplate") ++ configuredDirs
+    }
 
     private val processedKeys: mutable.HashSet[String] = new mutable.HashSet[String]()
     private var _testedApexFileCount = 0

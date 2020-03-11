@@ -27,12 +27,12 @@ import com.neowit.apexscanner.{TextBasedDocument, VirtualDocument}
 import com.neowit.apexscanner.scanner.{ApexErrorListener, DocumentScanResult, Scanner, SoqlScanner}
 import com.neowit.apexscanner.scanner.actions.SyntaxChecker
 import org.antlr.v4.runtime.atn.PredictionMode
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 /**
   * Created by Andrey Gavrikov 
   */
-class SoqlGrammarTest extends FunSuite {
+class SoqlGrammarTest extends AnyFunSuite {
     private val soqlScanner = new SoqlScanner(){
         override def isIgnoredPath(path: Path) = true
         override def onEachResult(result: DocumentScanResult): DocumentScanResult = Scanner.defaultOnEachResult(result)

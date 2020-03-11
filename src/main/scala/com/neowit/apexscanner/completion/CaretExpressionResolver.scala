@@ -91,7 +91,8 @@ class CaretExpressionResolver(project: Project, actionContext: ActionContext)  e
       */
     def resolveExpressionBeforeCaret(caret: Caret, tokensBeforeCaret: List[Token], astScopeNode: AstNode, lastAstNode: AstNode): Option[IsTypeDefinition] = {
 
-        import collection.JavaConverters._
+        //import collection.JavaConverters._
+        import scala.jdk.CollectionConverters._
         val tokenSource = new ListTokenSource(tokensBeforeCaret.asJava)
         val tokenStream = new CommonTokenStream(tokenSource)
         //val parser = new ApexcodeParser(tokenStream)
@@ -208,7 +209,10 @@ class CaretExpressionResolver(project: Project, actionContext: ActionContext)  e
     }
 
     private def parse(tokens: List[Token]): Option[ParserRuleContext] = {
-        import collection.JavaConverters._
+        //import collection.JavaConverters._
+        import scala.jdk.CollectionConverters._
+        import scala.util.control.Breaks._
+
         val methods = Seq[java.util.List[Token] => ParserRuleContext](
             parseAsExpression,
             parseAsClassVariable,
@@ -219,14 +223,20 @@ class CaretExpressionResolver(project: Project, actionContext: ActionContext)  e
         val tokensList = tokens.asJava
         val tokensLength = tokens.length
 
-        for (method <- methods) {
-            val tree = method(tokensList)
-            // this condition may need tweaking
-            // check if last token in resulting tree is near caret (i.e. last expression type/method is probably right guess)
-            if (tree.stop.getTokenIndex + 1 >= tokensLength) {
-                return Option(tree)
+        var resOpt: Option[ParserRuleContext] = None
+        breakable {
+            for (method <- methods) {
+                val tree = method(tokensList)
+                // this condition may need tweaking
+                // check if last token in resulting tree is near caret (i.e. last expression type/method is probably right guess)
+                if (tree.stop.getTokenIndex + 1 >= tokensLength) {
+                    resOpt = Option(tree)
+                    break //FixMe - convert to code which does not require break
+                }
             }
         }
+
+
         None
     }
 

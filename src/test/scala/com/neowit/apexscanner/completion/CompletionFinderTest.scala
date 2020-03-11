@@ -27,8 +27,8 @@ import com.neowit.apexscanner.antlr.CaretUtils
 import com.neowit.apexscanner.scanner.actions.{ActionContext, ListCompletionsActionType}
 import com.neowit.apexscanner.{Project, TestConfigProvider}
 import com.neowit.apexscanner.symbols.Symbol
-import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.util.Random
 
@@ -36,7 +36,7 @@ import scala.util.Random
 /**
   * Created by Andrey Gavrikov 
   */
-class CompletionFinderTest extends FunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
+class CompletionFinderTest extends AnyFunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
 private val filePath = getProperty("CompletionFinderTest.path")
     private val projectPath = FileSystems.getDefault.getPath(filePath)
 

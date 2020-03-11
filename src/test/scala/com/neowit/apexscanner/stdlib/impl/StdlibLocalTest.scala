@@ -28,13 +28,13 @@ import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes.{MethodNodeBase, MethodNodeType}
 import com.neowit.apexscanner.resolvers.QualifiedNameDefinitionFinder
 import com.neowit.apexscanner.symbols.SymbolKind
-import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
+import org.scalatest.funsuite.AnyFunSuite
 
 /**
   * Created by Andrey Gavrikov 
   */
-class StdlibLocalTest extends FunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
+class StdlibLocalTest extends AnyFunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
     private val projectPath = FileSystems.getDefault.getPath("/temp")
     private val project = Project(projectPath)
     project.loadStdLib() // force loading of StandardLibrary

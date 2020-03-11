@@ -27,14 +27,14 @@ import com.neowit.apexscanner.antlr.CaretUtils
 import com.neowit.apexscanner.ast.AstBuilderResult
 import com.neowit.apexscanner.nodes.HasApexDoc
 import com.neowit.apexscanner.scanner.actions.{ActionContext, FindSymbolActionType}
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.util.Random
 
 /**
   * Created by Andrey Gavrikov 
   */
-class ApexDocTest extends FunSuite {
+class ApexDocTest extends AnyFunSuite {
     private val projectPath: Path = Paths.get(System.getProperty("java.io.tmpdir"))
     private class TestDocument(text: String, fileName: String) extends TextBasedDocument(text, fileOpt = Option(Paths.get(fileName)), offset = None) {
         override def getId: DocumentId = fileName

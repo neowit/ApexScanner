@@ -42,13 +42,14 @@ case class AnnotationNode(override val name: Option[String], body: Option[Annota
       * @return textual representation of this node and its children
       */
     override def getDebugInfo: String = {
+        val nameStr = name.getOrElse("")
         val myText =
             body match {
                 case Some(AnnotationValue(_value, _)) =>
-                    name + "(" +  _value + ")"
+                    nameStr + "(" +  _value + ")"
                 case Some(AnnotationParameterList(params, _)) =>
-                    name + "(" + params.map(_.getDebugInfo).mkString(",") + ")"
-                case _ => name
+                    nameStr + "(" + params.map(_.getDebugInfo).mkString(",") + ")"
+                case _ => nameStr
 
             }
         super.getDebugInfo + " " + myText
@@ -86,7 +87,8 @@ case class AnnotationNode(override val name: Option[String], body: Option[Annota
 }
 
 object AnnotationNode {
-    import scala.collection.JavaConverters._
+    //import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
 
     val ANNOTATIONS_NODE_NAME: String = "_Annotations"
 

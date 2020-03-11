@@ -97,7 +97,7 @@ object MethodNode {
                 }
             }
 
-            override def getParameterTypes: Seq[ValueType] = parameterTypes
+            override def getParameterTypes: Seq[ValueType] = parameterTypes.toIndexedSeq
 
             override protected def getSelf: AstNode = self
 

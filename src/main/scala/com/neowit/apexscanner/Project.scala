@@ -209,17 +209,23 @@ case class Project(path: Path)/*(implicit ex: ExecutionContext)*/ extends CodeLi
     }
 
     private def findInExternalLibrary(qualifiedName: QualifiedName): Option[AstNode] = {
-        for (lib <- getExternalLibraries) {
-            if (!lib.isLoaded) {
-                lib.load(this)
-            }
-            lib.getByQualifiedName(qualifiedName) match {
-                case Some(node) =>
-                    return Option(node)
-                case None =>
+        import scala.util.control.Breaks._
+
+        var resOpt: Option[AstNode] = None
+        breakable {
+            for (lib <- getExternalLibraries) {
+                if (!lib.isLoaded) {
+                    lib.load(this)
+                }
+                lib.getByQualifiedName(qualifiedName) match {
+                    case Some(node) =>
+                        resOpt = Option(node)
+                        break //FixMe - convert to code which does not require break
+                    case None =>
+                }
             }
         }
-        None
+        resOpt
     }
 
     /**
@@ -244,7 +250,8 @@ case class Project(path: Path)/*(implicit ex: ExecutionContext)*/ extends CodeLi
       * @return
       */
     def getDocumentByName(name: String, matcherCreatorFun: String => PathMatcher = Project.getClassOrTriggerMatcher): Option[VirtualDocument] = {
-        import scala.collection.JavaConverters._
+        //import scala.collection.JavaConverters._
+        import scala.jdk.CollectionConverters._
         val rootPath = this.path
         //val matcher = Project.getClassOrTriggerMatcher(name)
         val matcher = matcherCreatorFun(name)

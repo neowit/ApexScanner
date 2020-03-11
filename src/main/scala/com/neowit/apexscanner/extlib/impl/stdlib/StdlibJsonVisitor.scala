@@ -216,7 +216,7 @@ class StdlibJsonVisitor(lib: CodeLibrary) extends StdlibJsonBaseVisitor[AstNode]
 
             override def isMethodLike: Boolean = true
 
-            override def methodParameters: Seq[String] = context.parameters.map(_.`type`)
+            override def methodParameters: Seq[String] = context.parameters.map(_.`type`).toIndexedSeq
 
             override def symbolValueType: Option[String] = getValueType.map(_.toString)//context.returnType
 

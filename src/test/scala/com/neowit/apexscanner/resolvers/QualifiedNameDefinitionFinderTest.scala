@@ -24,14 +24,14 @@ package com.neowit.apexscanner.resolvers
 import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.symbols.SymbolKind
 import com.neowit.apexscanner.{FileBasedDocument, Project, TestConfigProvider}
-import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
+import org.scalatest.funsuite.AnyFunSuite
 
 
 /**
   * Created by Andrey Gavrikov 
   */
-class QualifiedNameDefinitionFinderTest extends FunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
+class QualifiedNameDefinitionFinderTest extends AnyFunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
     private val projectPath = getTestResourcePath("QualifiedNameDefinitionFinderTest.projectPath")
 
     test("testFindDefinition: findByDocumentName(TypeFinder.InnerClass1) - using existing AST") {

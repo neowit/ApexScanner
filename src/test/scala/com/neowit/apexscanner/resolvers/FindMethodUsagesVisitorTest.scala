@@ -26,14 +26,14 @@ import com.neowit.apexscanner.TestConfigProvider
 import com.neowit.apexscanner.ast.{AstWalker, QualifiedName}
 import com.neowit.apexscanner.nodes.ValueType
 import com.neowit.apexscanner.scanner.actions.{ActionContext, FindUsagesActionType}
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.util.Random
 
 /**
   * Created by Andrey Gavrikov 
   */
-class FindMethodUsagesVisitorTest extends FunSuite with TestConfigProvider {
+class FindMethodUsagesVisitorTest extends AnyFunSuite with TestConfigProvider {
     case class ValueTypeForTest(typeName: String, typeArguments: Seq[ValueType] = Seq.empty) extends ValueType {
         override def qualifiedName: QualifiedName = QualifiedName(Array(typeName))
     }

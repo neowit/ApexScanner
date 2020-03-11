@@ -21,6 +21,7 @@
 
 package com.neowit.apexscanner.nodes
 
+import scala.collection.immutable.Seq
 /**
   * Created by Andrey Gavrikov 
   */

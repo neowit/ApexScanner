@@ -32,7 +32,8 @@ import org.antlr.v4.runtime.atn.PredictionMode
 import org.antlr.v4.runtime.misc.ParseCancellationException
 
 import scala.util.{Failure, Success, Try}
-import collection.JavaConverters._
+//import collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /**
   * Created by Andrey Gavrikov 

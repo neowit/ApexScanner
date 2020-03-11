@@ -48,7 +48,7 @@ class MessageWriter(out: OutputStream) extends MessageJsonSupport with LazyLoggi
         write(notification.asJson)
     }
     private def write(msg: Json): Unit = lock.synchronized {
-        val jsonString = DROP_NULLS_PRINTER.pretty( msg )
+        val jsonString = DROP_NULLS_PRINTER.print( msg )
         val payloadBytes = jsonString.getBytes(MessageWriter.Utf8Charset)
         // write header
         writeHeader(ContentLengthHeader(payloadBytes.length))
@@ -71,5 +71,5 @@ object MessageWriter {
     // when serialising JSON omit None values.
     // By default it results in "key": null which is ugly
     // https://github.com/circe/circe/issues/585
-    val DROP_NULLS_PRINTER: Printer = Printer.noSpaces.copy(dropNullKeys = true)
+    val DROP_NULLS_PRINTER: Printer = Printer.noSpaces.copy(dropNullValues = true)
 }

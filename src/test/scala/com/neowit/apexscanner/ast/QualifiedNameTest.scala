@@ -21,12 +21,11 @@
 
 package com.neowit.apexscanner.ast
 
-import org.scalatest.FunSuite
-
+import org.scalatest.funsuite.AnyFunSuite
 /**
   * Created by Andrey Gavrikov 
   */
-class QualifiedNameTest extends FunSuite {
+class QualifiedNameTest extends AnyFunSuite {
     test("Qualified Name Merge") {
         var result =
             QualifiedName(

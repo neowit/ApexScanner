@@ -28,8 +28,8 @@ import com.neowit.apexscanner.ast.QualifiedName
 import com.neowit.apexscanner.nodes.MethodBodyNodeType
 import com.neowit.apexscanner.scanner.actions.{ActionContext, FindSymbolActionType}
 import com.neowit.apexscanner.{Project, TestConfigProvider}
-import org.scalatest.FunSuite
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.util.Random
 
@@ -38,7 +38,7 @@ import scala.util.Random
   *
   * unit tests for CompletionFinder.findCaretScope() logic
   */
-class CaretScopeFinderTest extends FunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
+class CaretScopeFinderTest extends AnyFunSuite with TestConfigProvider with ScalaFutures with IntegrationPatience {
     private val filePath = getProperty("CompletionFinderTest.path")
     private val projectPath = FileSystems.getDefault.getPath(filePath)
 

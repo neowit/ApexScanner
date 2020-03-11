@@ -24,7 +24,7 @@ package com.neowit.apexscanner.resolvers
 import com.neowit.apexscanner.TestConfigProvider
 import com.neowit.apexscanner.nodes._
 import com.neowit.apexscanner.scanner.actions.{ActionContext, FindSymbolActionType}
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.util.Random
 
@@ -32,7 +32,7 @@ import scala.util.Random
   * Created by Andrey Gavrikov 
   */
 // do not add any more tests to this class, these are difficult to maintain
-class AscendingDefinitionFinderTest extends FunSuite with TestConfigProvider {
+class AscendingDefinitionFinderTest extends AnyFunSuite with TestConfigProvider {
 
     test("Multi-File variables - other class") {
         val projectData = ResolverTestUtils.getResolverTestData("AscendingDefinitionFinderTest.testFindMultiFileDefinition.Project.path")

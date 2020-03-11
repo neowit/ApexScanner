@@ -28,7 +28,8 @@ import com.neowit.apexscanner.{Project, VirtualDocument}
 import org.antlr.v4.runtime.{CommonTokenStream, ParserRuleContext}
 import org.antlr.v4.runtime.tree.RuleNode
 
-import scala.collection.JavaConverters._
+//import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 /**
   * Created by Andrey Gavrikov 
   */
@@ -85,7 +86,7 @@ class SoqlAstBuilderVisitor(override val projectOpt: Option[Project],
     override def visitSelectItems(ctx: SoqlParser.SelectItemsContext): AstNode = {
         if (null != ctx.selectItem()) {
             // select one, two, three, TYPEOF Some ... END
-            val selectItems: Seq[AstNode] = ctx.selectItem().asScala.map(visit)
+            val selectItems: Seq[AstNode] = ctx.selectItem().asScala.map(visit).toSeq
             val expressionListNode = SelectItemsNode(selectItems, Range(ctx, _documentOffsetPosition))
             selectItems.map(_.setParentInAst(expressionListNode))
             visitChildren(expressionListNode, ctx)
@@ -144,7 +145,7 @@ class SoqlAstBuilderVisitor(override val projectOpt: Option[Project],
             FromNode(qualifiedNameOpt, aliasOpt, Range(ctx, _documentOffsetPosition))
         } else if (null != ctx.fromExpression()) {
             val fromExpressionNode = FromExpressionNode(Range(ctx, _documentOffsetPosition))
-            val expressions: Seq[AstNode] = ctx.fromExpression().asScala.map(visit)
+            val expressions: Seq[AstNode] = ctx.fromExpression().asScala.map(visit).toSeq
             expressions.map(_.setParentInAst(fromExpressionNode))
             fromExpressionNode
         } else {

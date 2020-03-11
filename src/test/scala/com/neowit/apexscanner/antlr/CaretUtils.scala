@@ -32,19 +32,30 @@ import com.neowit.apexscanner.nodes.Position
   */
 object CaretUtils {
     def getCaret(text: String, file: Path): CaretInDocument = {
+        import scala.util.control.Breaks._
+        var foundCaretPosition: CaretInDocument = null
+
         val caretTag = "<CARET>"
         val lines = text.split("""\n""")
         var lineNum = 1
-        for (line <- lines) {
-            val caretCharacterInLine = line.indexOf(caretTag)
-            if (caretCharacterInLine >=0) {
-                // found relevant line, remove caret tag from it
-                val documentText = text.replace(caretTag, "")
-                val fixedDocument = TextBasedDocument(documentText, Option(file), offset = None)
-                return new CaretInDocument(Position(lineNum, caretCharacterInLine), fixedDocument)
+        breakable {
+            for (line <- lines) {
+                val caretCharacterInLine = line.indexOf(caretTag)
+                if (caretCharacterInLine >= 0) {
+                    // found relevant line, remove caret tag from it
+                    val documentText = text.replace(caretTag, "")
+                    val fixedDocument = TextBasedDocument(documentText, Option(file), offset = None)
+                    foundCaretPosition = new CaretInDocument(Position(lineNum, caretCharacterInLine), fixedDocument)
+                    break //FixMe - convert to code which does not require break
+                }
+                lineNum += 1
             }
-            lineNum += 1
         }
-        throw new IllegalArgumentException(s"Caret not found in text $text")
+
+        if (null == foundCaretPosition) {
+            throw new IllegalArgumentException(s"Caret not found in text $text")
+        } else {
+            foundCaretPosition
+        }
     }
 }

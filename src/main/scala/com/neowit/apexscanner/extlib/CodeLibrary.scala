@@ -63,7 +63,7 @@ trait CodeLibrary {
       */
     def removeByQualifiedName(qualifiedName: QualifiedName): Unit = {
         // remove all nodes with key starting with given QualifiedName
-        _containerByQName.filterKeys(_.startsWith(qualifiedName))
+        _containerByQName.view.filterKeys(_.startsWith(qualifiedName))
             .foreach(key => _containerByQName.remove(qualifiedName))
     }
 

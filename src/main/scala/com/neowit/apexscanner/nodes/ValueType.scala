@@ -107,7 +107,7 @@ trait ValueType {
 
     override def toString: String = {
         val arguments = if (typeArguments.isEmpty) "" else "<" + typeArguments.mkString(",") + ">"
-        qualifiedName + arguments
+        qualifiedName.toString + arguments
     }
 }
 //Map<String, Map<Integer, List<String>>>
@@ -211,7 +211,7 @@ case object ValueTypeAny extends ValueType {
 case class ValueTypeArray(qualifiedNameNode: QualifiedNameNode) extends ValueType {
     def qualifiedName: QualifiedName = qualifiedNameNode.qualifiedName
 
-    override def toString: String = qualifiedName + "[]"
+    override def toString: String = qualifiedName.toString + "[]"
 
     override def typeArguments: Seq[ValueType] = Seq.empty
 }

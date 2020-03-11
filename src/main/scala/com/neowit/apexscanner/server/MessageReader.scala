@@ -126,7 +126,8 @@ class MessageReader (in: InputStream) extends MessageJsonSupport with LazyLoggin
                 case Right(json) =>
 
                     val decoderResult =
-                        if (json.asObject.exists(_.fieldSet.contains("id"))) {
+                        //if (json.asObject.exists(_.fieldSet.contains("id"))) {
+                        if (json.asObject.exists(_.contains("Id"))) {
                             json.as[RequestMessage]
                         } else {
                             json.as[NotificationMessage]

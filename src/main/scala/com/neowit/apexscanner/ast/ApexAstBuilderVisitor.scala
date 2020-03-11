@@ -419,9 +419,10 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project],
     }
 
     override def visitExpressionList(ctx: ExpressionListContext): AstNode = {
-        import scala.collection.JavaConverters._
+        //import scala.collection.JavaConverters._
+        import scala.jdk.CollectionConverters._
         if (null != ctx.expression()) {
-            val expressions: Seq[AstNode] = ctx.expression().asScala.map(visit)
+            val expressions: Seq[AstNode] = ctx.expression().asScala.map(visit).toSeq
             val expressionListNode = ExpressionListNode(expressions, Range(ctx, _documentOffsetPosition))
             expressions.map(_.setParentInAst(expressionListNode))
             visitChildren(expressionListNode, ctx)

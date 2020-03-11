@@ -185,7 +185,7 @@ trait AstNode {
         node
     }
 
-    def children: Seq[AstNode] = _children
+    def children: Seq[AstNode] = _children.toSeq
 
     def getChildrenInAst[T <: AstNode](nodeType: AstNodeType, recursively: Boolean = false): Seq[T] = {
         val immediateChildren = children.filter(_.nodeType == nodeType)
