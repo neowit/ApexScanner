@@ -41,8 +41,17 @@ trait TestConfigProvider {
       * @return path to local file which is concatenation of TEST_RESOURCE_ROOT + getProperty(propName)
       */
     def getTestResourcePath(propName: String): Path = {
-        val testResourceRoot = paths.getProperty("TEST_RESOURCE_ROOT")
+        val testResourceRoot = expandPath(paths.getProperty("TEST_RESOURCE_ROOT"))
         Paths.get(testResourceRoot, paths.getProperty(propName))
+    }
+
+    /**
+      * convert "~" to full reference to home folder
+      * @param path file path string which may contain "~"
+      * @return
+      */
+    def expandPath(path: String): String = {
+        path.replaceFirst("^~", System.getProperty("user.home").replace("\\","\\\\"))
     }
 
     def getLineNoByTag(path: Path, lineTag: String): Seq[Int] = {

@@ -63,7 +63,7 @@ object ResolverTestUtils extends TestConfigProvider with ScalaFutures with Integ
 
     def getResolverTestData(pathKey: String, existingProject: Option[Project] = None): ResolverTestData = {
         // pathKey = "AscendingDefinitionFinderTest.testFindDefinition.path"
-        val filePath = getProperty(pathKey)
+        val filePath = expandPath(getProperty(pathKey))
         val path = FileSystems.getDefault.getPath(filePath)
 
         val project = existingProject.getOrElse(Project(path))
