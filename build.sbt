@@ -30,7 +30,7 @@ sources in doc in Compile := List() // do NOT generate Scaladoc, it is a waste o
 
 // Get rid of scala-{version} folders
 sourceDirectories in Compile ~= ( dirs =>
-    dirs.filterNot(_.absolutePath.endsWith("-2.11")).filterNot(_.absolutePath.endsWith("-2.12"))
+    dirs.filterNot(_.absolutePath.endsWith("-2.11")).filterNot(_.absolutePath.endsWith("-2.12")).filterNot(_.absolutePath.endsWith("-2.13"))
 )
 
 libraryDependencies += "org.antlr" %  "antlr4-runtime" % "4.8"
