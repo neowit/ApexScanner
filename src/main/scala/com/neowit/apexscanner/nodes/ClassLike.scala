@@ -82,7 +82,7 @@ trait ClassLike extends AstNode with HasApexDoc with IsTypeDefinition with Symbo
         val thisChildren = super.findChildrenInAst(filter, recursively)
         val superChildren =
             getSuperClassOrInterface match {
-                case Some(parentCls) => parentCls.findChildrenInAst(filter)
+                case Some(parentCls) => parentCls.findChildrenInAst(filter, recursively)
                 case None => Seq.empty
             }
         thisChildren ++ superChildren

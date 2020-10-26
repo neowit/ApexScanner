@@ -231,7 +231,7 @@ class CaretExpressionResolver(project: Project, actionContext: ActionContext)  e
                 // check if last token in resulting tree is near caret (i.e. last expression type/method is probably right guess)
                 if (tree.stop.getTokenIndex + 1 >= tokensLength) {
                     resOpt = Option(tree)
-                    break //FixMe - convert to code which does not require break
+                    break() //FixMe - convert to code which does not require break
                 }
             }
         }

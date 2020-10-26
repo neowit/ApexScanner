@@ -147,7 +147,7 @@ object QualifiedName {
             for (name <- parentComponents) {
                 if (childHead == name.toLowerCase) {
                     //parent name is already included
-                    break
+                    break()
                 } else {
                     // parent name needs to be added
                     resultBuilder += name

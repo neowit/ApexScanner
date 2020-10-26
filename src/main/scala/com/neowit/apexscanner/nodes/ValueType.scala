@@ -79,7 +79,7 @@ trait ValueType {
                     if (namesMatch && typeArguments.length == definitionParamDataType.typeArguments.length) {
                         val numOfMatchingArgs =
                             typeArguments.zip(definitionParamDataType.typeArguments).count{
-                                case (left, right) => left.isSameType(right)
+                                case (left, right) => left.isSameType(right, withTypeModifications = true)
                             }
                         numOfMatchingArgs == typeArguments.length
                     } else {
