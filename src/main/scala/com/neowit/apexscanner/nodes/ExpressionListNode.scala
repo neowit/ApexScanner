@@ -32,6 +32,7 @@ case class ExpressionListNode(expressions: Seq[AstNode], range: Range) extends A
         expressions.flatMap{
             case n: AbstractExpression => Option(n)
             case n: FallThroughNode => n.getChildInAst[AbstractExpression](ExpressionNodeType)
+            case _ => Set.empty
         }
     }
 

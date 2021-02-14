@@ -112,64 +112,63 @@ case class ExpressionDotExpressionNode(range: Range) extends AbstractExpression 
       * @return
       */
     private def resolveDefinitionFromHead(expressions: Seq[AbstractExpression], actionContext: ActionContext): Seq[AstNode] = {
-        if (expressions.isEmpty) {
-            Seq.empty
-        } else {
-            expressions match {
-                case lst if lst.nonEmpty=>
-                    val head = lst.head
-                    val tail = lst.tail
-                    head match {
-                        case n:IsTypeDefinition => resolveTailDefinitions(n, tail, actionContext)
-                        case n: ThisExpressionNode =>
-                            n.resolveDefinition(actionContext) match {
-                              case Some(_def: IsTypeDefinition) =>
-                                  resolveTailDefinitions(_def, tail, actionContext)
-                              case _ =>
-                                    Seq.empty
-                            }
-                        case n: SuperExpressionNode =>
-                            n.resolveDefinition(actionContext) match {
-                                case Some(_def: IsTypeDefinition) =>
-                                    resolveTailDefinitions(_def, tail, actionContext)
-                                case _ =>
-                                    Seq.empty
-                            }
+        expressions match {
+            case lst if lst.nonEmpty=>
+                val head = lst.head
+                val tail = lst.tail
+                head match {
+                    case n:IsTypeDefinition => resolveTailDefinitions(n, tail, actionContext)
+                    case n: ThisExpressionNode =>
+                        n.resolveDefinition(actionContext) match {
+                            case Some(_def: IsTypeDefinition) =>
+                                resolveTailDefinitions(_def, tail, actionContext)
+                            case _ =>
+                                Seq.empty
+                        }
+                    case n: SuperExpressionNode =>
+                        n.resolveDefinition(actionContext) match {
+                            case Some(_def: IsTypeDefinition) =>
+                                resolveTailDefinitions(_def, tail, actionContext)
+                            case _ =>
+                                Seq.empty
+                        }
 
-                        case n: ArrayIndexExpressionNode =>
-                            n.resolveDefinition(actionContext) match {
-                                case Some(_def: IsTypeDefinition) =>
-                                    resolveTailDefinitions(_def, tail, actionContext)
-                                case _ =>
-                                    Seq.empty
-                            }
-                        case n: LiteralLike =>
-                            n.resolveDefinition(actionContext) match {
-                                case Some(_def: IsTypeDefinition) =>
-                                    resolveTailDefinitions(_def, tail, actionContext)
-                                case _ =>
-                                    Seq.empty
-                            }
-                        case n =>
-                            //head of expression has not been resolved yet, find its definition going UPwards
-                            val finder = new AscendingDefinitionFinder(actionContext)
-                            finder.findDefinition(n, n).headOption match {
-                                case Some(_def: IsTypeDefinition) =>
-                                    resolveTailDefinitions(_def, tail, actionContext)
-                                case _ =>
-                                    n match {
-                                        case identifier @ IdentifierNode(_, _) =>
-                                            identifier.resolveDefinitionByQualifiedName() match {
-                                                case Some(_def: IsTypeDefinition) =>
-                                                    resolveTailDefinitions(_def, tail, actionContext)
-                                                case _ =>
-                                                    Seq.empty
-                                            }
+                    case n: ArrayIndexExpressionNode =>
+                        n.resolveDefinition(actionContext) match {
+                            case Some(_def: IsTypeDefinition) =>
+                                resolveTailDefinitions(_def, tail, actionContext)
+                            case _ =>
+                                Seq.empty
+                        }
+                    case n: LiteralLike =>
+                        n.resolveDefinition(actionContext) match {
+                            case Some(_def: IsTypeDefinition) =>
+                                resolveTailDefinitions(_def, tail, actionContext)
+                            case _ =>
+                                Seq.empty
+                        }
+                    case n =>
+                        //head of expression has not been resolved yet, find its definition going UPwards
+                        val finder = new AscendingDefinitionFinder(actionContext)
+                        finder.findDefinition(n, n).headOption match {
+                            case Some(_def: IsTypeDefinition) =>
+                                resolveTailDefinitions(_def, tail, actionContext)
+                            case _ =>
+                                n match {
+                                    case identifier @ IdentifierNode(_, _) =>
+                                        identifier.resolveDefinitionByQualifiedName() match {
+                                            case Some(_def: IsTypeDefinition) =>
+                                                resolveTailDefinitions(_def, tail, actionContext)
+                                            case _ =>
+                                                Seq.empty
+                                        }
+                                    case _ => Seq.empty
 
-                                    }
-                            }
-                    }
-            }
+                                }
+                        }
+                }
+            case _ => Seq.empty
+
         }
     }
 

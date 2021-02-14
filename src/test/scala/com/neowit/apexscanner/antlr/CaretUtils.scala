@@ -46,7 +46,7 @@ object CaretUtils {
                     val documentText = text.replace(caretTag, "")
                     val fixedDocument = TextBasedDocument(documentText, Option(file), offset = None)
                     foundCaretPosition = new CaretInDocument(Position(lineNum, caretCharacterInLine), fixedDocument)
-                    break //FixMe - convert to code which does not require break
+                    break() //FixMe - convert to code which does not require break
                 }
                 lineNum += 1
             }

@@ -33,12 +33,14 @@ case class SoqlWhereNode (range: Range) extends AstNode with IsTypeDefinition {
     override def getValueType: Option[ValueType] = {
         findParentInAst(_.nodeType == SoqlQueryNodeType).flatMap{
             case n@ SoqlQueryNode(_, _) => n.getValueType
+            case _ => None
         }
     }
 
     override def qualifiedName: Option[QualifiedName] = {
         findParentInAst(_.nodeType == SoqlQueryNodeType).flatMap{
             case n@ SoqlQueryNode(_, _) => n.getValueType.map(_.qualifiedName)
+            case _ => None
         }
     }
 

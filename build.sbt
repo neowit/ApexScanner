@@ -4,7 +4,7 @@ name := "ApexScanner"
 version := "1.0"
 
 //scalaVersion := "2.12.10"
-scalaVersion := "2.13.1"
+scalaVersion := "2.13.4"
 
 //https://blog.threatstack.com/useful-scalac-options-for-better-scala-development-part-1
 scalacOptions ++= Seq(
@@ -22,6 +22,8 @@ scalacOptions ++= Seq(
     //"-Ywarn-unused-import",
     "-Ywarn-dead-code",
     //"-Ypartial-unification"
+    // Excluding -byname-implicit is required for Scala 2.13 due to https://github.com/scala/bug/issues/12072
+    "-Xlint:_,-byname-implicit", // without this parameter circe deriveDecoder results in: Block result was adapted via implicit conversion
 )
 // disable generation of scala-<version> folders, we do not need cross compilation
 crossPaths := false

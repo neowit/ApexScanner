@@ -45,6 +45,7 @@ case class IdentifierNode(name: String, range: Range) extends AbstractExpression
                         case _ => false
                     }.flatMap{
                         case n: DataTypeNode => n.resolveDefinition(actionContext)
+                        case _ => None
                     }
 
                 dataTypeNodeDef match {

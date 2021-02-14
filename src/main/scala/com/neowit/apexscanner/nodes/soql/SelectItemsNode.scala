@@ -32,6 +32,7 @@ case class SelectItemsNode(items: Seq[AstNode],range: Range) extends AstNode {
         items.flatMap{
             case n: AbstractExpression => Option(n)
             case n: FallThroughNode => n.getChildInAst[AbstractExpression](ExpressionNodeType)
+            case _ => Seq.empty
         }
     }
 

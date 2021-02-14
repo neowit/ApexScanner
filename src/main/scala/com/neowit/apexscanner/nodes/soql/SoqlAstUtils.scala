@@ -93,7 +93,7 @@ object SoqlAstUtils {
                 findParentFromNode(queryNode, aliasOpt)
             case Some(queryNode) if queryNode.nodeType == SoqlQueryNodeType=>
                 findFromNode(queryNode, aliasOpt)
-            case None => None
+            case _ => None
         }
     }
 

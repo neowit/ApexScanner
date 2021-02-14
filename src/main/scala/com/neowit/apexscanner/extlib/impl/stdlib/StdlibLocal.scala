@@ -72,13 +72,13 @@ private class StdlibLocal(project: Project, fileOpt: Option[File] = None) extend
     private def getSourceStream: InputStream = {
         fileOpt match {
             case Some(providedFile) if providedFile.canRead => new FileInputStream(providedFile)
-            case None => getDefaultStream
+            case _ => getDefaultStream
         }
     }
 
     private def getDefaultStream: InputStream = {
         // when reading resource from inside .jar have use getResourceAsStream() instead of getResource()
-        val is = getClass.getClassLoader.getResourceAsStream("apex-api-v50.json")
+        val is = getClass.getClassLoader.getResourceAsStream("apex-api-v51.json")
         if (null != is) {
             is
         } else {

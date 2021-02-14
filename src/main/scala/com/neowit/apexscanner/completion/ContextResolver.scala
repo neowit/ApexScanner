@@ -169,6 +169,7 @@ class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstN
                                     // to find definition of node preceding the caret
                                     ???
                             }
+                        case _ => None
                     }
                 } else {
                     ???
@@ -194,7 +195,7 @@ class ContextResolver(project: Project, astScopeNode: AstNode, lastAstNode: AstN
                                 // TODO
                                 ???
                         }
-
+                    case _ => None
                 }
             case _ =>
                 ???

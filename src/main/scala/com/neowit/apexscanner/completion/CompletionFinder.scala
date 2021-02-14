@@ -110,6 +110,7 @@ class CompletionFinder(project: Project) extends LazyLogging {
             case ValueTypeVoid => Seq.empty
             case ValueTypeAnnotation(qualifiedName) => AnnotationNode.getStdAnnotations
             case ValueTypeAny => ???
+            case _ => Seq()
         }
     }
     private def getSymbolsOf(qualifiedName: QualifiedName): Seq[Symbol] = {

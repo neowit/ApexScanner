@@ -78,6 +78,7 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project],
         getClassLikeNodes.filter(_.isInstanceOf[EnumNode])
             .foreach{
                 case enumNode: EnumNode => EnumNode.addStandardMethods(enumNode)
+                case _ =>
             }
     }
 
@@ -96,10 +97,10 @@ class ApexAstBuilderVisitor(override val projectOpt: Option[Project],
                                 visitChildren(FileNode(project, file, Range(ctx, _documentOffsetPosition)), ctx)
                             case None => NullNode
                         }
-                    case None =>
+                    case _ =>
                         throw new IllegalArgumentException("When parsing whole file - Project must be provided.")
                 }
-            case None =>
+            case _ =>
                 throw new IllegalArgumentException("fileOpt parameter of ApexAstBuilderVisitor must be defined when using visitor with CompilationUnitContext ")
         }
     }

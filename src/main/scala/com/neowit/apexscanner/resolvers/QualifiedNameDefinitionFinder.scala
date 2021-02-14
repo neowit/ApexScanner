@@ -78,7 +78,7 @@ class QualifiedNameDefinitionFinder(project: Project) {
                     case None =>
                         None
                 }
-            case None =>
+            case _ =>
                 Option(containerNode)
         }
     }
