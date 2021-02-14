@@ -42,18 +42,22 @@ object Scanner{
     def defaultIsIgnoredPath(path: Path): Boolean = {
         val isDirectory = Files.isDirectory(path)
         val fileName = path.getName(path.getNameCount-1).toString
-        if (isDirectory) {
-            return ignoredDirs.contains(fileName)
-        } else {
-            //regular file
-            if (
-                (fileName.endsWith(".cls") || fileName.endsWith(".trigger"))
-                    && !fileName.contains("__") // exclude classes with namespace <Namespace>__classname.cls, they do not have apex code
-            ) {
-                return false // not ignored file
+        if (Files.isReadable(path)) {
+            if (isDirectory) {
+                return ignoredDirs.contains(fileName)
+            } else {
+                //regular file
+                if (
+                    (fileName.endsWith(".cls") || fileName.endsWith(".trigger"))
+                      && !fileName.contains("__") // exclude classes with namespace <Namespace>__classname.cls, they do not have apex code
+                ) {
+                    return false // not ignored file
+                }
             }
+            true
+        } else {
+            true //unreadable files are ignored
         }
-        true
     }
 }
 
