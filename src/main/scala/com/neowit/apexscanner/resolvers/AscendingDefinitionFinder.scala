@@ -124,7 +124,7 @@ class AscendingDefinitionFinder(actionContext: ActionContext) extends LazyLoggin
 
         // convert Seq[Future[Option[AstNode]]] to Future[Seq[Option[AstNode]]]
         val allDefNodes = nodeOpts.filter(_.isDefined).map(_.get)
-        allDefNodes.map {
+        allDefNodes.filter {
             case _: AstNode with IsTypeDefinition => true
             case _ => false
         }.map(_.asInstanceOf[AstNode with IsTypeDefinition])
