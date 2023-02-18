@@ -161,21 +161,21 @@ class StdlibJsonVisitor(lib: CodeLibrary) extends StdlibJsonBaseVisitor[AstNode]
     }
 
     def visitApexApiJsonEnum(name: String, context: ApexApiJsonClass): AstNode = {
-        val enum = EnumNode(Option(name), Range.INVALID_LOCATION)
-        enum.addChildToAst(IdentifierNode(name, Range.INVALID_LOCATION))
+        val enumNode = EnumNode(Option(name), Range.INVALID_LOCATION)
+        enumNode.addChildToAst(IdentifierNode(name, Range.INVALID_LOCATION))
         context.methods.foreach{n =>
             val m = visitApexApiJsonMethod(n)
-            enum.addChildToAst(m)
+            enumNode.addChildToAst(m)
         }
 
         // add standard ENUM method
-        EnumNode.addStandardMethods(enum)
+        EnumNode.addStandardMethods(enumNode)
 
         context.properties.foreach{n =>
             val m = visitApexApiJsonEnumConstant(n)
-            enum.addChildToAst(m)
+            enumNode.addChildToAst(m)
         }
-        enum
+        enumNode
     }
 
     private val ENUM_CLASS_NAMES = Set("Severity")
