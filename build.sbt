@@ -28,10 +28,11 @@ scalacOptions ++= Seq(
 // disable generation of scala-<version> folders, we do not need cross compilation
 crossPaths := false
 
-sources in doc in Compile := List() // do NOT generate Scaladoc, it is a waste of time
+//sources in doc in Compile := List() // do NOT generate Scaladoc, it is a waste of time
+Compile / doc / sources  := List() // do NOT generate Scaladoc, it is a waste of time
 
 // Get rid of scala-{version} folders
-sourceDirectories in Compile ~= ( dirs =>
+Compile / sourceDirectories ~= ( dirs =>
     dirs.filterNot(_.absolutePath.endsWith("-2.11")).filterNot(_.absolutePath.endsWith("-2.12")).filterNot(_.absolutePath.endsWith("-2.13"))
 )
 
@@ -57,20 +58,20 @@ libraryDependencies ++= Seq(
     "io.circe" %% "circe-parser"
 ).map(_ % circeVersion)
 
-mainClass in assembly := Some("com.neowit.apexscanner.server.Main")
+assembly / mainClass := Some("com.neowit.apexscanner.server.Main")
 
-assemblyMergeStrategy in assembly := {
+assembly / assemblyMergeStrategy := {
     case x if x.endsWith(".java") => MergeStrategy.discard
     case "commands.txt" => MergeStrategy.discard
     case x if x.endsWith(".g4") => MergeStrategy.discard
     case x =>
-        val oldStrategy = (assemblyMergeStrategy in assembly).value
+        val oldStrategy = ( assembly / assemblyMergeStrategy ).value
         oldStrategy(x)
 }
 
 //uncomment line below to disable tests during build
-test in assembly := {}
+assembly / test := {}
 
 //assemblyOption in assembly ~= { _.copy(includeScala = false) }
-logLevel in assembly := Level.Error
+assembly / logLevel := Level.Error
 
