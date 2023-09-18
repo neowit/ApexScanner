@@ -237,9 +237,9 @@ private val filePath = getProperty("CompletionFinderTest.path")
         result match {
             case symbols if symbols.nonEmpty =>
                 assert(symbols.length >= 2, "Result contains less items than expected")
-                assert(symbols.exists(_.symbolName == "get"), "Missing expected symbol: name()")
-                assert(symbols.exists(_.symbolName == "clear"), "Missing expected symbol: ordinal()")
-                assert(symbols.exists(_.symbolName == "addAll"), "Missing expected symbol: equals()")
+                assert(symbols.exists(_.symbolName == "get"), "Missing expected symbol: get()")
+                assert(symbols.exists(_.symbolName == "clear"), "Missing expected symbol: clear()")
+                assert(symbols.exists(_.symbolName == "addAll"), "Missing expected symbol: addAll()")
             case _ =>
                 fail("Expected non empty result")
         }
