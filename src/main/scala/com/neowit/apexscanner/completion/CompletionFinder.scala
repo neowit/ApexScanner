@@ -105,7 +105,8 @@ class CompletionFinder(project: Project) extends LazyLogging {
                         QualifiedName(Array("List")),
                         Seq(ValueTypeSimple(qualifiedNameNode.qualifiedName))
                     ),
-                    fullyQualifiedName
+                    //fullyQualifiedName
+                    QualifiedName(Array("List"))//arrays in Apex is the same as List, so String[] is the same as List<String>
                 )
             case ValueTypeVoid => Seq.empty
             case ValueTypeAnnotation(qualifiedName) => AnnotationNode.getStdAnnotations
