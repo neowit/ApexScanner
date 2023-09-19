@@ -481,4 +481,28 @@ private val filePath = getProperty("CompletionFinderTest.path")
                 fail("Expected non empty result")
         }
     }
+
+    test("testListCompletions: Array syntax - `String[] strArr; strArr[0].<CARET>`") {
+        // in this test - adding ';' after <CARET> fixes the issue
+        val text =
+            """
+              |class CompletionTester {
+              | static String[] strArr;
+              | public void testCompletion() {
+              |     strArr[0].<CARET>
+              | }
+              |}
+          """.stripMargin
+        val result = listCompletions(text, "", loadStdLib = true)
+        result match {
+            case symbols if symbols.nonEmpty =>
+                assert(symbols.length >= 2, "Result contains less items than expected")
+                assert(symbols.exists(_.symbolName == "isEmpty"), "Missing expected symbol")
+                assert(symbols.exists(_.symbolName == "isNotBlank"), "Missing expected symbol")
+                assert(symbols.exists(_.symbolName == "isNotEmpty"), "Missing expected symbol")
+            case _ =>
+                fail("Expected non empty result")
+        }
+    }
+
 }

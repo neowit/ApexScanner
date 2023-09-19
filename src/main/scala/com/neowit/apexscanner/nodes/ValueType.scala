@@ -213,7 +213,7 @@ case class ValueTypeArray(qualifiedNameNode: QualifiedNameNode) extends ValueTyp
 
     override def toString: String = qualifiedName.toString + "[]"
 
-    override def typeArguments: Seq[ValueType] = Seq.empty
+    override def typeArguments: Seq[ValueType] = Seq(ValueTypeSimple(qualifiedNameNode.qualifiedName))//e.g. for String[] return String
 }
 
 
