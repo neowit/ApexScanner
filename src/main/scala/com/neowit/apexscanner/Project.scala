@@ -155,6 +155,7 @@ case class Project(path: Path)/*(implicit ex: ExecutionContext)*/ extends CodeLi
                 rootNode.findChildInAst(_.isInstanceOf[ClassLike])
                     .flatMap{
                         case cls: ClassLike => cls.qualifiedName
+                        case _ => None
                     }
             case None => None
         }
@@ -220,7 +221,7 @@ case class Project(path: Path)/*(implicit ex: ExecutionContext)*/ extends CodeLi
                 lib.getByQualifiedName(qualifiedName) match {
                     case Some(node) =>
                         resOpt = Option(node)
-                        break //FixMe - convert to code which does not require break
+                        break() //FixMe - convert to code which does not require break
                     case None =>
                 }
             }
